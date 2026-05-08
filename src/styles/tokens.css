@@ -1,0 +1,134 @@
+/* EDIT THIS FILE TO CHANGE THE COMPLETE QUIRKY HOME PLATFORM THEME */
+
+:root {
+  --color-brand-primary: #111111;
+  --color-brand-secondary: #5f3f00;
+  --color-brand-accent: #ffd86f;
+  --color-brand-ink: #1f2328;
+
+  --color-bg-main: #fffdf7;
+  --color-bg-soft: #fff4cf;
+  --color-bg-muted: #ffe7a3;
+  --color-bg-elevated: #ffffff;
+  --color-bg-inverse: #111111;
+
+  --color-text-main: #111111;
+  --color-text-muted: #555555;
+  --color-text-soft: #8b8b8b;
+  --color-text-inverse: #ffffff;
+
+  --color-border: #e8e0d0;
+  --color-border-strong: #111111;
+  --color-sale: #d7462f;
+  --color-discount: #078653;
+  --color-rating: #f5b928;
+  --color-focus: #111111;
+
+  --font-primary: Arial, Helvetica, sans-serif;
+  --font-display: Arial, Helvetica, sans-serif;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: clamp(1.85rem, 4vw, 2.75rem);
+  --font-size-4xl: clamp(2.25rem, 6vw, 4.5rem);
+  --font-size-5xl: clamp(3rem, 8vw, 6rem);
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --line-height-tight: 1.2;
+  --line-height-snug: 1.35;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.65;
+  --line-height-loose: 1.9;
+
+  --tracking-tight: 0;
+  --tracking-normal: 0;
+  --tracking-wide: 0.04em;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+  --space-24: 6rem;
+
+  --radius-sm: 0.35rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.5rem;
+  --radius-2xl: 0.75rem;
+  --radius-full: 999px;
+
+  --shadow-card: 0 8px 24px rgb(17 17 17 / 0.08);
+  --shadow-dropdown: 0 18px 48px rgb(17 17 17 / 0.16);
+  --shadow-soft: 0 6px 18px rgb(17 17 17 / 0.08);
+  --shadow-glow: 0 10px 28px rgb(255 216 111 / 0.42);
+
+  --container-max: 1200px;
+  --container-narrow: 920px;
+  --header-height: 4.75rem;
+  --product-card-image-height: 18rem;
+  --product-card-mobile-image-height: 13rem;
+  --button-height-sm: 2.35rem;
+  --button-height-md: 2.8rem;
+  --button-height-lg: 3.35rem;
+
+  --transition-fast: 150ms;
+  --transition-base: 240ms;
+  --transition-slow: 420ms;
+
+  --z-base: 1;
+  --z-header: 40;
+  --z-dropdown: 50;
+  --z-drawer: 60;
+  --z-modal: 70;
+}
+
+[data-theme="earthy"] {
+  --color-brand-primary: #8f4d31;
+  --color-brand-secondary: #586b49;
+  --color-brand-accent: #c1843d;
+  --color-bg-main: #fbf2e4;
+  --color-bg-soft: #e6d4bc;
+  --color-bg-muted: #d7c2a6;
+  --color-text-main: #31261c;
+  --color-text-muted: #786855;
+  --color-border: #cbb89d;
+}
+
+[data-theme="pastel"] {
+  --color-brand-primary: #c97968;
+  --color-brand-secondary: #8ba78f;
+  --color-brand-accent: #e0bd68;
+  --color-bg-main: #fffaf7;
+  --color-bg-soft: #f6e9e1;
+  --color-bg-muted: #eadbd4;
+  --color-text-main: #3a3030;
+  --color-text-muted: #8c7775;
+  --color-border: #ead4ca;
+}
+
+[data-theme="luxury"] {
+  --color-brand-primary: #a56d36;
+  --color-brand-secondary: #283b35;
+  --color-brand-accent: #c99b48;
+  --color-bg-main: #fbf6ec;
+  --color-bg-soft: #e9ddc9;
+  --color-bg-muted: #d7c8ad;
+  --color-bg-inverse: #1f2420;
+  --color-text-main: #211f1b;
+  --color-text-muted: #746d62;
+  --color-border: #cfc0a5;
+  --shadow-card: 0 22px 55px rgb(36 30 22 / 0.13);
+}
