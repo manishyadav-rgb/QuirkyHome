@@ -5,6 +5,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://qhbackend.onrender.c
 
 /** Convert a DB row to a Product */
 function rowToProduct(row: AdminProductRow): Product {
+  const rowDescription = (row as { description?: string | null }).description ?? "";
   return {
     title: row.title,
     slug: row.slug,
@@ -19,7 +20,7 @@ function rowToProduct(row: AdminProductRow): Product {
     price: Number(row.sale_price || row.mrp || 0),
     mrp: Number(row.mrp || row.sale_price || 0),
     badge: "New",
-    description: row.description && row.description !== row.title ? row.description : "",
+    description: rowDescription && rowDescription !== row.title ? rowDescription : "",
   };
 }
 
