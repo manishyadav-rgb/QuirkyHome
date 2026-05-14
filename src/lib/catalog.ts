@@ -29,6 +29,9 @@ function rowToProduct(row: AdminProductRow): Product {
  * for the builder's product picker matching.
  */
 export async function getCatalogProducts(): Promise<Product[]> {
+  // On Vercel build/prerender without DB env, avoid long fallback waits.
+  if (!process.env.DATABASE_URL) return [];
+
   try {
     const rows = await listAdminProducts();
     if (!rows || rows.length === 0) return [];
@@ -54,6 +57,8 @@ export async function getCatalogProducts(): Promise<Product[]> {
 }
 
 export async function getCatalogProduct(slug: string): Promise<Product | null> {
+  if (!process.env.DATABASE_URL) return null;
+
   // Direct DB lookup
   try {
     const rows = await listAdminProducts();
