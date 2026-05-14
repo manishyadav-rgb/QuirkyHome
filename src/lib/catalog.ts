@@ -6,7 +6,6 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://qhbackend.onrender.c
 /** Convert a DB row to a Product */
 function rowToProduct(row: AdminProductRow): Product {
   return {
-    id: row.id,
     title: row.title,
     slug: row.slug,
     category: row.category || "general",
