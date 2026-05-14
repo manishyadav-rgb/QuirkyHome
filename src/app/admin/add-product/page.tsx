@@ -1,4 +1,5 @@
 "use client";
+export const dynamic = "force-dynamic";
 
 import { RefreshCcw, ShieldCheck, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -37,8 +38,9 @@ export default function AddProductPage() {
     const response = await fetch("/api/admin/products?skus=1");
     const data = await response.json();
     if (!response.ok) throw new Error(data.error ?? "Failed to read existing SKUs");
-    const skus = Array.isArray(data.skus) ? data.skus : [];
-    const skuSet = new Set(skus.map((sku: string) => sku.toUpperCase()));
+    const skus = Array.isArray(data.skus) ? (data.skus as unknown[]) : [];
+    const normalizedSkus = skus.filter((sku): sku is string => typeof sku === "string");
+    const skuSet: Set<string> = new Set(normalizedSkus.map((sku) => sku.toUpperCase()));
     setExistingSkus(skuSet);
     return skuSet;
   }
