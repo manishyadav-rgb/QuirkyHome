@@ -119,13 +119,13 @@ export function ProductDetail({
         </div>
       </div>
 
-      <div className="qh-card w-full overflow-hidden p-6 lg:p-10">
+      <div className="qh-card w-full overflow-hidden p-5 lg:p-8">
         <div className="mb-4 flex flex-wrap gap-2">
           <Badge variant="sale">{discount}% Off</Badge>
           <Badge variant="secondary">{product.badge}</Badge>
         </div>
         <div className="flex items-start justify-between gap-4">
-          <h1 className="font-display text-2xl font-semibold leading-tight text-balance text-text-main break-words md:text-3xl lg:text-3xl">{product.title}</h1>
+          <h1 className="font-display text-xl font-semibold leading-tight text-balance text-text-main break-words md:text-2xl lg:text-[28px]">{product.title}</h1>
           <div className="flex shrink-0 gap-2">
             <button onClick={handleShare} className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-background-soft text-text-muted transition-colors hover:bg-brand-primary hover:text-text-inverse" aria-label="Share product">
               <Share2 className="h-4 w-4" />
@@ -135,11 +135,11 @@ export function ProductDetail({
             </button>
           </div>
         </div>
-        {product.description && <p className="mt-4 leading-relaxed text-text-muted">{product.description}</p>}
+        {product.description && <p className="mt-3 text-sm leading-relaxed text-text-muted md:text-[15px]">{product.description}</p>}
 
         {collectionProducts.length > 0 && (
           <div className="mt-6">
-            <p className="mb-3 text-sm font-bold uppercase tracking-wider text-text-main">Variants</p>
+            <p className="mb-2 text-xs font-bold uppercase tracking-wider text-text-main md:text-sm">Variants</p>
             <div className="flex flex-wrap gap-2">
               {collectionProducts.map((p) => (
                 <Link key={p.slug} href={`/${p.slug}`} className={`relative h-14 w-14 overflow-hidden rounded-md border-2 transition-all ${p.slug === product.slug ? "border-brand-primary ring-2 ring-brand-primary/20" : "border-border hover:border-text-soft"}`}>
@@ -150,17 +150,17 @@ export function ProductDetail({
           </div>
         )}
 
-        <div className="mt-6 flex flex-wrap items-baseline gap-3">
-          <span className="text-3xl font-bold text-text-main">{formatPrice(product.price)}</span>
-          <span className="text-lg text-text-soft line-through">{formatPrice(product.mrp)}</span>
-          <span className="font-semibold text-accent-discount">Inclusive of all taxes</span>
+        <div className="mt-5 flex flex-wrap items-baseline gap-2.5">
+          <span className="text-2xl font-bold text-text-main md:text-[30px]">{formatPrice(product.price)}</span>
+          <span className="text-base text-text-soft line-through md:text-lg">{formatPrice(product.mrp)}</span>
+          <span className="text-sm font-semibold text-accent-discount">Inclusive of all taxes</span>
         </div>
-        <div className="mt-8">
+        <div className="mt-6">
           <Button size="lg" className="w-full" onClick={() => addToCart(product)}>
             <ShoppingBag className="h-5 w-5" /> {inCart ? "Add One More" : "Add to Cart"}
           </Button>
         </div>
-        <div className="mt-10 grid grid-cols-3 gap-2 border-t border-border pt-8">
+        <div className="mt-8 grid grid-cols-3 gap-2 border-t border-border pt-6">
           <div className="flex flex-col items-center text-center">
             <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-background-soft text-brand-primary">
               <Truck className="h-5 w-5" />
