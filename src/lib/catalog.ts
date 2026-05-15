@@ -32,18 +32,16 @@ function rowToProduct(row: AdminProductRow): Product {
  * for the builder's product picker matching.
  */
 export async function getCatalogProducts(): Promise<Product[]> {
-  // On Vercel build/prerender without DB env, avoid long fallback waits.
-  if (!process.env.DATABASE_URL) return [];
-
-  try {
-    const rows = await listAdminProducts();
-    if (!rows || rows.length === 0) return [];
-    return rows.map(rowToProduct);
-  } catch (err) {
-    console.error("getCatalogProducts error:", err);
+  if (process.env.DATABASE_URL) {
+    try {
+      const rows = await listAdminProducts();
+      if (rows && rows.length > 0) return rows.map(rowToProduct);
+    } catch (err) {
+      console.error("getCatalogProducts DB error:", err);
+    }
   }
 
-  // Last resort: try the NestJS backend (won't have IDs)
+  // Fallback: try backend API
   try {
     const res = await fetch(`${API_URL}/products?site_id=quirkyhome`, {
       next: { revalidate: 60 },
@@ -60,15 +58,14 @@ export async function getCatalogProducts(): Promise<Product[]> {
 }
 
 export async function getCatalogProduct(slug: string): Promise<Product | null> {
-  if (!process.env.DATABASE_URL) return null;
-
-  // Direct DB lookup
-  try {
-    const rows = await listAdminProducts();
-    const row = rows.find((r) => r.slug === slug);
-    if (row) return rowToProduct(row);
-  } catch {
-    // Fall through
+  if (process.env.DATABASE_URL) {
+    try {
+      const rows = await listAdminProducts();
+      const row = rows.find((r) => r.slug === slug);
+      if (row) return rowToProduct(row);
+    } catch {
+      // Fall through
+    }
   }
 
   // Fallback: NestJS backend
