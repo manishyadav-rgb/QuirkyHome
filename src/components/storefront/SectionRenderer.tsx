@@ -76,20 +76,22 @@ async function StorefrontProductGridWrapper({ settings }: { settings: Record<str
   const mobileCols = parseInt(settings.mobileColumns || "2");
   const rows = parseInt(settings.rows || "2");
   const gap = parseInt(settings.gap || "24");
+  const mobileGap = Math.min(gap, 12);
   const limit = cols * rows;
   const limitedProducts = products.slice(0, limit);
 
-  const gridStyle: React.CSSProperties = {
+  const gridStyle = {
     display: "grid",
-    gap: `${gap}px`,
     gridTemplateColumns: `repeat(${mobileCols}, 1fr)`,
-  };
+    ["--gap-mobile" as string]: `${mobileGap}px`,
+    ["--gap-desktop" as string]: `${gap}px`,
+  } as React.CSSProperties;
 
   return (
     <section className="qh-container qh-section-pad">
       <SectionHeader eyebrow={settings.eyebrow} title={settings.heading} description={settings.subheading} />
       {limitedProducts.length ? (
-        <div style={gridStyle} className={`md:!grid-cols-3 lg:!grid-cols-${cols}`}>
+        <div style={gridStyle} className={`[gap:var(--gap-mobile)] md:[gap:var(--gap-desktop)] md:!grid-cols-3 lg:!grid-cols-${cols}`}>
           {limitedProducts.map((product) => (
             <ProductCard key={product.slug} product={product} /> 
           ))}
