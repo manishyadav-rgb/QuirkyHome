@@ -6,15 +6,18 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://qhbackend.onrender.c
 /** Convert a DB row to a Product */
 function rowToProduct(row: AdminProductRow): Product {
   const rowDescription = (row as { description?: string | null }).description ?? "";
+  const gallery = (row.gallery_images || []).filter(Boolean);
+  const primaryImage = gallery[0] || row.image_url || "https://placehold.co/600x600/f5f5f5/999?text=No+Image";
   return {
+    id: row.id,
     title: row.title,
     slug: row.slug,
     category: row.category || "general",
     sku: row.sku || undefined,
     collection: row.collection || undefined,
     stock: row.quantity_available ?? undefined,
-    image: row.image_url || "https://placehold.co/600x600/f5f5f5/999?text=No+Image",
-    gallery: row.image_url ? [row.image_url] : [],
+    image: primaryImage,
+    gallery: gallery.length ? gallery : [primaryImage],
     rating: 4.5,
     reviews: 0,
     price: Number(row.sale_price || row.mrp || 0),
