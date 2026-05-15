@@ -18,7 +18,7 @@ export function Footer() {
     <footer className="border-t border-border bg-background-inverse text-text-inverse">
       <div className="qh-container qh-footer-grid grid gap-8 py-12">
         <div>
-          <Link href="/" className="qh-logo text-3xl">QuirkyHome</Link>
+          <Link href="/" className="qh-logo text-3xl text-text-inverse">QuirkyHome</Link>
           <p className="mt-4 text-base leading-relaxed text-text-inverse">Warm, premium, playful decor for Indian homes that refuse to be boring.</p>
           <div className="mt-6 flex items-center gap-3">
             <Link href="#" aria-label="Instagram" className="qh-focus inline-flex h-10 w-10 items-center justify-center rounded-full border border-border text-text-inverse transition-colors duration-fast hover:text-brand-accent">

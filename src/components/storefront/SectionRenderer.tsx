@@ -153,12 +153,36 @@ function StorefrontNewsletterVaaree({ settings }: { settings: Record<string, any
 
 /* ─── SeoArticle ───────────────────────────────────────────── */
 function StorefrontSeoArticle({ settings }: { settings: Record<string, any> }) {
+  const allowedTags = new Set(["h1", "h2", "h3", "h4", "h5", "h6"]);
+  const headingTag = allowedTags.has(settings.headingTag) ? settings.headingTag : "h2";
+  const subheadingTag = allowedTags.has(settings.subheadingTag) ? settings.subheadingTag : "h2";
+  const HeadingTag = headingTag as keyof JSX.IntrinsicElements;
+  const SubheadingTag = subheadingTag as keyof JSX.IntrinsicElements;
+
+  // Backward compatibility: keep rendering legacy HTML when present.
+  if (
+    typeof settings.content === "string" &&
+    settings.content.includes("<") &&
+    settings.content.includes(">")
+  ) {
+    return (
+      <section className="qh-container qh-section-pad">
+        <article
+          className="qh-seo-copy max-w-none rounded-lg border border-border bg-background-elevated p-6 md:p-8"
+          dangerouslySetInnerHTML={{ __html: settings.content }}
+        />
+      </section>
+    );
+  }
+
   return (
     <section className="qh-container qh-section-pad">
-      <article 
-        className="qh-seo-copy max-w-none rounded-lg border border-border bg-background-elevated p-6 md:p-8"
-        dangerouslySetInnerHTML={{ __html: settings.content }}
-      />
+      <article className="qh-seo-copy max-w-none rounded-lg border border-border bg-background-elevated p-6 md:p-8">
+        {settings.headingText ? <HeadingTag>{settings.headingText}</HeadingTag> : null}
+        {settings.content ? <p>{settings.content}</p> : null}
+        {settings.subheadingText ? <SubheadingTag>{settings.subheadingText}</SubheadingTag> : null}
+        {settings.content2 ? <p>{settings.content2}</p> : null}
+      </article>
     </section>
   );
 }

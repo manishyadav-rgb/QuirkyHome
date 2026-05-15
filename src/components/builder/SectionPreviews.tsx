@@ -394,10 +394,33 @@ export function PromisesSectionPreview({ settings }: { settings: Section["settin
 }
 
 export function SeoArticlePreview({ settings }: { settings: Section["settings"] }) {
+  const allowedTags = new Set(["h1", "h2", "h3", "h4", "h5", "h6"]);
+  const headingTag = allowedTags.has(String(settings.headingTag || "")) ? String(settings.headingTag) : "h2";
+  const subheadingTag = allowedTags.has(String(settings.subheadingTag || "")) ? String(settings.subheadingTag) : "h2";
+  const HeadingTag = headingTag as keyof JSX.IntrinsicElements;
+  const SubheadingTag = subheadingTag as keyof JSX.IntrinsicElements;
+
+  if (
+    typeof settings.content === "string" &&
+    settings.content.includes("<") &&
+    settings.content.includes(">")
+  ) {
+    return (
+      <section className="qh-container qh-section-pad">
+        <article className="qh-seo-copy max-w-none rounded-lg border border-border bg-background-elevated p-6 md:p-8">
+          <div dangerouslySetInnerHTML={{ __html: settings.content || "" }} />
+        </article>
+      </section>
+    );
+  }
+
   return (
     <section className="qh-container qh-section-pad">
       <article className="qh-seo-copy max-w-none rounded-lg border border-border bg-background-elevated p-6 md:p-8">
-        <div dangerouslySetInnerHTML={{ __html: settings.content || "" }} />
+        {settings.headingText ? <HeadingTag>{String(settings.headingText)}</HeadingTag> : null}
+        {settings.content ? <p>{String(settings.content)}</p> : null}
+        {settings.subheadingText ? <SubheadingTag>{String(settings.subheadingText)}</SubheadingTag> : null}
+        {settings.content2 ? <p>{String(settings.content2)}</p> : null}
       </article>
     </section>
   );

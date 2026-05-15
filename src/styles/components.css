@@ -40,7 +40,7 @@
   font-family: var(--font-display);
   font-weight: var(--font-weight-bold);
   letter-spacing: var(--tracking-tight);
-  color: var(--color-text-main);
+  color: inherit;
 }
 
 .qh-image-shell {
