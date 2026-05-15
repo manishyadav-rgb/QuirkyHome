@@ -141,6 +141,9 @@ function buildDefaultBuilderSchema(siteId: string) {
 function isLegacyBuilderSchema(schema: any) {
   const sections = schema?.pages?.home?.sections;
   if (!Array.isArray(sections)) return true;
+  // Empty sections is a valid state (merchant intentionally cleared home page).
+  // Do not auto-upgrade such schemas to defaults.
+  if (sections.length === 0) return false;
   const types = sections.map((s: any) => s?.type).filter(Boolean);
   return types.includes("FeaturedCollection") || !types.includes("SearchBand") || !types.includes("BannerStrip");
 }
