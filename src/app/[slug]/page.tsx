@@ -16,6 +16,13 @@ interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
+function htmlToPlainText(input: string) {
+  return input
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   
@@ -23,9 +30,20 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const builderSchema = await getBuilderSchema("quirkyhome");
   const page = Object.values(builderSchema?.pages || {}).find((p) => p.slug === slug);
   if (page) {
+    const seoSection = page.sections?.find((s: any) => s?.type === "SeoArticle" && s?.settings?.content);
+    const seoText = seoSection ? htmlToPlainText(String(seoSection.settings.content)) : "";
+    const description = seoText
+      ? seoText.slice(0, 160)
+      : `Explore ${page.name} on QuirkyHome with curated products and easy shopping.`;
     return {
       title: `${page.name} | QuirkyHome`,
-      description: `View ${page.name} on QuirkyHome`,
+      description,
+      alternates: { canonical: `/${slug}` },
+      openGraph: {
+        title: `${page.name} | QuirkyHome`,
+        description,
+        type: "website",
+      },
     };
   }
 
