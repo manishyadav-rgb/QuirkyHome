@@ -1,29 +1,179 @@
-/* EDIT THIS FILE TO CHANGE THE COMPLETE QUIRKY HOME PLATFORM THEME */
+/* ============================================================
+   QUIRKY HOME — CENTRALIZED DESIGN TOKEN SYSTEM
+   Edit theme color blocks below to change the entire platform.
+   The active theme is controlled via data-theme attribute on <html>.
+   ============================================================ */
 
+/* =========================================================
+   THEME 1: VIBRANT SUNSHINE (DEFAULT)
+   ========================================================= */
+:root,
+[data-theme="vibrant-sunshine"] {
+  --color-brand-primary: #F59E0B;
+  --color-brand-secondary: #D97706;
+  --color-brand-accent: #FBBF24;
+  --color-brand-ink: #1C1917;
+
+  --color-bg-main: #FFFBF0;
+  --color-bg-soft: #FEF3C7;
+  --color-bg-muted: #FDE68A;
+  --color-bg-elevated: #FFFFFF;
+  --color-bg-inverse: #1C1917;
+
+  --color-text-main: #1C1917;
+  --color-text-muted: #57534E;
+  --color-text-soft: #A8A29E;
+  --color-text-inverse: #FFFFFF;
+
+  --color-border: #E7E5E4;
+  --color-border-strong: #1C1917;
+  --color-sale: #DC2626;
+  --color-discount: #059669;
+  --color-rating: #F59E0B;
+  --color-focus: #D97706;
+
+  --shadow-card: 0 4px 24px rgba(245, 158, 11, 0.10), 0 1px 4px rgba(0,0,0,0.04);
+  --shadow-dropdown: 0 16px 48px rgba(0, 0, 0, 0.14);
+  --shadow-soft: 0 2px 12px rgba(245, 158, 11, 0.08);
+  --shadow-glow: 0 0 32px rgba(245, 158, 11, 0.35), 0 0 8px rgba(251, 191, 36, 0.25);
+}
+
+/* =========================================================
+   THEME 2: E-COMMERCE PRO
+   ========================================================= */
+[data-theme="ecommerce-pro"] {
+  --color-brand-primary: #2563EB;
+  --color-brand-secondary: #1D4ED8;
+  --color-brand-accent: #F97316;
+  --color-brand-ink: #0F172A;
+
+  --color-bg-main: #FFFFFF;
+  --color-bg-soft: #F8FAFC;
+  --color-bg-muted: #F1F5F9;
+  --color-bg-elevated: #FFFFFF;
+  --color-bg-inverse: #0F172A;
+
+  --color-text-main: #0F172A;
+  --color-text-muted: #475569;
+  --color-text-soft: #94A3B8;
+  --color-text-inverse: #FFFFFF;
+
+  --color-border: #E2E8F0;
+  --color-border-strong: #2563EB;
+  --color-sale: #EF4444;
+  --color-discount: #10B981;
+  --color-rating: #F59E0B;
+  --color-focus: #3B82F6;
+
+  --shadow-card: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03);
+  --shadow-dropdown: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-glow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+}
+
+/* =========================================================
+   THEME 3: BEAUTY BLUSH
+   ========================================================= */
+[data-theme="beauty-blush"] {
+  --color-brand-primary: #F472B6;
+  --color-brand-secondary: #DB2777;
+  --color-brand-accent: #EAB308;
+  --color-brand-ink: #3F3F46;
+
+  --color-bg-main: #FFFAFA;
+  --color-bg-soft: #FFF1F2;
+  --color-bg-muted: #FFE4E6;
+  --color-bg-elevated: #FFFFFF;
+  --color-bg-inverse: #3F3F46;
+
+  --color-text-main: #27272A;
+  --color-text-muted: #52525B;
+  --color-text-soft: #A1A1AA;
+  --color-text-inverse: #FFFFFF;
+
+  --color-border: #E4E4E7;
+  --color-border-strong: #F472B6;
+  --color-sale: #E11D48;
+  --color-discount: #0D9488;
+  --color-rating: #FBBF24;
+  --color-focus: #F472B6;
+
+  --shadow-card: 0 4px 15px rgba(244, 114, 182, 0.05);
+  --shadow-dropdown: 0 10px 30px rgba(244, 114, 182, 0.1);
+  --shadow-soft: 0 2px 8px rgba(244, 114, 182, 0.04);
+  --shadow-glow: 0 0 0 3px rgba(244, 114, 182, 0.3);
+}
+
+/* =========================================================
+   THEME 4: LUXURY NOIR
+   ========================================================= */
+[data-theme="luxury-noir"] {
+  --color-brand-primary: #D4AF37;
+  --color-brand-secondary: #B5952F;
+  --color-brand-accent: #F9F8F6;
+  --color-brand-ink: #000000;
+
+  --color-bg-main: #0A0A0A;
+  --color-bg-soft: #121212;
+  --color-bg-muted: #1A1A1A;
+  --color-bg-elevated: #171717;
+  --color-bg-inverse: #FFFFFF;
+
+  --color-text-main: #F5F5F5;
+  --color-text-muted: #A3A3A3;
+  --color-text-soft: #737373;
+  --color-text-inverse: #000000;
+
+  --color-border: #262626;
+  --color-border-strong: #D4AF37;
+  --color-sale: #EF4444;
+  --color-discount: #10B981;
+  --color-rating: #D4AF37;
+  --color-focus: #D4AF37;
+
+  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.5);
+  --shadow-dropdown: 0 12px 30px rgba(0, 0, 0, 0.8);
+  --shadow-soft: 0 2px 10px rgba(0, 0, 0, 0.4);
+  --shadow-glow: 0 0 0 1px #D4AF37;
+}
+
+/* =========================================================
+   THEME 5: MIDNIGHT TECH
+   ========================================================= */
+[data-theme="midnight-tech"] {
+  --color-brand-primary: #06B6D4;
+  --color-brand-secondary: #0891B2;
+  --color-brand-accent: #3B82F6;
+  --color-brand-ink: #0F172A;
+
+  --color-bg-main: #0B0F19;
+  --color-bg-soft: #111827;
+  --color-bg-muted: #1E293B;
+  --color-bg-elevated: #1E293B;
+  --color-bg-inverse: #F8FAFC;
+
+  --color-text-main: #F8FAFC;
+  --color-text-muted: #94A3B8;
+  --color-text-soft: #64748B;
+  --color-text-inverse: #0F172A;
+
+  --color-border: #334155;
+  --color-border-strong: #06B6D4;
+  --color-sale: #F43F5E;
+  --color-discount: #10B981;
+  --color-rating: #FBBF24;
+  --color-focus: #06B6D4;
+
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.4);
+  --shadow-dropdown: 0 16px 48px rgba(0, 0, 0, 0.6);
+  --shadow-soft: 0 2px 12px rgba(0, 0, 0, 0.3);
+  --shadow-glow: 0 0 20px rgba(6, 182, 212, 0.2);
+}
+
+/* =========================================================
+   SHARED LAYOUT & TYPOGRAPHY TOKENS (unchanged across themes)
+   ========================================================= */
 :root {
-  --color-brand-primary: #111111;
-  --color-brand-secondary: #5f3f00;
-  --color-brand-accent: #ffd86f;
-  --color-brand-ink: #1f2328;
-
-  --color-bg-main: #fffdf7;
-  --color-bg-soft: #fff4cf;
-  --color-bg-muted: #ffe7a3;
-  --color-bg-elevated: #ffffff;
-  --color-bg-inverse: #111111;
-
-  --color-text-main: #111111;
-  --color-text-muted: #555555;
-  --color-text-soft: #8b8b8b;
-  --color-text-inverse: #ffffff;
-
-  --color-border: #e8e0d0;
-  --color-border-strong: #111111;
-  --color-sale: #d7462f;
-  --color-discount: #078653;
-  --color-rating: #f5b928;
-  --color-focus: #111111;
-
   --font-primary: Arial, Helvetica, sans-serif;
   --font-display: Arial, Helvetica, sans-serif;
   --font-size-xs: 0.75rem;
@@ -70,12 +220,7 @@
   --radius-2xl: 0.75rem;
   --radius-full: 999px;
 
-  --shadow-card: 0 8px 24px rgb(17 17 17 / 0.08);
-  --shadow-dropdown: 0 18px 48px rgb(17 17 17 / 0.16);
-  --shadow-soft: 0 6px 18px rgb(17 17 17 / 0.08);
-  --shadow-glow: 0 10px 28px rgb(255 216 111 / 0.42);
-
-  --container-max: 1200px;
+  --container-max: 1440px;
   --container-narrow: 920px;
   --header-height: 4.75rem;
   --product-card-image-height: 18rem;
@@ -93,42 +238,4 @@
   --z-dropdown: 50;
   --z-drawer: 60;
   --z-modal: 70;
-}
-
-[data-theme="earthy"] {
-  --color-brand-primary: #8f4d31;
-  --color-brand-secondary: #586b49;
-  --color-brand-accent: #c1843d;
-  --color-bg-main: #fbf2e4;
-  --color-bg-soft: #e6d4bc;
-  --color-bg-muted: #d7c2a6;
-  --color-text-main: #31261c;
-  --color-text-muted: #786855;
-  --color-border: #cbb89d;
-}
-
-[data-theme="pastel"] {
-  --color-brand-primary: #c97968;
-  --color-brand-secondary: #8ba78f;
-  --color-brand-accent: #e0bd68;
-  --color-bg-main: #fffaf7;
-  --color-bg-soft: #f6e9e1;
-  --color-bg-muted: #eadbd4;
-  --color-text-main: #3a3030;
-  --color-text-muted: #8c7775;
-  --color-border: #ead4ca;
-}
-
-[data-theme="luxury"] {
-  --color-brand-primary: #a56d36;
-  --color-brand-secondary: #283b35;
-  --color-brand-accent: #c99b48;
-  --color-bg-main: #fbf6ec;
-  --color-bg-soft: #e9ddc9;
-  --color-bg-muted: #d7c8ad;
-  --color-bg-inverse: #1f2420;
-  --color-text-main: #211f1b;
-  --color-text-muted: #746d62;
-  --color-border: #cfc0a5;
-  --shadow-card: 0 22px 55px rgb(36 30 22 / 0.13);
 }

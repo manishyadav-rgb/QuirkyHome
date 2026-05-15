@@ -20,6 +20,7 @@ const defaultTheme: ThemeSettings = {
     secondary: "#5c6ac4",
     background: "#ffffff",
     surface: "#f6f6f7",
+    elevated: "#ffffff",
     text: "#1a1a1a",
     textMuted: "#6d7175",
     accent: "#b98900",

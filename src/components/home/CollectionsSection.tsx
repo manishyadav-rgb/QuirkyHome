@@ -46,17 +46,25 @@ async function getActiveCollections(): Promise<CollectionWithProducts[]> {
   }
 }
 
-export async function CollectionsSection() {
+interface CollectionsSectionProps {
+  settings?: Record<string, any>;
+}
+
+export async function CollectionsSection({ settings }: CollectionsSectionProps) {
   const collections = await getActiveCollections();
+
+  const eyebrow = settings?.eyebrow || "Collections";
+  const heading = settings?.heading || "Shop by collection";
+  const description = settings?.subheading || "Curated product sets to help you discover your style.";
 
   if (collections.length === 0) return null;
 
   return (
     <section className="qh-container qh-section-pad">
       <SectionHeader
-        eyebrow="Collections"
-        title="Shop by collection"
-        description="Curated product sets to help you discover your style."
+        eyebrow={eyebrow}
+        title={heading}
+        description={description}
       />
       <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {collections.map((col) => (

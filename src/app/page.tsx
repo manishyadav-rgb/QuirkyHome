@@ -1,17 +1,19 @@
 import type { Metadata } from "next";
-import { ShieldCheck, Sparkles, Truck, Undo2, WalletCards } from "lucide-react";
-import Link from "next/link";
 import { HeroSection } from "@/components/home/HeroSection";
 import { CategoryGrid } from "@/components/home/CategoryGrid";
+import { CollectionsSection } from "@/components/home/CollectionsSection";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Button } from "@/components/ui/Button";
 import { ThemeSwitcher } from "@/components/ui/ThemeSwitcher";
-import { searchChips } from "@/data/categories";
 import { ProductGrid } from "@/components/product/ProductGrid";
-import { CollectionsSection } from "@/components/home/CollectionsSection";
 import { getCatalogProducts } from "@/lib/catalog";
 import { getBuilderSchema } from "@/lib/builder/fetch-schema";
 import { RenderSections } from "@/components/storefront/SectionRenderer";
+import { ShieldCheck, Sparkles, Truck, Undo2, WalletCards } from "lucide-react";
+import Link from "next/link";
+import { searchChips } from "@/data/categories";
+
+export const dynamic = "force-dynamic";
 
 const promises = [
   { icon: Sparkles, title: "Curated decor", text: "Thoughtfully selected pieces with warmth and personality." },
@@ -33,38 +35,19 @@ export default async function HomePage() {
   // Try to load builder schema first
   const builderSchema = await getBuilderSchema("quirkyhome");
 
-  // If builder has a home page, render it dynamically
-  if (builderSchema?.pages?.home?.sections?.length) {
+  // If builder has a home page defined (even if empty), render it dynamically
+  if (builderSchema?.pages?.home) {
     const homePage = builderSchema.pages.home;
     const theme = builderSchema.themeSettings;
 
     return (
       <>
-        {/* Dynamic Builder Sections */}
-        <RenderSections sections={homePage.sections} theme={theme} />
-
-        {/* Always show SEO content at the bottom */}
-        <section className="qh-container qh-section-pad">
-          <article className="qh-seo-copy max-w-none rounded-lg border border-border bg-background-elevated p-6 md:p-8">
-            <h2>QuirkyHome - Buy Home Decor Items Online in India</h2>
-            <p>
-              QuirkyHome is built for people who want beautiful home decor without making shopping feel complicated.
-              Explore bedding, home furnishing, wall decor, table lamps, dining essentials, kitchen products, bath accessories,
-              planters, storage baskets, showpieces and thoughtful gifts for Indian homes.
-            </p>
-            <h2>Shop Home Decor by Category</h2>
-            <p>
-              Whether you are refreshing a bedroom, setting up a living room, styling a dining table or choosing a housewarming gift,
-              our category-led shopping experience helps you find the right product quickly. Every product card keeps price, discount,
-              rating, wishlist and add-to-cart actions easy to scan on mobile and desktop.
-            </p>
-          </article>
-        </section>
+        <RenderSections sections={homePage.sections || []} theme={theme} />
       </>
     );
   }
 
-  // Fallback: original hardcoded homepage (when no builder data exists)
+  // Fallback: original hardcoded homepage (when no builder data exists at all)
   const products = await getCatalogProducts();
 
   return (

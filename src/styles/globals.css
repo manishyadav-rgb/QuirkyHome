@@ -7,8 +7,14 @@
 @tailwind utilities;
 
 @layer base {
-  * {
-    border-color: var(--color-border);
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  html, body {
+    max-width: 100%;
+    overflow-x: hidden;
+    position: relative;
   }
 
   html {
@@ -38,4 +44,26 @@
     background: var(--color-brand-accent);
     color: var(--color-text-main);
   }
+}
+
+/* =========================================================
+   SMOOTH THEME TRANSITIONS
+   Every color-based property transitions when theme changes.
+   ========================================================= */
+html,
+html *,
+html *::before,
+html *::after {
+  transition-property: background-color, color, border-color, box-shadow, fill, stroke;
+  transition-duration: 350ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Opt out for elements that need instant response (like animations, videos) */
+.no-theme-transition,
+.no-theme-transition *,
+video,
+canvas,
+img {
+  transition-property: none !important;
 }

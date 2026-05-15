@@ -29,7 +29,7 @@ export function MobileMenuDrawer({ open, onClose }: { open: boolean; onClose: ()
 
             <div className="grid grid-cols-3 gap-x-4 gap-y-7 px-5 py-7">
               {categories.slice(0, 6).map((category) => (
-                <Link key={category.slug} href={`/category/${category.slug}`} className="group text-center" onClick={onClose}>
+                <Link key={category.slug} href={`/${category.slug}`} className="group text-center" onClick={onClose}>
                   <div className="relative mx-auto h-20 w-20 overflow-hidden rounded-full bg-background-soft shadow-soft">
                     <Image src={category.image} alt={category.name} fill sizes="5rem" className="object-cover transition-transform duration-base group-hover:scale-105" />
                   </div>

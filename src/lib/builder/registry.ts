@@ -12,6 +12,8 @@ export const sectionRegistry: SectionDefinition[] = [
     type: "HeroBanner",
     label: "Hero Banner",
     icon: "Image",
+    category: "hero",
+    description: "Catchy main banner with headline and CTA",
     fields: [
       { key: "heading", label: "Heading", type: "text", defaultValue: "Buy Home Decor Items Online for Every Indian Home" },
       { key: "subheading", label: "Subheading", type: "textarea", defaultValue: "Shop bedsheets, wall decor, table lamps, kitchen essentials, dining pieces, planters, gifts, and curated home accessories at friendly prices." },
@@ -43,6 +45,8 @@ export const sectionRegistry: SectionDefinition[] = [
     type: "SearchBand",
     label: "Search Band",
     icon: "Search",
+    category: "utility",
+    description: "Quick search bar with suggested keywords",
     fields: [
       { key: "label", label: "Label", type: "text", defaultValue: "Search for" },
       { key: "chips", label: "Chips (comma separated)", type: "text", defaultValue: "Bedsheets, Wall Art, Lamps, Planters" },
@@ -56,6 +60,8 @@ export const sectionRegistry: SectionDefinition[] = [
     type: "CategoryGrid",
     label: "Category Grid",
     icon: "Grid",
+    category: "content",
+    description: "Grid of product categories with images",
     fields: [
       { key: "eyebrow", label: "Eyebrow Text", type: "text", defaultValue: "Shop by category" },
       { key: "heading", label: "Heading", type: "text", defaultValue: "Home decor, furnishing and essentials" },
@@ -71,6 +77,8 @@ export const sectionRegistry: SectionDefinition[] = [
     type: "CollectionsSection",
     label: "Collections Section",
     icon: "FolderOpen",
+    category: "content",
+    description: "Showcase of curated collections",
     fields: [
       { key: "eyebrow", label: "Eyebrow Text", type: "text", defaultValue: "Collections" },
       { key: "heading", label: "Heading", type: "text", defaultValue: "Shop by collection" },
@@ -86,6 +94,8 @@ export const sectionRegistry: SectionDefinition[] = [
     type: "ProductGrid",
     label: "Product Grid",
     icon: "Grid3x3",
+    category: "product",
+    description: "Dynamic list of products from catalog",
     fields: [
       { key: "eyebrow", label: "Eyebrow Text", type: "text", defaultValue: "Sale picks" },
       { key: "heading", label: "Heading", type: "text", defaultValue: "Premium finds, friendly prices" },
@@ -101,6 +111,8 @@ export const sectionRegistry: SectionDefinition[] = [
     type: "PromisesSection",
     label: "Promises Section",
     icon: "ShieldCheck",
+    category: "trust",
+    description: "Trust badges and brand promises",
     fields: [
       { key: "eyebrow", label: "Eyebrow Text", type: "text", defaultValue: "Why choose us" },
       { key: "heading", label: "Heading", type: "text", defaultValue: "A calmer, warmer way to shop for home" },
@@ -114,6 +126,8 @@ export const sectionRegistry: SectionDefinition[] = [
     type: "Newsletter",
     label: "Newsletter Signup",
     icon: "Mail",
+    category: "form",
+    description: "Email signup form for updates",
     fields: [
       { key: "eyebrow", label: "Eyebrow Text", type: "text", defaultValue: "Decor notes" },
       { key: "heading", label: "Heading", type: "text", defaultValue: "Ideas, offers and new drops" },
@@ -131,6 +145,8 @@ export const sectionRegistry: SectionDefinition[] = [
     type: "SeoArticle",
     label: "SEO Article",
     icon: "FileText",
+    category: "content",
+    description: "Rich text article for SEO and branding",
     fields: [
       { key: "content", label: "HTML Content", type: "textarea", defaultValue: "<h2>QuirkyHome - Buy Home Decor Items Online in India</h2><p>QuirkyHome is built for people who want beautiful home decor without making shopping feel complicated...</p>" },
     ],
@@ -143,6 +159,8 @@ export const sectionRegistry: SectionDefinition[] = [
     type: "BannerStrip",
     label: "Announcement Bar",
     icon: "Megaphone",
+    category: "hero",
+    description: "Announcement strip for the top of the page",
     fields: [
       { key: "text", label: "Announcement Text", type: "text", defaultValue: "Free shipping on orders above ₹999!" },
       { key: "bgColor", label: "Background Color", type: "color", defaultValue: "#008060" },

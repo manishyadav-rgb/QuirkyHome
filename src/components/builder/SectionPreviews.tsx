@@ -321,15 +321,102 @@ export function BannerStripPreview({ settings }: { settings: Section["settings"]
   );
 }
 
+export function SearchBandPreview({ settings }: { settings: Section["settings"] }) {
+  const chips = String(settings.chips || "")
+    .split(",")
+    .map((c) => c.trim())
+    .filter(Boolean);
+  return (
+    <section className="qh-market-band">
+      <div className="qh-container flex flex-wrap items-center gap-3 py-4">
+        <span className="text-sm font-black text-text-main">{settings.label || "Search for"}</span>
+        {chips.map((chip, i) => (
+          <span key={`${chip}-${i}`} className="rounded-full border border-text-main/10 bg-background-elevated px-4 py-2 text-sm font-bold text-text-main shadow-soft">
+            {chip}
+          </span>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+export function CategoryGridPreview({ settings }: { settings: Section["settings"] }) {
+  return (
+    <section className="qh-container py-8 md:py-12">
+      <div className="mb-8">
+        <p className="mb-2 text-sm font-bold uppercase text-brand-primary">{settings.eyebrow || "Shop by category"}</p>
+        <h2 className="font-display text-3xl font-black text-text-main">{settings.heading || "Home decor, furnishing and essentials"}</h2>
+        <p className="mt-3 text-base leading-relaxed text-text-muted">{settings.subheading || ""}</p>
+      </div>
+      <div className="grid grid-cols-3 gap-x-3 gap-y-7 md:grid-cols-5 lg:gap-8">
+        {["Bedding", "Furnishing", "Organiser", "Bath Gifts", "New Arrival"].map((x) => (
+          <div key={x} className="qh-card p-4 text-center text-sm font-semibold text-text-main">{x}</div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+export function CollectionsSectionPreview({ settings }: { settings: Section["settings"] }) {
+  return (
+    <section className="qh-container qh-section-pad">
+      <div className="mb-8">
+        <p className="mb-2 text-sm font-bold uppercase text-brand-primary">{settings.eyebrow || "Collections"}</p>
+        <h2 className="font-display text-3xl font-black text-text-main">{settings.heading || "Shop by collection"}</h2>
+        <p className="mt-3 text-base leading-relaxed text-text-muted">{settings.subheading || ""}</p>
+      </div>
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {["Collection A", "Collection B", "Collection C"].map((name) => (
+          <div key={name} className="qh-card p-5">
+            <div className="h-24 rounded bg-background-soft" />
+            <p className="mt-3 text-base font-bold text-text-main">{name}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+export function PromisesSectionPreview({ settings }: { settings: Section["settings"] }) {
+  return (
+    <section className="qh-container qh-section-pad">
+      <div className="mb-8 text-center">
+        <p className="mb-2 text-sm font-bold uppercase text-brand-primary">{settings.eyebrow || "Why choose us"}</p>
+        <h2 className="font-display text-3xl font-black text-text-main">{settings.heading || "A calmer, warmer way to shop for home"}</h2>
+      </div>
+      <div className="grid gap-4 md:grid-cols-5">
+        {["Curated decor", "Premium quality", "Easy returns", "Fast shipping", "Secure payments"].map((t) => (
+          <div key={t} className="qh-card p-4 text-center text-sm font-semibold text-text-main">{t}</div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+export function SeoArticlePreview({ settings }: { settings: Section["settings"] }) {
+  return (
+    <section className="qh-container qh-section-pad">
+      <article className="qh-seo-copy max-w-none rounded-lg border border-border bg-background-elevated p-6 md:p-8">
+        <div dangerouslySetInnerHTML={{ __html: settings.content || "" }} />
+      </article>
+    </section>
+  );
+}
+
 /* ─── Component Map ────────────────────────────────────────── */
 
 export const sectionComponentMap: Record<string, React.FC<{ settings: Section["settings"] }>> = {
   HeroBanner: HeroBannerPreview,
+  SearchBand: SearchBandPreview,
+  CategoryGrid: CategoryGridPreview,
+  CollectionsSection: CollectionsSectionPreview,
   RichText: RichTextPreview,
   ImageWithText: ImageWithTextPreview,
   FeaturedCollection: FeaturedCollectionPreview,
   ProductGrid: ProductGridPreview,
+  PromisesSection: PromisesSectionPreview,
   Newsletter: NewsletterPreview,
+  SeoArticle: SeoArticlePreview,
   Testimonials: TestimonialsPreview,
   BannerStrip: BannerStripPreview,
 };

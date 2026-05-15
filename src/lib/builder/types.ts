@@ -1,22 +1,23 @@
 /**
- * QuirkyHome Visual Page Builder — Type Definitions
+ * QuirkyHome Visual Page Builder — Type Definitions (Shopify-complete)
  * 
  * Drives the entire builder with a JSON-first architecture.
  * Every page is a list of typed sections, and global theme
  * settings are injected as CSS variables for instant previews.
  */
 
-/* ─── Theme Settings (Centralized CSS) ─────────────────────── */
+/* ─── Theme Settings (Maps directly to CSS custom properties) ── */
 
 export interface ThemeColors {
-  primary: string;
-  secondary: string;
-  background: string;
-  surface: string;
-  text: string;
-  textMuted: string;
-  accent: string;
-  border: string;
+  primary: string;      // --color-brand-primary
+  secondary: string;    // --color-brand-secondary
+  accent: string;       // --color-brand-accent
+  background: string;   // --color-bg-main
+  surface: string;      // --color-bg-soft
+  elevated: string;     // --color-bg-elevated
+  text: string;         // --color-text-main
+  textMuted: string;    // --color-text-muted
+  border: string;       // --color-border
 }
 
 export interface ThemeTypography {
@@ -38,22 +39,33 @@ export interface ThemeSettings {
   spacing: ThemeSpacing;
 }
 
-/* ─── Section Types ────────────────────────────────────────── */
+/* ─── Section Types (Shopify-complete set) ──────────────────── */
 
 export type SectionType =
+  | "BannerStrip"
   | "HeroBanner"
+  | "Slideshow"
   | "SearchBand"
   | "CategoryGrid"
   | "CollectionsSection"
   | "ProductGrid"
-  | "PromisesSection"
-  | "Newsletter"
-  | "SeoArticle"
-  | "Testimonials"
-  | "RichText"
-  | "ImageWithText"
   | "FeaturedCollection"
-  | "BannerStrip";
+  | "FeaturedProduct"
+  | "PromisesSection"
+  | "Multicolumn"
+  | "ImageWithText"
+  | "ImageBanner"
+  | "Video"
+  | "RichText"
+  | "CollapsibleContent"
+  | "ContactForm"
+  | "Newsletter"
+  | "Testimonials"
+  | "LogoList"
+  | "MapSection"
+  | "SeoArticle"
+  | "CustomHTML"
+  | "Divider";
 
 /** Single section in a page */
 export interface Section {
@@ -82,11 +94,18 @@ export interface BuilderSchema {
 export type FieldType =
   | "text"
   | "textarea"
+  | "richtext"
   | "color"
   | "number"
+  | "range"
   | "select"
   | "image"
-  | "toggle";
+  | "url"
+  | "toggle"
+  | "product-list"
+  | "alignment"
+  | "spacing"
+  | "media-array";
 
 export interface FieldSchema {
   key: string;
@@ -95,12 +114,20 @@ export interface FieldSchema {
   placeholder?: string;
   options?: { label: string; value: string }[];
   defaultValue?: any;
+  min?: number;
+  max?: number;
+  step?: number;
+  helpText?: string;
+  /** For grouping fields visually in the sidebar */
+  group?: string;
 }
 
 export interface SectionDefinition {
   type: SectionType;
   label: string;
   icon: string;           // Lucide icon name
+  description: string;    // Short description for add-section modal
+  category: "hero" | "content" | "product" | "media" | "trust" | "form" | "utility";
   fields: FieldSchema[];
   defaultSettings: Record<string, any>;
 }

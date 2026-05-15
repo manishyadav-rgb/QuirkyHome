@@ -18,19 +18,23 @@ export function ProductCard({ product }: { product: Product }) {
 
   return (
     <article className="group qh-card overflow-hidden transition-all duration-base hover:-translate-y-1 hover:shadow-dropdown">
-      <div className="qh-image-shell product-image-height relative rounded-b-none rounded-t-xl">
-        <Link href={`/product/${product.slug}`} aria-label={product.title}>
+      <div className="qh-image-shell aspect-square w-full relative rounded-b-none rounded-t-xl">
+        <Link href={`/${product.slug}`} aria-label={product.title}>
           <Image src={product.image} alt={product.title} fill sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 90vw" className="object-cover transition-transform duration-slow group-hover:scale-105" />
         </Link>
-        {/* Badges */}
+        {/* Discount Badge — top-left */}
         <div className="absolute left-3 top-3 flex flex-wrap gap-2">
           <Badge variant="sale">{discount}% Off</Badge>
           <Badge variant="accent">{product.badge}</Badge>
         </div>
+        {/* Rating — top-right on image */}
+        <div className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-black/60 backdrop-blur-sm px-2.5 py-1 text-[11px] font-bold text-yellow-400 shadow-sm">
+          ★ {product.rating}
+        </div>
         {/* Wishlist Button */}
         <button
           onClick={() => toggleWishlist(product)}
-          className={`qh-focus absolute right-3 top-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-background-elevated shadow-soft transition-all duration-base ${
+          className={`qh-focus absolute right-3 bottom-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-background-elevated shadow-soft transition-all duration-base ${
             wishlisted 
               ? "text-[#d7462f] hover:scale-110" 
               : "text-brand-primary hover:bg-brand-primary hover:text-text-inverse"
@@ -41,7 +45,7 @@ export function ProductCard({ product }: { product: Product }) {
         </button>
         {/* Quick View (desktop only) */}
         <Link 
-          href={`/product/${product.slug}`}
+          href={`/${product.slug}`}
           className="absolute bottom-3 left-1/2 -translate-x-1/2 translate-y-2 opacity-0 transition-all duration-base group-hover:translate-y-0 group-hover:opacity-100 hidden md:inline-flex items-center gap-1.5 rounded-full bg-background-elevated/95 backdrop-blur-sm px-4 py-2 text-xs font-semibold text-text-main shadow-dropdown hover:bg-brand-primary hover:text-text-inverse"
         >
           <Eye className="h-3.5 w-3.5" />
@@ -49,34 +53,9 @@ export function ProductCard({ product }: { product: Product }) {
         </Link>
       </div>
       <div className="space-y-3 p-4">
-        <RatingStars rating={product.rating} reviews={product.reviews} />
-        <Link href={`/product/${product.slug}`} className="block">
+        <Link href={`/${product.slug}`} className="block">
           <h3 className="line-clamp-2 text-lg font-black leading-snug text-text-main transition-colors duration-fast group-hover:text-brand-primary">{product.title}</h3>
         </Link>
-        {product.sku || product.collection || typeof product.stock === "number" ? (
-          <div className="rounded-lg border border-border bg-background-elevated p-3">
-            <div className="flex items-start justify-between gap-3">
-              {product.sku ? (
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.08em] text-text-soft">SKU</p>
-                  <p className="text-sm font-black text-text-main">{product.sku}</p>
-                </div>
-              ) : <span />}
-              {product.collection ? (
-                <div className="text-right">
-                  <p className="text-[10px] font-black uppercase tracking-[0.08em] text-text-soft">Collection</p>
-                  <p className="text-sm font-black text-text-main">{product.collection}</p>
-                </div>
-              ) : null}
-            </div>
-            {typeof product.stock === "number" ? (
-              <div className="mt-3">
-                <p className="text-[10px] font-black uppercase tracking-[0.08em] text-text-soft">Stock</p>
-                <p className="text-base font-black text-text-main">{product.stock} available</p>
-              </div>
-            ) : null}
-          </div>
-        ) : null}
         {/* Price Row */}
         <div className="flex flex-wrap items-baseline gap-2">
           <span className="text-xl font-bold text-text-main">{formatPrice(product.price)}</span>

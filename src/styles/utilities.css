@@ -23,3 +23,7 @@
     height: var(--product-card-image-height);
   }
 }
+
+.aspect-square {
+  aspect-ratio: 1 / 1;
+}

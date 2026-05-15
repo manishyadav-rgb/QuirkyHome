@@ -12,13 +12,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/cart`, lastModified: now, changeFrequency: "monthly", priority: 0.3 },
     { url: `${baseUrl}/wishlist`, lastModified: now, changeFrequency: "monthly", priority: 0.3 },
     ...categories.map((category) => ({
-      url: `${baseUrl}/category/${category.slug}`,
+      url: `${baseUrl}/${category.slug}`,
       lastModified: now,
       changeFrequency: "weekly" as const,
       priority: 0.85,
     })),
     ...products.map((product) => ({
-      url: `${baseUrl}/product/${product.slug}`,
+      url: `${baseUrl}/${product.slug}`,
       lastModified: now,
       changeFrequency: "weekly" as const,
       priority: 0.75,

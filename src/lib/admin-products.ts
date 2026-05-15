@@ -7,6 +7,7 @@ export type AdminProductRow = {
   slug: string;
   sku: string | null;
   collection: string | null;
+  description: string | null;
   sale_price: string | null;
   mrp: string | null;
   quantity_available: number | null;
@@ -22,6 +23,7 @@ export async function listAdminProducts() {
        p.id,
        p.title,
        p.slug,
+       p.short_description as description,
        pv.sku,
        pv.attributes->>'collection' as collection,
        pv.sale_price::text,
