@@ -1,5 +1,6 @@
 import type { Product } from "@/data/products";
 import { listAdminProducts, type AdminProductRow } from "@/lib/admin-products";
+import { query } from "@/lib/db";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://qhbackend.onrender.com/api";
 
@@ -62,7 +63,23 @@ export async function getCatalogProduct(slug: string): Promise<Product | null> {
     try {
       const rows = await listAdminProducts();
       const row = rows.find((r) => r.slug === slug);
-      if (row) return rowToProduct(row);
+      if (row) {
+        const base = rowToProduct(row);
+        if (row.id) {
+          const galleryRows = await query<{ image_url: string }>(
+            `select image_url
+             from product_images
+             where product_id = $1
+             order by sort_order asc nulls last, created_at asc`,
+            [row.id],
+          );
+          const gallery = galleryRows.rows.map((r) => r.image_url).filter(Boolean);
+          if (gallery.length > 0) {
+            return { ...base, image: gallery[0], gallery };
+          }
+        }
+        return base;
+      }
     } catch {
       // Fall through
     }
