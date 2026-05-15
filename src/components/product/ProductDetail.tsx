@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Heart, ShoppingBag, Truck, ShieldCheck, RotateCcw, Share2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Heart, ShoppingBag, Truck, ShieldCheck, RotateCcw, Share2, ChevronLeft, ChevronRight, Star } from "lucide-react";
 import type { Product } from "@/data/products";
 import { discountFor, formatPrice } from "@/data/products";
 import { Badge } from "@/components/ui/Badge";
@@ -112,7 +112,7 @@ export function ProductDetail({
             </>
           )}
           <div className="absolute bottom-3 right-3 flex items-center gap-1 rounded-full border border-white/10 bg-black/60 px-2.5 py-1 text-[12px] font-bold text-yellow-400 shadow-lg backdrop-blur-md">
-            <span>*</span>
+            <Star className="h-3.5 w-3.5 fill-current text-yellow-400" />
             <span>{product.rating}</span>
             <span className="ml-0.5 text-[10px] font-normal text-white/60">({product.reviews})</span>
           </div>

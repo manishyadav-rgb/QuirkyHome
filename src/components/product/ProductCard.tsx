@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Heart, ShoppingBag, Eye } from "lucide-react";
+import { Heart, ShoppingBag, Eye, Star } from "lucide-react";
 import type { Product } from "@/data/products";
 import { discountFor, formatPrice } from "@/data/products";
 import { Badge } from "@/components/ui/Badge";
@@ -25,10 +25,10 @@ export function ProductCard({ product }: { product: Product }) {
         </Link>
         <div className="absolute left-2 top-2 flex flex-wrap gap-1.5 sm:left-3 sm:top-3 sm:gap-2">
           <Badge variant="sale">{discount}% Off</Badge>
-          <Badge variant="accent">{product.badge}</Badge>
         </div>
         <div className="absolute right-2 top-2 flex items-center gap-1 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-bold text-yellow-400 shadow-sm backdrop-blur-sm sm:right-3 sm:top-3 sm:px-2.5 sm:py-1 sm:text-[11px]">
-          * {product.rating}
+          <Star className="h-3 w-3 fill-current text-yellow-400" />
+          <span>{product.rating}</span>
         </div>
         {extraImages > 0 && (
           <div className="absolute bottom-2 left-2 rounded-full bg-black/60 px-2 py-0.5 text-[9px] font-semibold text-white backdrop-blur-sm sm:bottom-3 sm:left-3 sm:px-2.5 sm:py-1 sm:text-[10px]">
