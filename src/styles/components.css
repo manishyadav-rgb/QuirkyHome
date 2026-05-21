@@ -92,7 +92,7 @@
 }
 
 .qh-panel-mobile {
-  width: min(100vw, 30rem);
+  width: min(calc(100vw - 20px), 28rem);
 }
 
 .qh-cart-panel {
@@ -122,11 +122,11 @@
 
 .qh-mobile-header {
   display: flex;
-  min-height: 5rem;
+  min-height: 3.6rem;
   align-items: center;
   gap: 0.5rem;
   background: var(--color-bg-main);
-  padding: 0.55rem 0.75rem;
+  padding: 0.3rem 0.55rem;
 }
 
 .qh-market-band {

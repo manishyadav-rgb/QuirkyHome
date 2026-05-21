@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Heart, ShoppingBag, UserRound, Home, Search, Package, Ticket, Star, Headset, ChevronRight } from "lucide-react";
+import { Heart, ShoppingBag, UserRound, Package, Ticket, Star, Headset } from "lucide-react";
 import { useState } from "react";
 import { SearchBar } from "@/components/ui/SearchBar";
 import { useShop } from "@/components/shop/ShopProvider";
@@ -20,49 +20,23 @@ export function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-header border-b border-border qh-header-surface backdrop-blur">
+      <header
+        className="fixed inset-x-0 top-0 z-[120] border-b border-border qh-header-surface backdrop-blur"
+      >
 
-        <div className="qh-mobile-header md:hidden flex flex-col items-stretch min-h-0 gap-2.5 px-4 py-3 bg-background-elevated">
-          {/* Row 1: Menu trigger, logo, and quick actions (wishlist + cart) */}
-          <div className="flex items-center justify-between w-full">
-            <div className="flex items-center gap-2">
-              <MobileMenuTrigger onOpen={() => setMenuOpen(true)} />
-              <Link href="/" className="qh-logo shrink-0" aria-label="QuirkyHome">
-                <img
-                  src="https://res.cloudinary.com/dd4hmahlm/image/upload/v1774697521/rw9xm5nnegmsigzcke5q.png"
-                  alt="QuirkyHome Logo"
-                  className="h-10 w-auto object-contain mix-blend-multiply"
-                />
-              </Link>
-            </div>
-            
-            <div className="flex items-center gap-1.5">
-              {/* Wishlist Action */}
-              <Link href="/wishlist" className="qh-focus relative inline-flex h-10 w-10 items-center justify-center text-text-muted hover:text-brand-primary" aria-label="Wishlist">
-                <Heart className="h-6 w-6" />
-                {wishlistCount ? (
-                  <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-brand-primary px-1 text-[11px] font-bold text-text-inverse">
-                    {wishlistCount}
-                  </span>
-                ) : null}
-              </Link>
-
-              {/* Cart Action */}
-              <Link href="/cart" className="qh-focus relative inline-flex h-10 w-10 items-center justify-center text-text-muted hover:text-brand-primary" aria-label="Cart">
-                <ShoppingBag className="h-6 w-6" />
-                {cartCount ? (
-                  <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-brand-primary px-1 text-[11px] font-bold text-text-inverse">
-                    {cartCount}
-                  </span>
-                ) : null}
-              </Link>
-            </div>
+        <div className="qh-mobile-header md:hidden flex items-center gap-2 px-3 py-2 bg-background-elevated">
+          <MobileMenuTrigger onOpen={() => setMenuOpen(true)} />
+          <div className="min-w-0 flex-1">
+            <SearchBar compact className="w-full" />
           </div>
-
-          {/* Row 2: Full-width search bar */}
-          <div className="w-full">
-            <SearchBar compact withCamera placeholder="Search for Photo frames, bedsheets, decor..." className="w-full" />
-          </div>
+          <Link href="/cart" className="qh-focus relative inline-flex h-10 w-10 shrink-0 items-center justify-center text-text-muted hover:text-brand-primary" aria-label="Cart">
+            <ShoppingBag className="h-6 w-6" />
+            {cartCount ? (
+              <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-brand-primary px-1 text-[11px] font-bold text-text-inverse">
+                {cartCount}
+              </span>
+            ) : null}
+          </Link>
         </div>
         <div className="qh-container hidden h-header items-center gap-4 md:flex">
           <MobileMenuTrigger onOpen={() => setMenuOpen(true)} />
@@ -124,7 +98,7 @@ export function Header() {
         </div>
         <CategoryNav />
       </header>
-
+      <div aria-hidden className="h-[58px] md:h-[100px] lg:h-[144px]" />
       <MobileMenuDrawer open={menuOpen} onClose={() => setMenuOpen(false)} />
     </>
   );

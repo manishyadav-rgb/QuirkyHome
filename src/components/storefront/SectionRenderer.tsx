@@ -8,6 +8,7 @@
  * They use real CSS classes (not builder CSS vars) and fetch real data.
  */
 
+import "server-only";
 import React from "react";
 import Link from "next/link";
 import type { Section, ThemeSettings } from "@/lib/builder/types";
@@ -19,7 +20,7 @@ import { CategoryGrid } from "@/components/home/CategoryGrid";
 import { CollectionsSection } from "@/components/home/CollectionsSection";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { ProductGrid as ActualProductGrid } from "@/components/product/ProductGrid";
-import { products as localCatalogProducts } from "@/data/products";
+import { getCatalogProducts } from "@/lib/catalog";
 import { ThemeSwitcher } from "@/components/ui/ThemeSwitcher";
 import { Button } from "@/components/ui/Button";
 import { ShieldCheck, Sparkles, Truck, Undo2, WalletCards, ChevronLeft, ChevronRight } from "lucide-react";
@@ -60,7 +61,7 @@ function StorefrontCollectionsSection({ settings }: { settings: Record<string, a
 
 /* ─── ProductGrid ───────────────────────────────────────────── */
 async function StorefrontProductGridWrapper({ settings }: { settings: Record<string, any> }) {
-  const allProducts = localCatalogProducts;
+  const allProducts = await getCatalogProducts();
   
   const source = settings.productSource || "all";
   let products = allProducts;

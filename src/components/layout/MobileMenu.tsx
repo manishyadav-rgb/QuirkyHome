@@ -47,7 +47,7 @@ export function MobileMenuDrawer({ open, onClose }: { open: boolean; onClose: ()
   return (
     <>
       {open ? (
-        <div className="fixed inset-0 z-drawer qh-scrim lg:hidden">
+        <div className="fixed inset-0 z-[120] qh-scrim lg:hidden">
           <div className="flex h-full qh-panel-mobile flex-col overflow-y-auto bg-background-elevated shadow-dropdown">
             <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-background-elevated px-5 py-5 shadow-soft">
               <Link href="/" className="qh-logo" onClick={onClose} aria-label="QuirkyHome">
