@@ -4,6 +4,7 @@ export type Product = {
   slug: string;
   category: string;
   sku?: string;
+  size?: string;
   collection?: string;
   stock?: number;
   image: string;

@@ -11,6 +11,7 @@ export type DynamoInventoryItem = {
   collection: string;
   description: string;
   image_url: string;
+  image_urls?: string[];
   mrp: number;
   sale_price: number;
   quantity_available: number;
@@ -207,6 +208,7 @@ export function normalizeDynamoInventoryItem(item: Record<string, unknown>): Dyn
     collection: "General",
     description: stringValue(item, ["description", "short_description", "shortDescription"], `${title} from QuirkyHome inventory.`),
     image_url: normalizeImageUrl(rawImage),
+    image_urls: rawImage ? [normalizeImageUrl(rawImage)] : [],
     mrp,
     sale_price: salePrice || mrp,
     quantity_available: quantity,
@@ -299,6 +301,12 @@ export function extractDynamoInventoryItems(item: RawRecord): DynamoInventoryIte
       stringValue(payload, ["imageUrl", "image", "thumbnail"]),
       Array.isArray(payload.imageUrls) && payload.imageUrls.length ? String(payload.imageUrls[0]) : "",
     ]);
+    const imageUrls = Array.isArray(payload.imageUrls)
+      ? payload.imageUrls
+          .map((value) => (typeof value === "string" ? normalizeImageUrl(value) : ""))
+          .filter(Boolean)
+      : [];
+    const normalizedPrimary = normalizeImageUrl(image);
 
     return [{
       source_pk: firstNonEmptyString([stringValue(item, ["timestamp_id", "id"])], `INV#${sku}`),
@@ -309,7 +317,8 @@ export function extractDynamoInventoryItems(item: RawRecord): DynamoInventoryIte
       category,
       collection,
       description: stringValue(payload, ["description"], `${title} from QuirkyHome inventory.`),
-      image_url: normalizeImageUrl(image),
+      image_url: normalizedPrimary,
+      image_urls: imageUrls.length ? imageUrls : normalizedPrimary ? [normalizedPrimary] : [],
       mrp: mrp || price,
       sale_price: price || mrp,
       quantity_available: stock,
@@ -435,4 +444,75 @@ export async function scanAllDynamoInventory(maxItems = 2000) {
   } while (lastEvaluatedKey && items.length < maxItems);
 
   return items.slice(0, maxItems);
+}
+
+export async function getDynamoImageBySku(sku: string): Promise<string | null> {
+  const targetSku = String(sku || "").trim().toUpperCase();
+  if (!targetSku) return null;
+
+  const client = getDynamoClient();
+  const tableName = getDynamoTableName();
+  let lastEvaluatedKey: Record<string, unknown> | undefined;
+  let scanned = 0;
+
+  do {
+    const result = await client.send(
+      new ScanCommand({
+        TableName: tableName,
+        ExclusiveStartKey: lastEvaluatedKey,
+        Limit: 200,
+      }),
+    );
+
+    const mapped = (result.Items ?? []).flatMap((item) => extractDynamoInventoryItems(item as RawRecord));
+    for (const row of mapped) {
+      if (String(row.sku || "").trim().toUpperCase() === targetSku && row.image_url) {
+        return row.image_url;
+      }
+    }
+
+    lastEvaluatedKey = result.LastEvaluatedKey as Record<string, unknown> | undefined;
+    scanned += (result.Items ?? []).length;
+  } while (lastEvaluatedKey && scanned < 3000);
+
+  return null;
+}
+
+export async function getDynamoImagesBySkus(skus: string[], maxScanItems = 3000): Promise<Record<string, string>> {
+  const normalized = skus
+    .map((sku) => String(sku || "").trim().toUpperCase())
+    .filter(Boolean);
+  if (!normalized.length) return {};
+
+  const found: Record<string, string> = {};
+  const target = new Set(normalized);
+  const client = getDynamoClient();
+  const tableName = getDynamoTableName();
+  let lastEvaluatedKey: Record<string, unknown> | undefined;
+  let scanned = 0;
+
+  do {
+    const result = await client.send(
+      new ScanCommand({
+        TableName: tableName,
+        ExclusiveStartKey: lastEvaluatedKey,
+        Limit: 200,
+      }),
+    );
+
+    const mapped = (result.Items ?? []).flatMap((item) => extractDynamoInventoryItems(item as RawRecord));
+    for (const row of mapped) {
+      const sku = String(row.sku || "").trim().toUpperCase();
+      if (!sku || !target.has(sku) || !row.image_url) continue;
+      if (!found[sku]) {
+        found[sku] = row.image_url;
+      }
+    }
+
+    lastEvaluatedKey = result.LastEvaluatedKey as Record<string, unknown> | undefined;
+    scanned += (result.Items ?? []).length;
+    if (Object.keys(found).length >= target.size) break;
+  } while (lastEvaluatedKey && scanned < maxScanItems);
+
+  return found;
 }

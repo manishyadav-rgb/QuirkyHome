@@ -22,6 +22,7 @@ import { getCatalogProducts } from "@/lib/catalog";
 import { ThemeSwitcher } from "@/components/ui/ThemeSwitcher";
 import { Button } from "@/components/ui/Button";
 import { ShieldCheck, Sparkles, Truck, Undo2, WalletCards } from "lucide-react";
+import { ProductCard } from "@/components/product/ProductCard";
 
 /* ─── HeroBanner — uses actual HeroSection with framer-motion ──── */
 
@@ -56,8 +57,6 @@ function StorefrontCollectionsSection({ settings }: { settings: Record<string, a
   return <CollectionsSection settings={settings} />;
 }
 
-import { ProductCard } from "@/components/product/ProductCard";
-
 /* ─── ProductGrid ───────────────────────────────────────────── */
 async function StorefrontProductGridWrapper({ settings }: { settings: Record<string, any> }) {
   const allProducts = await getCatalogProducts();
@@ -80,18 +79,30 @@ async function StorefrontProductGridWrapper({ settings }: { settings: Record<str
   const limit = cols * rows;
   const limitedProducts = products.slice(0, limit);
 
+  /* Use inline styles for mobile, injected CSS for responsive breakpoints.
+     Tailwind purges dynamic class names like lg:grid-cols-${cols}, so we
+     inject real CSS with media queries instead. */
   const gridStyle = {
     display: "grid",
+    gap: `${mobileGap}px`,
     gridTemplateColumns: `repeat(${mobileCols}, 1fr)`,
-    ["--gap-mobile" as string]: `${mobileGap}px`,
-    ["--gap-desktop" as string]: `${gap}px`,
   } as React.CSSProperties;
+
+  const desktopCss = `
+    @media (min-width: 768px) {
+      .qh-product-grid-dynamic { grid-template-columns: repeat(3, 1fr) !important; gap: ${gap}px !important; }
+    }
+    @media (min-width: 1024px) {
+      .qh-product-grid-dynamic { grid-template-columns: repeat(${cols}, 1fr) !important; gap: ${gap}px !important; }
+    }
+  `;
 
   return (
     <section className="qh-container qh-section-pad">
       <SectionHeader eyebrow={settings.eyebrow} title={settings.heading} description={settings.subheading} />
+      <style dangerouslySetInnerHTML={{ __html: desktopCss }} />
       {limitedProducts.length ? (
-        <div style={gridStyle} className={`[gap:var(--gap-mobile)] md:[gap:var(--gap-desktop)] md:!grid-cols-3 lg:!grid-cols-${cols}`}>
+        <div style={gridStyle} className="qh-product-grid-dynamic">
           {limitedProducts.map((product) => (
             <ProductCard key={product.slug} product={product} /> 
           ))}
@@ -153,11 +164,14 @@ function StorefrontNewsletterVaaree({ settings }: { settings: Record<string, any
 
 /* ─── SeoArticle ───────────────────────────────────────────── */
 function StorefrontSeoArticle({ settings }: { settings: Record<string, any> }) {
-  const allowedTags = new Set(["h1", "h2", "h3", "h4", "h5", "h6"]);
-  const headingTag = allowedTags.has(settings.headingTag) ? settings.headingTag : "h2";
-  const subheadingTag = allowedTags.has(settings.subheadingTag) ? settings.subheadingTag : "h2";
-  const HeadingTag = headingTag as keyof JSX.IntrinsicElements;
-  const SubheadingTag = subheadingTag as keyof JSX.IntrinsicElements;
+  type HeadingTagName = "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
+  const allowedTags: HeadingTagName[] = ["h1", "h2", "h3", "h4", "h5", "h6"];
+  const safeHeadingTag = String(settings.headingTag || "");
+  const safeSubheadingTag = String(settings.subheadingTag || "");
+  const headingTag: HeadingTagName = allowedTags.includes(safeHeadingTag as HeadingTagName) ? (safeHeadingTag as HeadingTagName) : "h2";
+  const subheadingTag: HeadingTagName = allowedTags.includes(safeSubheadingTag as HeadingTagName) ? (safeSubheadingTag as HeadingTagName) : "h2";
+  const HeadingTag = headingTag;
+  const SubheadingTag = subheadingTag;
 
   // Backward compatibility: keep rendering legacy HTML when present.
   if (
@@ -305,10 +319,18 @@ function StorefrontMulticolumn({ settings }: { settings: Record<string, any> }) 
       image: settings[`col${i}Image`],
     });
   }
+
+  const multiCss = `
+    @media (min-width: 768px) {
+      .qh-multicol-dynamic { grid-template-columns: repeat(${cols}, 1fr) !important; }
+    }
+  `;
+
   return (
     <section className="qh-container qh-section-pad">
       <h2 className="text-3xl font-bold mb-10 text-center text-text-main">{settings.heading}</h2>
-      <div className={`grid gap-8 md:grid-cols-${cols}`}>
+      <style dangerouslySetInnerHTML={{ __html: multiCss }} />
+      <div className="grid gap-8 qh-multicol-dynamic">
         {data.map((col, i) => (
           <div key={i} className="flex flex-col items-center text-center p-4 bg-background-elevated rounded-xl shadow-sm border border-border">
             {col.image && <img src={col.image} alt="" className="w-16 h-16 object-contain mb-5" />}
@@ -490,7 +512,7 @@ export function RenderSection({ section, theme }: RenderSectionProps) {
   if (s.sectionBgColor) wrapperStyle.backgroundColor = s.sectionBgColor;
 
   return (
-    <div style={wrapperStyle}>
+    <div style={wrapperStyle} className="qh-builder-section">
       <Component settings={s} theme={theme} />
     </div>
   );
@@ -499,7 +521,7 @@ export function RenderSection({ section, theme }: RenderSectionProps) {
 export function RenderSections({ sections, theme }: { sections: Section[]; theme: ThemeSettings }) {
   return (
     <>
-      {sections.filter((s) => s.visible).map((section) => (
+      {sections.filter((s) => s.visible && s.type !== "BannerStrip").map((section) => (
         <RenderSection key={section.id} section={section} theme={theme} />
       ))}
     </>

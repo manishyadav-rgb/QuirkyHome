@@ -48,9 +48,9 @@ export function ProductCard({ product }: { product: Product }) {
         </button>
         <Link
           href={`/${product.slug}`}
-          className="absolute bottom-3 left-1/2 hidden -translate-x-1/2 translate-y-2 items-center gap-1.5 rounded-full bg-background-elevated/95 px-4 py-2 text-xs font-semibold text-text-main opacity-0 shadow-dropdown transition-all duration-base backdrop-blur-sm group-hover:translate-y-0 group-hover:opacity-100 md:inline-flex hover:bg-brand-primary hover:text-text-inverse"
+          className="absolute bottom-3 left-1/2 hidden -translate-x-1/2 translate-y-2 items-center gap-1 rounded-full bg-background-elevated/95 px-3 py-1.5 text-[10px] font-semibold text-text-main opacity-0 shadow-dropdown transition-all duration-base backdrop-blur-sm group-hover:translate-y-0 group-hover:opacity-100 md:inline-flex hover:bg-brand-primary hover:text-text-inverse"
         >
-          <Eye className="h-3.5 w-3.5" />
+          <Eye className="h-3 w-3" />
           Quick View
         </Link>
       </div>

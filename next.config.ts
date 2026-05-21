@@ -16,6 +16,11 @@ const nextConfig: NextConfig = {
     ],
   },
   async rewrites() {
+    const useRemoteAuth = process.env.USE_REMOTE_AUTH === "1";
+    if (!useRemoteAuth) {
+      return { beforeFiles: [] };
+    }
+
     return {
       beforeFiles: [
         {

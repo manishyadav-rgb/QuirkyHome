@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { BottomNav } from "@/components/layout/BottomNav";
+import { AnnouncementBar } from "@/components/layout/AnnouncementBar";
 
 export function AppChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -13,6 +14,7 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
 
   return (
     <>
+      <AnnouncementBar />
       <Header />
       <main>{children}</main>
       <Footer />

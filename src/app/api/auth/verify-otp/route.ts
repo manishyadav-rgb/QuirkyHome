@@ -1,21 +1,23 @@
 import { NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { hashOtp, normalizePhone, signToken } from "@/lib/auth";
+import { hashOtp, normalizePhone, signToken, TOKEN_COOKIE } from "@/lib/auth";
+import { isTwoFactorEnabled } from "@/lib/twofactor";
 
 export const runtime = "nodejs";
-
-type OtpRow = {
-  id: string;
-  otp_hash: string;
-  attempts: number;
-  max_attempts: number;
-};
 
 type UserRow = {
   id: string;
   phone_e164: string;
   full_name: string | null;
   email: string | null;
+};
+
+type OtpSessionRow = {
+  id: string;
+  otp_hash: string;
+  external_session_id?: string | null;
+  attempts: number;
+  max_attempts: number;
 };
 
 export async function POST(request: Request) {
@@ -28,8 +30,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Enter a valid phone number and 6-digit OTP." }, { status: 400 });
     }
 
-    const otpResult = await query<OtpRow>(
-      `select id, otp_hash, attempts, max_attempts
+    if (!isTwoFactorEnabled()) {
+      return NextResponse.json(
+        { error: "2Factor is not configured. Set TWOFACTOR_API_KEY." },
+        { status: 500 },
+      );
+    }
+
+    const sessionResult = await query<OtpSessionRow>(
+      `select id, otp_hash, external_session_id, attempts, max_attempts
        from auth_otp_requests
        where phone_e164 = $1
          and purpose = 'login'
@@ -41,23 +50,23 @@ export async function POST(request: Request) {
       [phone],
     );
 
-    const otpRow = otpResult.rows[0];
-    if (!otpRow) {
+    const otpSession = sessionResult.rows[0];
+    if (!otpSession) {
       return NextResponse.json({ error: "OTP expired. Please request a new OTP." }, { status: 400 });
     }
 
-    if (otpRow.attempts >= otpRow.max_attempts) {
+    if (otpSession.attempts >= otpSession.max_attempts) {
       return NextResponse.json({ error: "Too many attempts. Please request a new OTP." }, { status: 429 });
     }
 
-    if (otpRow.otp_hash !== hashOtp(phone, otp)) {
-      await query("update auth_otp_requests set attempts = attempts + 1 where id = $1", [otpRow.id]);
-      return NextResponse.json({ error: "Incorrect OTP." }, { status: 400 });
+    const provider = "2factor-voice";
+    if (otpSession.otp_hash !== hashOtp(phone, otp)) {
+      await query("update auth_otp_requests set attempts = attempts + 1 where id = $1", [otpSession.id]);
+      return NextResponse.json({ error: "Incorrect or expired OTP.", provider, sessionId: otpSession.external_session_id || null }, { status: 400 });
     }
-
     await query(
       "update auth_otp_requests set is_verified = true, consumed_at = now(), attempts = attempts + 1 where id = $1",
-      [otpRow.id],
+      [otpSession.id],
     );
 
     // Upsert user
@@ -82,6 +91,7 @@ export async function POST(request: Request) {
 
     const response = NextResponse.json({
       ok: true,
+      provider,
       user: {
         id: user.id,
         phone: user.phone_e164,
@@ -93,7 +103,7 @@ export async function POST(request: Request) {
     });
 
     // Set JWT as httpOnly cookie
-    response.cookies.set("qh_token", token, {
+    response.cookies.set(TOKEN_COOKIE, token, {
       httpOnly: true,
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",

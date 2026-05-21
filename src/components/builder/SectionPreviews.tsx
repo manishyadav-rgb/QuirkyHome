@@ -341,6 +341,24 @@ export function SearchBandPreview({ settings }: { settings: Section["settings"] 
 }
 
 export function CategoryGridPreview({ settings }: { settings: Section["settings"] }) {
+  const fallbackNames = [
+    "Bedding",
+    "Furnishing",
+    "Organiser",
+    "Bath",
+    "Gifts",
+    "New Arrival",
+    "Comforters",
+    "Carpet",
+    "Return and Exchange",
+  ];
+  const requestedCount = Number(settings.categoryCount ?? 5);
+  const categoryCount = Number.isFinite(requestedCount) ? Math.min(Math.max(requestedCount, 1), 12) : 5;
+  const previewNames = Array.from({ length: categoryCount }, (_, idx) => {
+    const fallbackName = fallbackNames[idx] || `Category ${idx + 1}`;
+    return String(settings[`cat${idx + 1}Text`] || fallbackName);
+  });
+
   return (
     <section className="qh-container py-8 md:py-12">
       <div className="mb-8">
@@ -349,8 +367,10 @@ export function CategoryGridPreview({ settings }: { settings: Section["settings"
         <p className="mt-3 text-base leading-relaxed text-text-muted">{settings.subheading || ""}</p>
       </div>
       <div className="grid grid-cols-3 gap-x-3 gap-y-7 md:grid-cols-5 lg:gap-8">
-        {["Bedding", "Furnishing", "Organiser", "Bath Gifts", "New Arrival"].map((x) => (
-          <div key={x} className="qh-card p-4 text-center text-sm font-semibold text-text-main">{x}</div>
+        {previewNames.map((name, idx) => (
+          <div key={`${name}-${idx}`} className="qh-card p-4 text-center text-sm font-semibold text-text-main">
+            {name}
+          </div>
         ))}
       </div>
     </section>
@@ -394,11 +414,14 @@ export function PromisesSectionPreview({ settings }: { settings: Section["settin
 }
 
 export function SeoArticlePreview({ settings }: { settings: Section["settings"] }) {
-  const allowedTags = new Set(["h1", "h2", "h3", "h4", "h5", "h6"]);
-  const headingTag = allowedTags.has(String(settings.headingTag || "")) ? String(settings.headingTag) : "h2";
-  const subheadingTag = allowedTags.has(String(settings.subheadingTag || "")) ? String(settings.subheadingTag) : "h2";
-  const HeadingTag = headingTag as keyof JSX.IntrinsicElements;
-  const SubheadingTag = subheadingTag as keyof JSX.IntrinsicElements;
+  type HeadingTagName = "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
+  const allowedTags: HeadingTagName[] = ["h1", "h2", "h3", "h4", "h5", "h6"];
+  const safeHeadingTag = String(settings.headingTag || "");
+  const safeSubheadingTag = String(settings.subheadingTag || "");
+  const headingTag: HeadingTagName = allowedTags.includes(safeHeadingTag as HeadingTagName) ? (safeHeadingTag as HeadingTagName) : "h2";
+  const subheadingTag: HeadingTagName = allowedTags.includes(safeSubheadingTag as HeadingTagName) ? (safeSubheadingTag as HeadingTagName) : "h2";
+  const HeadingTag = headingTag;
+  const SubheadingTag = subheadingTag;
 
   if (
     typeof settings.content === "string" &&

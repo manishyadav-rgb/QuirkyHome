@@ -15,6 +15,7 @@ function rowToProduct(row: AdminProductRow): Product {
     slug: row.slug,
     category: row.category || "general",
     sku: row.sku || undefined,
+    size: row.size || undefined,
     collection: row.collection || undefined,
     stock: row.quantity_available ?? undefined,
     image: primaryImage,
@@ -25,7 +26,8 @@ function rowToProduct(row: AdminProductRow): Product {
     mrp: Number(row.mrp || row.sale_price || 0),
     badge: "New",
     description: rowDescription && rowDescription !== row.title ? rowDescription : "",
-  };
+    long_description: (row as any).long_description || null,
+  } as Product;
 }
 
 /**

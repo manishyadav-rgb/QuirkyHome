@@ -8,6 +8,7 @@
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.1043.0",
     "@aws-sdk/lib-dynamodb": "^3.1043.0",
+    "@cashfreepayments/cashfree-js": "^1.0.7",
     "@types/node": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",

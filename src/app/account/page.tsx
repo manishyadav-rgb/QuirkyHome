@@ -2,8 +2,9 @@
 
 import { CheckCircle2, ChevronLeft, ChevronRight, Headset, Heart, LogOut, Package, ShieldCheck, Smartphone, Star, Ticket, UserRound } from "lucide-react";
 import { FormEvent, useEffect, useState } from "react";
-import { Button, ButtonLink } from "@/components/ui/Button";
+import { Button } from "@/components/ui/Button";
 import { useShop } from "@/components/shop/ShopProvider";
+import Link from "next/link";
 
 type LoginStep = "phone" | "otp" | "name" | "done";
 type UserInfo = { id: string; phone: string; name: string | null; email: string | null; role: string };
@@ -333,31 +334,31 @@ export default function AccountPage() {
 
             {/* Sidebar Navigation */}
             <div className="w-full space-y-1 hidden md:block">
-              <ButtonLink href="/account/orders" variant="ghost" className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-left text-sm font-semibold text-text-main hover:bg-background-soft hover:text-brand-primary transition-all duration-200">
+              <Link href="/account/orders" className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-left text-sm font-semibold text-text-main hover:bg-background-soft hover:text-brand-primary transition-all duration-200">
                 <Package className="h-4.5 w-4.5" />
                 <span className="flex-1">My Orders</span>
                 <ChevronRight className="h-4 w-4 text-text-soft" />
-              </ButtonLink>
-              <ButtonLink href="/wishlist" variant="ghost" className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-left text-sm font-semibold text-text-main hover:bg-background-soft hover:text-brand-primary transition-all duration-200">
+              </Link>
+              <Link href="/wishlist" className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-left text-sm font-semibold text-text-main hover:bg-background-soft hover:text-brand-primary transition-all duration-200">
                 <Heart className="h-4.5 w-4.5" />
                 <span className="flex-1">Wishlist</span>
                 <ChevronRight className="h-4 w-4 text-text-soft" />
-              </ButtonLink>
-              <ButtonLink href="/account/coupons" variant="ghost" className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-left text-sm font-semibold text-text-main hover:bg-background-soft hover:text-brand-primary transition-all duration-200">
+              </Link>
+              <Link href="/account/coupons" className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-left text-sm font-semibold text-text-main hover:bg-background-soft hover:text-brand-primary transition-all duration-200">
                 <Ticket className="h-4.5 w-4.5" />
                 <span className="flex-1">My Coupons</span>
                 <ChevronRight className="h-4 w-4 text-text-soft" />
-              </ButtonLink>
-              <ButtonLink href="/account/reviews" variant="ghost" className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-left text-sm font-semibold text-text-main hover:bg-background-soft hover:text-brand-primary transition-all duration-200">
+              </Link>
+              <Link href="/account/reviews" className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-left text-sm font-semibold text-text-main hover:bg-background-soft hover:text-brand-primary transition-all duration-200">
                 <Star className="h-4.5 w-4.5" />
                 <span className="flex-1">My Reviews</span>
                 <ChevronRight className="h-4 w-4 text-text-soft" />
-              </ButtonLink>
-              <ButtonLink href="/account/help" variant="ghost" className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-left text-sm font-semibold text-text-main hover:bg-background-soft hover:text-brand-primary transition-all duration-200">
+              </Link>
+              <Link href="/account/help" className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-left text-sm font-semibold text-text-main hover:bg-background-soft hover:text-brand-primary transition-all duration-200">
                 <Headset className="h-4.5 w-4.5" />
                 <span className="flex-1">Help Center</span>
                 <ChevronRight className="h-4 w-4 text-text-soft" />
-              </ButtonLink>
+              </Link>
             </div>
 
             {/* Logout button */}
@@ -418,7 +419,7 @@ export default function AccountPage() {
           {/* Dashboard Options Grid: Refined 2x2 Grid + Full Width Option */}
           <div className="grid grid-cols-2 gap-3 sm:gap-4">
             
-            <ButtonLink href="/account/orders" variant="ghost" className="qh-card group bg-background-elevated p-4 sm:p-5 flex flex-col items-center text-center gap-3 shadow-sm hover:shadow-md hover:bg-background-soft/20 border border-border/80 rounded-2xl transition-all duration-300 hover:-translate-y-0.5">
+            <Link href="/account/orders" className="qh-card group bg-background-elevated p-4 sm:p-5 flex flex-col items-center text-center gap-3 shadow-sm hover:shadow-md hover:bg-background-soft/20 border border-border/80 rounded-2xl transition-all duration-300 hover:-translate-y-0.5">
               <div className="flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-primary/10 text-brand-primary group-hover:bg-brand-primary group-hover:text-text-inverse transition-all duration-300">
                 <Package className="h-5 w-5 sm:h-6 sm:w-6" />
               </div>
@@ -426,9 +427,9 @@ export default function AccountPage() {
                 <h4 className="font-bold text-xs sm:text-sm text-text-main group-hover:text-brand-primary transition-all duration-200">My Orders</h4>
                 <p className="text-[9px] sm:text-xs text-text-muted leading-tight">Track & manage shipments</p>
               </div>
-            </ButtonLink>
+            </Link>
 
-            <ButtonLink href="/wishlist" variant="ghost" className="qh-card group bg-background-elevated p-4 sm:p-5 flex flex-col items-center text-center gap-3 shadow-sm hover:shadow-md hover:bg-background-soft/20 border border-border/80 rounded-2xl transition-all duration-300 hover:-translate-y-0.5">
+            <Link href="/wishlist" className="qh-card group bg-background-elevated p-4 sm:p-5 flex flex-col items-center text-center gap-3 shadow-sm hover:shadow-md hover:bg-background-soft/20 border border-border/80 rounded-2xl transition-all duration-300 hover:-translate-y-0.5">
               <div className="flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-primary/10 text-brand-primary group-hover:bg-brand-primary group-hover:text-text-inverse transition-all duration-300">
                 <Heart className="h-5 w-5 sm:h-6 sm:w-6" />
               </div>
@@ -436,9 +437,9 @@ export default function AccountPage() {
                 <h4 className="font-bold text-xs sm:text-sm text-text-main group-hover:text-brand-primary transition-all duration-200">Wishlist</h4>
                 <p className="text-[9px] sm:text-xs text-text-muted leading-tight">Your saved favorites</p>
               </div>
-            </ButtonLink>
+            </Link>
 
-            <ButtonLink href="/account/coupons" variant="ghost" className="qh-card group bg-background-elevated p-4 sm:p-5 flex flex-col items-center text-center gap-3 shadow-sm hover:shadow-md hover:bg-background-soft/20 border border-border/80 rounded-2xl transition-all duration-300 hover:-translate-y-0.5">
+            <Link href="/account/coupons" className="qh-card group bg-background-elevated p-4 sm:p-5 flex flex-col items-center text-center gap-3 shadow-sm hover:shadow-md hover:bg-background-soft/20 border border-border/80 rounded-2xl transition-all duration-300 hover:-translate-y-0.5">
               <div className="flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-primary/10 text-brand-primary group-hover:bg-brand-primary group-hover:text-text-inverse transition-all duration-300">
                 <Ticket className="h-5 w-5 sm:h-6 sm:w-6" />
               </div>
@@ -446,9 +447,9 @@ export default function AccountPage() {
                 <h4 className="font-bold text-xs sm:text-sm text-text-main group-hover:text-brand-primary transition-all duration-200">My Coupons</h4>
                 <p className="text-[9px] sm:text-xs text-text-muted leading-tight">Extra discount vouchers</p>
               </div>
-            </ButtonLink>
+            </Link>
 
-            <ButtonLink href="/account/reviews" variant="ghost" className="qh-card group bg-background-elevated p-4 sm:p-5 flex flex-col items-center text-center gap-3 shadow-sm hover:shadow-md hover:bg-background-soft/20 border border-border/80 rounded-2xl transition-all duration-300 hover:-translate-y-0.5">
+            <Link href="/account/reviews" className="qh-card group bg-background-elevated p-4 sm:p-5 flex flex-col items-center text-center gap-3 shadow-sm hover:shadow-md hover:bg-background-soft/20 border border-border/80 rounded-2xl transition-all duration-300 hover:-translate-y-0.5">
               <div className="flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-primary/10 text-brand-primary group-hover:bg-brand-primary group-hover:text-text-inverse transition-all duration-300">
                 <Star className="h-5 w-5 sm:h-6 sm:w-6" />
               </div>
@@ -456,9 +457,9 @@ export default function AccountPage() {
                 <h4 className="font-bold text-xs sm:text-sm text-text-main group-hover:text-brand-primary transition-all duration-200">My Reviews</h4>
                 <p className="text-[9px] sm:text-xs text-text-muted leading-tight">Manage product ratings</p>
               </div>
-            </ButtonLink>
+            </Link>
 
-            <ButtonLink href="/account/help" variant="ghost" className="qh-card col-span-2 group bg-background-elevated p-4 sm:p-5 flex items-center gap-4 shadow-sm hover:shadow-md hover:bg-background-soft/20 border border-border/80 rounded-2xl text-left transition-all duration-300 hover:-translate-y-0.5">
+            <Link href="/account/help" className="qh-card col-span-2 group bg-background-elevated p-4 sm:p-5 flex items-center gap-4 shadow-sm hover:shadow-md hover:bg-background-soft/20 border border-border/80 rounded-2xl text-left transition-all duration-300 hover:-translate-y-0.5">
               <div className="flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-primary/10 text-brand-primary group-hover:bg-brand-primary group-hover:text-text-inverse transition-all duration-300">
                 <Headset className="h-5 w-5 sm:h-6 sm:w-6" />
               </div>
@@ -466,7 +467,7 @@ export default function AccountPage() {
                 <h4 className="font-bold text-xs sm:text-sm text-text-main group-hover:text-brand-primary transition-all duration-200">24/7 Help Desk</h4>
                 <p className="text-[9px] sm:text-xs text-text-muted leading-tight">Need assistance? Talk to our support team</p>
               </div>
-            </ButtonLink>
+            </Link>
             
           </div>
         </div>

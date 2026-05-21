@@ -1,14 +1,103 @@
 "use client";
 
 import Image from "next/image";
-import { Heart, ShoppingBag, Truck, ShieldCheck, RotateCcw, Share2, ChevronLeft, ChevronRight, Star } from "lucide-react";
+import { Heart, ShoppingBag, Truck, ShieldCheck, RotateCcw, Share2, ChevronLeft, ChevronRight, Star, ChevronDown } from "lucide-react";
 import type { Product } from "@/data/products";
 import { discountFor, formatPrice } from "@/data/products";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { useShop } from "@/components/shop/ShopProvider";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+
+type DescriptionSections = {
+  highlights?: string;
+  details?: string;
+  care?: string;
+};
+
+function parseDescriptionSections(product: Product): DescriptionSections | null {
+  const raw = (product as any).long_description || (product as any).longDescription;
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === "object" && (parsed.highlights || parsed.details || parsed.care)) {
+      return parsed;
+    }
+  } catch {
+    // Not JSON; return as highlights
+    if (typeof raw === "string" && raw.trim()) {
+      return { highlights: raw };
+    }
+  }
+  return null;
+}
+
+function DescriptionAccordion({
+  title,
+  content,
+  icon,
+  defaultOpen = false,
+}: {
+  title: string;
+  content: any;
+  icon?: string;
+  defaultOpen?: boolean;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+
+  const hasContent = Array.isArray(content)
+    ? content.length > 0 && content.some(r => r.value?.trim())
+    : typeof content === "string" && content.trim();
+
+  if (!hasContent) return null;
+
+  return (
+    <div className="border-b border-border last:border-0">
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex w-full items-center justify-between px-0 py-4 text-left"
+      >
+        <span className="flex items-center gap-2.5 text-sm font-bold text-text-main md:text-[15px]">
+          {icon && <span className="text-base">{icon}</span>}
+          {title}
+        </span>
+        <ChevronDown
+          className={`h-4 w-4 text-text-soft transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+      <div
+        className={`overflow-hidden transition-all duration-300 ease-in-out ${
+          open ? "max-h-[1000px] pb-5 opacity-100" : "max-h-0 opacity-0"
+        }`}
+      >
+        <div className="text-sm leading-relaxed text-text-muted md:text-[14px]">
+          {Array.isArray(content) ? (
+            <div className="grid grid-cols-2 gap-x-6 gap-y-4 py-2">
+              {content.map((row: any, idx: number) => {
+                if (!row.value?.trim()) return null;
+                return (
+                  <div key={idx} className="border-b border-border/40 pb-2.5">
+                    <span className="block text-[10px] font-bold uppercase tracking-wider text-text-soft">
+                      {row.label || "Detail"}
+                    </span>
+                    <span className="mt-1 block text-sm font-bold text-text-main">
+                      {row.value}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="whitespace-pre-line">
+              {content}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export function ProductDetail({
   product,
@@ -26,9 +115,15 @@ export function ProductDetail({
     return Array.from(new Set(normalized)).slice(0, 10);
   }, [product.gallery, product.image]);
   const [activeImage, setActiveImage] = useState(images[0] || product.image);
+  const [couponCode, setCouponCode] = useState("");
+  const [couponMessage, setCouponMessage] = useState("");
+  const [applyingCoupon, setApplyingCoupon] = useState(false);
+  const [buying, setBuying] = useState(false);
   const activeIndex = Math.max(0, images.indexOf(activeImage));
   const previewThumbs = images.slice(0, 3);
   const extraCount = Math.max(0, images.length - 3);
+
+  const descSections = useMemo(() => parseDescriptionSections(product), [product]);
 
   function showPrevImage() {
     if (images.length <= 1) return;
@@ -40,6 +135,38 @@ export function ProductDetail({
     if (images.length <= 1) return;
     const nextIndex = activeIndex >= images.length - 1 ? 0 : activeIndex + 1;
     setActiveImage(images[nextIndex]);
+  }
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const stored = window.localStorage.getItem("qh_coupon_code");
+    if (stored) setCouponCode(stored);
+  }, []);
+
+  async function applyCouponOnProduct() {
+    if (!couponCode.trim()) return;
+    setApplyingCoupon(true);
+    setCouponMessage("");
+    try {
+      const res = await fetch("/api/coupons/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: couponCode.trim(), subtotal: product.price }),
+      });
+      const data = await res.json();
+      if (!data.valid) {
+        setCouponMessage(data.error || "Invalid coupon code.");
+      } else {
+        const normalized = String(data.code || couponCode).toUpperCase();
+        if (typeof window !== "undefined") window.localStorage.setItem("qh_coupon_code", normalized);
+        setCouponCode(normalized);
+        setCouponMessage(`Coupon ${normalized} applied. Estimated savings: ${formatPrice(Number(data.discountAmount || 0))}.`);
+      }
+    } catch {
+      setCouponMessage("Could not validate coupon right now.");
+    } finally {
+      setApplyingCoupon(false);
+    }
   }
 
   const handleShare = () => {
@@ -60,8 +187,8 @@ export function ProductDetail({
 
   return (
     <section className="qh-container qh-section-pad grid gap-8 overflow-hidden lg:grid-cols-2 lg:items-start">
-      <div className="grid w-full gap-4 overflow-hidden md:gap-6 qh-detail-gallery-grid">
-        <div className="order-2 flex snap-x snap-mandatory gap-2 overflow-x-auto pb-1 md:order-1 md:grid md:grid-cols-1 md:gap-4 md:overflow-visible">
+      <div className="grid w-full gap-4 overflow-hidden md:gap-5 qh-detail-gallery-grid">
+        <div className="order-2 flex snap-x snap-mandatory gap-2 overflow-x-auto pb-1 md:order-1 md:grid md:grid-cols-1 md:content-start md:gap-3 md:overflow-visible">
           {previewThumbs.map((image, idx) => {
             const isActive = image === activeImage;
             return (
@@ -69,7 +196,7 @@ export function ProductDetail({
                 key={`${image}-${idx}`}
                 type="button"
                 onClick={() => setActiveImage(image)}
-                className={`qh-image-shell relative h-14 w-14 shrink-0 snap-start overflow-hidden rounded-lg border md:h-20 md:w-20 lg:h-24 lg:w-24 ${
+                className={`qh-image-shell relative h-14 w-14 shrink-0 snap-start overflow-hidden rounded-lg border md:h-[72px] md:w-[72px] lg:h-20 lg:w-20 ${
                   isActive ? "border-brand-primary ring-2 ring-brand-primary/30" : "border-border"
                 }`}
                 aria-label={`View image ${idx + 1}`}
@@ -82,10 +209,13 @@ export function ProductDetail({
             <button
               type="button"
               onClick={() => setActiveImage(images[3])}
-              className="qh-image-shell relative h-14 w-14 shrink-0 snap-start overflow-hidden rounded-lg border border-border bg-black/65 text-[11px] font-semibold text-white md:h-20 md:w-20 lg:h-24 lg:w-24"
+              className="qh-image-shell relative flex h-14 w-14 shrink-0 snap-start items-center justify-center overflow-hidden rounded-lg border border-border md:h-[72px] md:w-[72px] lg:h-20 lg:w-20"
               aria-label={`View remaining ${extraCount} images`}
             >
-              +{extraCount}
+              <Image src={images[3]} alt="More images" fill sizes="(min-width: 768px) 150px, 3.5rem" className="object-cover" />
+              <div className="absolute inset-0 flex items-center justify-center bg-black/60 text-[11px] font-semibold text-white md:text-[13px]">
+                +{extraCount}
+              </div>
             </button>
           )}
         </div>
@@ -150,16 +280,82 @@ export function ProductDetail({
           </div>
         )}
 
+        {product.size && (
+          <div className="mt-6">
+            <p className="mb-2 text-xs font-bold uppercase tracking-wider text-text-main md:text-sm">Size</p>
+            <div className="inline-flex items-center justify-center rounded-lg border-2 border-brand-primary bg-brand-primary/5 px-4 py-2 text-sm font-semibold text-brand-primary">
+              {product.size}
+            </div>
+          </div>
+        )}
+
         <div className="mt-5 flex flex-wrap items-baseline gap-2.5">
           <span className="text-2xl font-bold text-text-main md:text-[30px]">{formatPrice(product.price)}</span>
           <span className="text-base text-text-soft line-through md:text-lg">{formatPrice(product.mrp)}</span>
           <span className="text-sm font-semibold text-accent-discount">Inclusive of all taxes</span>
         </div>
-        <div className="mt-6">
-          <Button size="lg" className="w-full" onClick={() => addToCart(product)}>
-            <ShoppingBag className="h-5 w-5" /> {inCart ? "Add One More" : "Add to Cart"}
+        <div className="mt-4 rounded-xl border border-border bg-background-soft/60 p-3">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-text-soft">Coupon Code</p>
+          <div className="flex gap-2">
+            <input
+              value={couponCode}
+              onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+              placeholder="Enter coupon code"
+              className="qh-focus h-10 flex-1 rounded-lg border border-border bg-background-main px-3 text-sm"
+            />
+            <button
+              type="button"
+              onClick={applyCouponOnProduct}
+              disabled={applyingCoupon}
+              className="rounded-lg bg-brand-primary px-3 text-xs font-semibold text-white hover:bg-brand-secondary disabled:opacity-60"
+            >
+              {applyingCoupon ? "Applying" : "Apply"}
+            </button>
+          </div>
+          {couponMessage && <p className="mt-2 text-xs text-text-muted">{couponMessage}</p>}
+          <p className="mt-1 text-[11px] text-text-soft">Applied coupon is auto-used at checkout.</p>
+        </div>
+        <div className="mt-6 grid grid-cols-2 gap-2.5 md:gap-3">
+          <Button className="w-full h-11 text-sm md:h-14 md:text-base" variant="outline" onClick={() => addToCart(product)}>
+            <ShoppingBag className="mr-1.5 h-4 w-4 md:mr-2 md:h-5 md:w-5" /> {inCart ? "Add More" : "Add to Cart"}
+          </Button>
+          <Button
+            className="w-full h-11 text-sm md:h-14 md:text-base"
+            disabled={buying}
+            onClick={async () => {
+              setBuying(true);
+              try {
+                await addToCart(product);
+                window.location.href = "/checkout";
+              } catch (err) {
+                console.error("Buy now redirect failed:", err);
+                setBuying(false);
+              }
+            }}
+          >
+            {buying ? "Processing..." : "Buy Now"}
           </Button>
         </div>
+
+        {/* ── Description Sections (Myntra/Amazon style accordions) ── */}
+        {descSections && (descSections.highlights || descSections.details || descSections.care) && (
+          <div className="mt-8 border-t border-border pt-2">
+            <DescriptionAccordion
+              title="Highlights"
+              content={descSections.highlights || ""}
+              defaultOpen={true}
+            />
+            <DescriptionAccordion
+              title="Details & Specifications"
+              content={descSections.details || ""}
+            />
+            <DescriptionAccordion
+              title="Care Instructions"
+              content={descSections.care || ""}
+            />
+          </div>
+        )}
+
         <div className="mt-8 grid grid-cols-3 gap-2 border-t border-border pt-6">
           <div className="flex flex-col items-center text-center">
             <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-background-soft text-brand-primary">

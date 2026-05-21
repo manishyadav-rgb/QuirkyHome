@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { categories } from "@/data/categories";
+
 function SocialIcon({ children }: { children: React.ReactNode }) {
   return (
     <span className="inline-flex h-5 w-5 items-center justify-center" aria-hidden="true">
@@ -8,17 +10,27 @@ function SocialIcon({ children }: { children: React.ReactNode }) {
   );
 }
 
-const groups = [
-  { title: "Quick Links", links: ["About Us", "Shipping", "Returns", "Track Order"] },
-  { title: "Shop", links: ["Bedding", "Wall Decor", "Lighting", "Dining"] },
-];
-
 export function Footer() {
+  const quickLinks = [
+    { label: "About Us", href: "/about-us" },
+    { label: "Shipping", href: "/shipping" },
+    { label: "Returns", href: "/returns" },
+    { label: "Track Order", href: "/track-order" },
+  ];
+
+  const shopCategories = categories.slice(0, 8);
+
   return (
     <footer className="border-t border-border bg-background-inverse text-text-inverse">
       <div className="qh-container qh-footer-grid grid gap-8 py-12">
         <div>
-          <Link href="/" className="qh-logo text-3xl text-text-inverse">QuirkyHome</Link>
+          <Link href="/" className="qh-logo" aria-label="QuirkyHome">
+            <img
+              src="https://res.cloudinary.com/dd4hmahlm/image/upload/v1774697521/rw9xm5nnegmsigzcke5q.png"
+              alt="QuirkyHome Logo"
+              className="h-16 w-auto object-contain invert mix-blend-screen"
+            />
+          </Link>
           <p className="mt-4 text-base leading-relaxed text-text-inverse">Warm, premium, playful decor for Indian homes that refuse to be boring.</p>
           <div className="mt-6 flex items-center gap-3">
             <Link href="#" aria-label="Instagram" className="qh-focus inline-flex h-10 w-10 items-center justify-center rounded-full border border-border text-text-inverse transition-colors duration-fast hover:text-brand-accent">
@@ -53,16 +65,30 @@ export function Footer() {
           <p className="mt-4 text-base font-semibold text-brand-accent">Talk to us</p>
           <p className="mt-2 text-base text-text-inverse">+91 7678099909</p>
         </div>
-        {groups.map((group) => (
-          <div key={group.title}>
-            <h3 className="text-lg font-semibold text-brand-accent">{group.title}</h3>
-            <div className="mt-4 grid gap-2 text-base text-text-inverse">
-              {group.links.map((link) => (
-                <Link key={link} href="/search" className="transition-colors duration-fast hover:text-brand-accent">{link}</Link>
-              ))}
-            </div>
+        
+        {/* Quick Links Column */}
+        <div>
+          <h3 className="text-lg font-semibold text-brand-accent">Quick Links</h3>
+          <div className="mt-4 grid gap-2 text-base text-text-inverse">
+            {quickLinks.map((link) => (
+              <Link key={link.label} href={link.href} className="transition-colors duration-fast hover:text-brand-accent">
+                {link.label}
+              </Link>
+            ))}
           </div>
-        ))}
+        </div>
+
+        {/* Dynamic Shop Categories Column */}
+        <div>
+          <h3 className="text-lg font-semibold text-brand-accent">Shop</h3>
+          <div className="mt-4 grid gap-2 text-base text-text-inverse">
+            {shopCategories.map((category) => (
+              <Link key={category.slug} href={`/${category.slug}`} className="transition-colors duration-fast hover:text-brand-accent">
+                {category.name}
+              </Link>
+            ))}
+          </div>
+        </div>
       </div>
     </footer>
   );

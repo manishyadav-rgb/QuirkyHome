@@ -34,7 +34,7 @@ export default function CartPage() {
               <div className="flex justify-between text-accent-discount"><span>Sale savings</span><span>{formatPrice(savings)}</span></div>
             </div>
             <div className="mt-5 flex justify-between border-t border-border pt-5 text-xl font-bold"><span>Total</span><span>{formatPrice(subtotal)}</span></div>
-            <Button className="mt-6 w-full" size="lg">Proceed to Checkout</Button>
+            <ButtonLink href="/checkout" className="mt-6 w-full" size="lg">Proceed to Checkout</ButtonLink>
           </aside>
         </div>
       ) : (

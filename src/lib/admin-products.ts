@@ -1,17 +1,20 @@
 import { query } from "@/lib/db";
-import type { DynamoInventoryItem } from "@/lib/dynamodb";
+import { type DynamoInventoryItem, getDynamoImageBySku, getDynamoImagesBySkus } from "@/lib/dynamodb";
 
 export type AdminProductRow = {
   id: string;
   title: string;
   slug: string;
   sku: string | null;
+  size: string | null;
   collection: string | null;
   description: string | null;
+  long_description: string | null;
   sale_price: string | null;
   mrp: string | null;
   quantity_available: number | null;
   image_url: string | null;
+  gallery_images: string[] | null;
   category: string | null;
   is_active: boolean;
   created_at: string;
@@ -24,12 +27,15 @@ export async function listAdminProducts() {
        p.title,
        p.slug,
        p.short_description as description,
+       p.long_description,
        pv.sku,
+       pv.attributes->>'size' as size,
        pv.attributes->>'collection' as collection,
        pv.sale_price::text,
        pv.mrp::text,
        ii.quantity_available,
-       pi.image_url,
+       coalesce(pi0.image_url, pi.image_url) as image_url,
+       pig.gallery_images,
        c.slug as category,
        p.is_active,
        p.created_at::text
@@ -37,13 +43,40 @@ export async function listAdminProducts() {
      left join product_variants pv on pv.product_id = p.id
      left join inventory_items ii on ii.variant_id = pv.id
      left join product_images pi on pi.product_id = p.id and pi.sort_order = 0
+     left join lateral (
+       select image_url
+       from product_images
+       where product_id = p.id
+       order by sort_order asc nulls last, created_at asc
+       limit 1
+     ) pi0 on true
+     left join lateral (
+       select array_remove(array_agg(image_url order by sort_order asc nulls last, created_at asc), null) as gallery_images
+       from product_images
+       where product_id = p.id
+     ) pig on true
      left join product_category_map pcm on pcm.product_id = p.id
      left join categories c on c.id = pcm.category_id
      order by p.created_at desc
      limit 100`,
   );
 
-  return result.rows;
+  const rows = result.rows;
+  const missingImageSkus = rows
+    .filter((row) => !row.image_url && row.sku)
+    .map((row) => String(row.sku));
+
+  if (missingImageSkus.length > 0) {
+    const imageMap = await getDynamoImagesBySkus(missingImageSkus);
+    for (const row of rows) {
+      const key = String(row.sku || "").trim().toUpperCase();
+      if (!row.image_url && key && imageMap[key]) {
+        row.image_url = imageMap[key];
+      }
+    }
+  }
+
+  return rows;
 }
 
 export async function importInventoryItem(item: DynamoInventoryItem) {
@@ -122,25 +155,31 @@ export async function importInventoryItem(item: DynamoInventoryItem) {
     [variantId, item.quantity_available],
   );
 
-  if (item.image_url) {
-    await query(
-      `update product_images
-       set image_url = $3,
-           alt_text = $4,
-           variant_id = $2
-       where product_id = $1
-         and sort_order = 0`,
-      [productId, variantId, item.image_url, item.title],
-    );
+  let imageUrls = Array.from(
+    new Set(
+      (item.image_urls && item.image_urls.length ? item.image_urls : [item.image_url])
+        .map((url) => (url || "").trim())
+        .filter(Boolean),
+    ),
+  ).slice(0, 10);
 
-    await query(
-      `insert into product_images (product_id, variant_id, image_url, alt_text, sort_order)
-       select $1, $2, $3, $4, 0
-       where not exists (
-         select 1 from product_images where product_id = $1 and sort_order = 0
-       )`,
-      [productId, variantId, item.image_url, item.title],
-    );
+  if (imageUrls.length === 0 && item.sku) {
+    const fallbackImage = await getDynamoImageBySku(item.sku);
+    if (fallbackImage) {
+      imageUrls = [fallbackImage];
+    }
+  }
+
+  if (imageUrls.length > 0) {
+    await query("delete from product_images where product_id = $1", [productId]);
+
+    for (let i = 0; i < imageUrls.length; i++) {
+      await query(
+        `insert into product_images (product_id, variant_id, image_url, alt_text, sort_order)
+         values ($1, $2, $3, $4, $5)`,
+        [productId, variantId, imageUrls[i], item.title, i],
+      );
+    }
   }
 
   await query(

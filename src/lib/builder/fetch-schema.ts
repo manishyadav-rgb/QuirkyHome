@@ -8,7 +8,6 @@ import { query } from "@/lib/db";
 import type { BuilderSchema } from "@/lib/builder/types";
 
 function buildDefaultBuilderSchema(siteId: string): BuilderSchema {
-  const siteTitle = siteId === "quirkyhome" ? "QuirkyHome" : siteId.toUpperCase();
   return {
     themeSettings: {
       colors: {
@@ -38,17 +37,7 @@ function buildDefaultBuilderSchema(siteId: string): BuilderSchema {
       home: {
         name: "Home Page",
         slug: "home",
-        sections: [
-          { id: "banner-strip-1", type: "BannerStrip", visible: true, settings: { text: "Festive Home Refresh Sale - Up to 60% Off | Free shipping above Rs. 999", bgColor: "#008060", textColor: "#ffffff", link: "" } },
-          { id: "hero-banner-1", type: "HeroBanner", visible: true, settings: { heading: "Buy Home Decor Items Online for Every Indian Home", subheading: "Shop bedsheets, wall decor, table lamps, kitchen essentials, dining pieces, planters, gifts, and curated home accessories at friendly prices.", badgeText: "Festive Home Refresh Sale", button1Text: "Shop the Sale", button1Link: "/search", button2Text: "Explore Collections", button2Link: "/search", imageUrl: "https://images.unsplash.com/photo-1618220179428-22790b461013?auto=format&fit=crop&w=1200&q=80", feature1: "Fast delivery", feature2: "Secure checkout", feature3: "Curated picks" } },
-          { id: "search-band-1", type: "SearchBand", visible: true, settings: { label: "Search for", chips: "Bedsheets, Artificial Plants, Photo Frames, Wall Clocks, Canvas Paintings, Table Lamps, Cushion Covers" } },
-          { id: "category-grid-1", type: "CategoryGrid", visible: true, settings: { eyebrow: "Shop by category", heading: "Home decor, furnishing and essentials", subheading: "Find bedding, wall decor, lighting, kitchen, dining, bath, garden, gifts, storage and showpieces in one place." } },
-          { id: "collections-section-1", type: "CollectionsSection", visible: true, settings: { eyebrow: "Collections", heading: "Shop by collection", subheading: "Curated product sets to help you discover your style." } },
-          { id: "product-grid-1", type: "ProductGrid", visible: true, settings: { eyebrow: "Sale picks", heading: "Premium finds, friendly prices", subheading: "Shop bestselling home decor products with clear pricing, ratings, wishlist and add-to-cart actions." } },
-          { id: "promises-section-1", type: "PromisesSection", visible: true, settings: { eyebrow: "Why choose us", heading: "A calmer, warmer way to shop for home" } },
-          { id: "newsletter-1", type: "Newsletter", visible: true, settings: { eyebrow: "Decor notes", heading: "Ideas, offers and new drops", subheading: "Get room styling inspiration, festive sale alerts and new home essentials in your inbox.", buttonText: "Join Newsletter" } },
-          { id: "seo-article-1", type: "SeoArticle", visible: true, settings: { content: `<h2>${siteTitle} - Buy Home Decor Items Online in India</h2><p>${siteTitle} is built for people who want beautiful home decor without making shopping feel complicated. Explore bedding, home furnishing, wall decor, table lamps, dining essentials, kitchen products, bath accessories, planters, storage baskets, showpieces and thoughtful gifts for Indian homes.</p><h2>Shop Home Decor by Category</h2><p>Whether you are refreshing a bedroom, setting up a living room, styling a dining table or choosing a housewarming gift, our category-led shopping experience helps you find the right product quickly. Every product card keeps price, discount, rating, wishlist and add-to-cart actions easy to scan on mobile and desktop.</p>` } },
-        ],
+        sections: [],
       },
     },
   };
@@ -63,11 +52,108 @@ export async function getBuilderSchema(siteId: string = "quirkyhome"): Promise<B
 
     if (result.rows.length > 0 && result.rows[0].schema_json) {
       const schema = result.rows[0].schema_json as any;
+      let migrated = false;
+
+      // Ensure pages object exists
+      if (!schema.pages) {
+        schema.pages = {};
+        migrated = true;
+      }
+
+      // 1. Inject About Us if missing
+      if (!schema.pages["about-us"]) {
+        schema.pages["about-us"] = {
+          name: "About Us",
+          slug: "about-us",
+          sections: [
+            {
+              id: "about-seo-1",
+              type: "SeoArticle",
+              visible: true,
+              settings: {
+                content: `<h2>About QuirkyHome</h2><p>Welcome to QuirkyHome. We craft premium, playful and warm home decor pieces for Indian homes that refuse to be boring.</p><p>Explore bedding, home furnishing, wall decor, table lamps, dining essentials, kitchen products, bath accessories, planters, storage baskets, showpieces and thoughtful gifts.</p>`
+              }
+            }
+          ]
+        };
+        migrated = true;
+      }
+
+      // 2. Inject Shipping Policy if missing
+      if (!schema.pages["shipping"]) {
+        schema.pages["shipping"] = {
+          name: "Shipping Policy",
+          slug: "shipping",
+          sections: [
+            {
+              id: "shipping-seo-1",
+              type: "SeoArticle",
+              visible: true,
+              settings: {
+                content: `<h2>Shipping & Delivery</h2><p>We deliver happiness to your doorstep within 3-5 business days across India.</p><p>Free shipping on all prepaid orders above Rs. 999! Standard COD and shipping charges apply below Rs. 999.</p>`
+              }
+            }
+          ]
+        };
+        migrated = true;
+      }
+
+      // 3. Inject Returns Policy if missing
+      if (!schema.pages["returns"]) {
+        schema.pages["returns"] = {
+          name: "Returns & Exchanges",
+          slug: "returns",
+          sections: [
+            {
+              id: "returns-seo-1",
+              type: "SeoArticle",
+              visible: true,
+              settings: {
+                content: `<h2>Easy Returns & Exchanges</h2><p>Easy 7-day hassle-free return and exchange policy.</p><p>Return requests can be initiated easily from your account orders dashboard. We pick up return products within 48 hours.</p>`
+              }
+            }
+          ]
+        };
+        migrated = true;
+      }
+
+      // 4. Inject Track Order if missing
+      if (!schema.pages["track-order"]) {
+        schema.pages["track-order"] = {
+          name: "Track Order",
+          slug: "track-order",
+          sections: [
+            {
+              id: "track-seo-1",
+              type: "SeoArticle",
+              visible: true,
+              settings: {
+                content: `<h2>Track Your Order</h2><p>Enter your tracking number or check your Orders section in your account dashboard to track live shipping updates.</p><p>For live order status, check your SMS updates or contact support at support@quirkyhome.com.</p>`
+              }
+            }
+          ]
+        };
+        migrated = true;
+      }
 
       // Migrate old schemas missing new fields
       const c = schema.themeSettings?.colors;
-      if (c && !c.elevated) c.elevated = c.surface || "#ffffff";
-      if (c && !c.accent) c.accent = "#ffd86f";
+      if (c && !c.elevated) {
+        c.elevated = c.surface || "#ffffff";
+        migrated = true;
+      }
+      if (c && !c.accent) {
+        c.accent = "#ffd86f";
+        migrated = true;
+      }
+
+      if (migrated) {
+        await query(
+          "update builder_pages set schema_json = $1, updated_at = now() where id = 'main' and site_id = $2",
+          [JSON.stringify(schema), siteId]
+        );
+      }
+
       return schema as BuilderSchema;
     }
 

@@ -17,10 +17,62 @@ export const metadata: Metadata = {
 export default async function SearchPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   const { q } = await searchParams;
   const products = await getCatalogProducts();
-  const query = q?.toLowerCase() ?? "";
-  const filtered = query
-    ? products.filter((product) => `${product.title} ${product.description} ${product.category}`.toLowerCase().includes(query))
-    : products;
+  const query = q?.toLowerCase().trim() ?? "";
+  
+  let filtered = products;
+
+  if (query) {
+    // Tokenize search query by spaces or punctuation, filter out very short words
+    const tokens = query.split(/[\s,\-_]+/).filter(t => t.length > 1);
+
+    if (tokens.length > 0) {
+      const scoredProducts = products.map((product) => {
+        let score = 0;
+        const titleLower = product.title.toLowerCase();
+        const descLower = (product.description || "").toLowerCase();
+        const catLower = (product.category || "").toLowerCase();
+        const collLower = (product.collection || "").toLowerCase();
+
+        // 1. Exact phrase matches (highest priority)
+        if (titleLower.includes(query)) score += 100;
+        if (catLower.includes(query)) score += 50;
+
+        // 2. Individual token matching
+        tokens.forEach((token) => {
+          // Exact word match in title
+          if (titleLower === token || titleLower.startsWith(token + " ") || titleLower.endsWith(" " + token) || titleLower.includes(" " + token + " ")) {
+            score += 40;
+          } else if (titleLower.includes(token)) {
+            score += 20; // Partial match in title
+          }
+
+          // Category & Collection matching
+          if (catLower.includes(token) || collLower.includes(token)) {
+            score += 15;
+          }
+
+          // Description matching
+          if (descLower.includes(token)) {
+            score += 5;
+          }
+        });
+
+        return { product, score };
+      });
+
+      // Filter out items with 0 score, and sort by relevance score descending
+      filtered = scoredProducts
+        .filter((item) => item.score > 0)
+        .sort((a, b) => b.score - a.score)
+        .map((item) => item.product);
+    } else {
+      // Fallback for single character searches
+      filtered = products.filter((product) => 
+        product.title.toLowerCase().includes(query) || 
+        (product.category || "").toLowerCase().includes(query)
+      );
+    }
+  }
 
   return (
     <section className="qh-container qh-section-pad">

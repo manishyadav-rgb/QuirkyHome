@@ -1,7 +1,7 @@
 import { createHash } from "crypto";
 import { NextResponse } from "next/server";
 import { query } from "@/lib/db";
-import { signToken } from "@/lib/auth";
+import { signToken, TOKEN_COOKIE } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
@@ -78,7 +78,7 @@ export async function POST(request: Request) {
       token,
     });
 
-    response.cookies.set("qh_token", token, {
+    response.cookies.set(TOKEN_COOKIE, token, {
       httpOnly: true,
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",

@@ -15,7 +15,51 @@ type CartItemRow = {
   quantity: number;
 };
 
+async function ensureCartTables() {
+  await query(`
+    create table if not exists customer_carts (
+      id uuid primary key default gen_random_uuid(),
+      user_id varchar(255) not null unique,
+      created_at timestamptz not null default now(),
+      updated_at timestamptz not null default now()
+    )
+  `);
+
+  await query(`
+    create table if not exists customer_cart_items (
+      id uuid primary key default gen_random_uuid(),
+      cart_id uuid not null references customer_carts(id) on delete cascade,
+      product_slug varchar(260) not null,
+      product_title varchar(220) not null,
+      product_image text,
+      unit_price numeric(12,2) not null,
+      mrp numeric(12,2),
+      quantity int not null default 1,
+      created_at timestamptz not null default now(),
+      updated_at timestamptz not null default now(),
+      unique (cart_id, product_slug)
+    )
+  `);
+
+  await query("alter table customer_cart_items drop constraint if exists customer_cart_items_cart_id_key");
+  await query(`
+    do $$
+    begin
+      if not exists (
+        select 1
+        from pg_constraint
+        where conname = 'customer_cart_items_cart_id_product_slug_key'
+      ) then
+        alter table customer_cart_items
+          add constraint customer_cart_items_cart_id_product_slug_key unique (cart_id, product_slug);
+      end if;
+    end $$;
+  `);
+  await query("create index if not exists idx_customer_cart_items_cart on customer_cart_items(cart_id)");
+}
+
 async function getOrCreateCart(userId: string): Promise<string> {
+  await ensureCartTables();
   const existing = await query<CartRow>(
     "select id from customer_carts where user_id = $1 limit 1",
     [userId],
@@ -55,7 +99,7 @@ export async function POST(request: Request) {
   const body = await request.json();
   const { slug, title, image, price, mrp, quantity = 1 } = body;
 
-  if (!slug || !title || !price) {
+  if (!slug || !title || price == null) {
     return NextResponse.json({ error: "slug, title, and price are required" }, { status: 400 });
   }
 

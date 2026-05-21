@@ -29,82 +29,229 @@ type ShopContextValue = {
   isWishlisted: (slug: string) => boolean;
 };
 
-const CART_KEY = "qh_cart";
-const WISHLIST_KEY = "qh_wishlist";
+type MeResponse = {
+  authenticated?: boolean;
+  user?: { role?: "customer" | "team" | "admin" };
+};
+
+type ApiCartItem = {
+  product_slug: string;
+  quantity: number;
+  product_title?: string;
+  product_image?: string | null;
+  unit_price?: string;
+  mrp?: string | null;
+};
+
+type ApiWishlistItem = {
+  slug?: string;
+  product_slug?: string;
+  title?: string;
+  product_title?: string;
+  image?: string;
+  product_image?: string | null;
+  price?: number | string;
+  unit_price?: string;
+  mrp?: number | string | null;
+};
 
 const ShopContext = createContext<ShopContextValue | null>(null);
-
-function readJson<T>(key: string, fallback: T): T {
-  if (typeof window === "undefined") return fallback;
-
-  try {
-    const value = window.localStorage.getItem(key);
-    return value ? (JSON.parse(value) as T) : fallback;
-  } catch {
-    return fallback;
-  }
-}
 
 function productBySlug(slug: string) {
   return products.find((product) => product.slug === slug);
 }
 
+function toProductFromWishlistItem(item: ApiWishlistItem): Product | null {
+  const slug = item.slug || item.product_slug;
+  if (!slug) return null;
+  const fromCatalog = productBySlug(slug);
+  if (fromCatalog) return fromCatalog;
+
+  const title = item.title || item.product_title || slug;
+  const image = item.image || item.product_image || "";
+  const price = Number(item.price ?? item.unit_price ?? 0);
+  const mrp = Number(item.mrp ?? item.price ?? item.unit_price ?? 0);
+
+  return {
+    slug,
+    title,
+    category: "misc",
+    sku: undefined,
+    collection: undefined,
+    stock: undefined,
+    image,
+    gallery: image ? [image] : [],
+    rating: 0,
+    reviews: 0,
+    price,
+    mrp,
+    badge: "",
+    description: "",
+  };
+}
+
+async function getCustomerAuth(): Promise<boolean> {
+  try {
+    const res = await fetch("/api/auth/me", { cache: "no-store" });
+    if (!res.ok) return false;
+    const data = (await res.json()) as MeResponse;
+    return !!data.authenticated && data.user?.role === "customer";
+  } catch {
+    return false;
+  }
+}
+
 export function ShopProvider({ children }: { children: React.ReactNode }) {
   const [cartLines, setCartLines] = useState<CartLine[]>([]);
   const [wishlistSlugs, setWishlistSlugs] = useState<string[]>([]);
-  const [hydrated, setHydrated] = useState(false);
+  const [wishlistProducts, setWishlistProducts] = useState<Product[]>([]);
+  const [isCustomerAuthed, setIsCustomerAuthed] = useState(false);
 
-  useEffect(() => {
-    setCartLines(readJson<CartLine[]>(CART_KEY, []));
-    setWishlistSlugs(readJson<string[]>(WISHLIST_KEY, []));
-    setHydrated(true);
-  }, []);
+  const syncFromServer = useCallback(async () => {
+    const [cartRes, wishlistRes] = await Promise.all([
+      fetch("/api/cart", { cache: "no-store" }),
+      fetch("/api/wishlist", { cache: "no-store" }),
+    ]);
 
-  useEffect(() => {
-    if (hydrated) window.localStorage.setItem(CART_KEY, JSON.stringify(cartLines));
-  }, [cartLines, hydrated]);
-
-  useEffect(() => {
-    if (hydrated) window.localStorage.setItem(WISHLIST_KEY, JSON.stringify(wishlistSlugs));
-  }, [wishlistSlugs, hydrated]);
-
-  const addToCart = useCallback((product: Product, quantity = 1) => {
-    setCartLines((current) => {
-      const existing = current.find((item) => item.slug === product.slug);
-      if (existing) {
-        return current.map((item) =>
-          item.slug === product.slug
-            ? { ...item, quantity: Math.min(item.quantity + quantity, 20), product }
-            : item,
-        );
-      }
-
-      return [...current, { slug: product.slug, quantity: Math.max(1, quantity), product }];
-    });
-  }, []);
-
-  const removeFromCart = useCallback((slug: string) => {
-    setCartLines((current) => current.filter((item) => item.slug !== slug));
-  }, []);
-
-  const updateCartQuantity = useCallback((slug: string, quantity: number) => {
-    if (quantity <= 0) {
-      removeFromCart(slug);
-      return;
+    if (cartRes.ok) {
+      const cartData = await cartRes.json();
+      const items = (cartData.items || []) as ApiCartItem[];
+      setCartLines(
+        items
+          .map((item) => {
+            const fallback = productBySlug(item.product_slug);
+            return {
+              slug: item.product_slug,
+              quantity: item.quantity,
+              product: fallback
+                ? fallback
+                : {
+                    slug: item.product_slug,
+                    title: item.product_title || item.product_slug,
+                    category: "misc",
+                    sku: undefined,
+                    collection: undefined,
+                    stock: undefined,
+                    image: item.product_image || "",
+                    gallery: item.product_image ? [item.product_image] : [],
+                    rating: 0,
+                    reviews: 0,
+                    price: Number(item.unit_price || 0),
+                    mrp: Number(item.mrp || item.unit_price || 0),
+                    badge: "",
+                    description: "",
+                  },
+            };
+          })
+          .filter((item) => item.product),
+      );
     }
 
-    setCartLines((current) =>
-      current.map((item) => (item.slug === slug ? { ...item, quantity: Math.min(quantity, 20) } : item)),
-    );
-  }, [removeFromCart]);
-
-  const toggleWishlist = useCallback((product: Product) => {
-    setWishlistSlugs((current) =>
-      current.includes(product.slug)
-        ? current.filter((slug) => slug !== product.slug)
-        : [...current, product.slug],
-    );
+    if (wishlistRes.ok) {
+      const wishlistData = await wishlistRes.json();
+      const items = (wishlistData.items || []) as ApiWishlistItem[];
+      const normalized = items
+        .map((item) => toProductFromWishlistItem(item))
+        .filter((p): p is Product => !!p);
+      setWishlistProducts(normalized);
+      setWishlistSlugs(normalized.map((p) => p.slug));
+    }
   }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    const init = async () => {
+      const authed = await getCustomerAuth();
+      if (!active) return;
+      setIsCustomerAuthed(authed);
+
+      if (authed) {
+        await syncFromServer();
+      } else {
+        setCartLines([]);
+        setWishlistSlugs([]);
+        setWishlistProducts([]);
+      }
+    };
+
+    init();
+
+    return () => {
+      active = false;
+    };
+  }, [syncFromServer]);
+
+  const requireCustomerLogin = useCallback(async () => {
+    const authed = await getCustomerAuth();
+    setIsCustomerAuthed(authed);
+    if (authed) return true;
+    window.location.href = "/account";
+    return false;
+  }, []);
+
+  const addToCart = useCallback(async (product: Product, quantity = 1) => {
+    const ok = await requireCustomerLogin();
+    if (!ok) return;
+
+    const res = await fetch("/api/cart", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        slug: product.slug,
+        title: product.title,
+        image: product.image,
+        price: product.price,
+        mrp: product.mrp,
+        quantity,
+      }),
+    });
+
+    if (res.ok) await syncFromServer();
+  }, [requireCustomerLogin, syncFromServer]);
+
+  const removeFromCart = useCallback(async (slug: string) => {
+    const ok = await requireCustomerLogin();
+    if (!ok) return;
+
+    const res = await fetch(`/api/cart?slug=${encodeURIComponent(slug)}`, { method: "DELETE" });
+    if (res.ok) await syncFromServer();
+  }, [requireCustomerLogin, syncFromServer]);
+
+  const updateCartQuantity = useCallback(async (slug: string, quantity: number) => {
+    const ok = await requireCustomerLogin();
+    if (!ok) return;
+
+    const res = await fetch("/api/cart", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ slug, quantity }),
+    });
+
+    if (res.ok) await syncFromServer();
+  }, [requireCustomerLogin, syncFromServer]);
+
+  const toggleWishlist = useCallback(async (product: Product) => {
+    const ok = await requireCustomerLogin();
+    if (!ok) return;
+
+    const isCurrentlyWishlisted = wishlistSlugs.includes(product.slug);
+    const res = isCurrentlyWishlisted
+      ? await fetch(`/api/wishlist?slug=${encodeURIComponent(product.slug)}`, { method: "DELETE" })
+      : await fetch("/api/wishlist", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            slug: product.slug,
+            title: product.title,
+            image: product.image,
+            price: product.price,
+            mrp: product.mrp,
+          }),
+        });
+
+    if (res.ok) await syncFromServer();
+  }, [requireCustomerLogin, syncFromServer, wishlistSlugs]);
 
   const cart = useMemo(
     () =>
@@ -115,13 +262,7 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
     [cartLines],
   );
 
-  const wishlist = useMemo(
-    () => wishlistSlugs.flatMap((slug) => {
-      const product = productBySlug(slug);
-      return product ? [product] : [];
-    }),
-    [wishlistSlugs],
-  );
+  const wishlist = useMemo(() => wishlistProducts, [wishlistProducts]);
 
   const subtotal = cart.reduce((sum, item) => sum + item.lineTotal, 0);
 

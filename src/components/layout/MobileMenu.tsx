@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ChevronRight, Image as ImageIcon, Menu, RotateCcw, Sparkles, Truck, UserRound, X } from "lucide-react";
+import { useEffect, useState } from "react";
 import { categories } from "@/data/categories";
 import { Button } from "@/components/ui/Button";
 
@@ -15,13 +16,47 @@ export function MobileMenuTrigger({ onOpen }: { onOpen: () => void }) {
 }
 
 export function MobileMenuDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const [isCustomerAuthed, setIsCustomerAuthed] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+
+    const loadAuth = async () => {
+      if (!open) return;
+      try {
+        const res = await fetch("/api/auth/me", { cache: "no-store" });
+        if (!res.ok) {
+          if (active) setIsCustomerAuthed(false);
+          return;
+        }
+        const data = await res.json();
+        if (active) {
+          setIsCustomerAuthed(Boolean(data?.authenticated && data?.user?.role === "customer"));
+        }
+      } catch {
+        if (active) setIsCustomerAuthed(false);
+      }
+    };
+
+    loadAuth();
+    return () => {
+      active = false;
+    };
+  }, [open]);
+
   return (
     <>
       {open ? (
         <div className="fixed inset-0 z-drawer qh-scrim lg:hidden">
           <div className="flex h-full qh-panel-mobile flex-col overflow-y-auto bg-background-elevated shadow-dropdown">
-            <div className="sticky top-0 z-base flex items-center justify-between border-b border-border bg-background-elevated px-5 py-5 shadow-soft">
-              <Link href="/" className="text-3xl font-black tracking-normal text-text-main" onClick={onClose}>QuirkyHome</Link>
+            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-background-elevated px-5 py-5 shadow-soft">
+              <Link href="/" className="qh-logo" onClick={onClose} aria-label="QuirkyHome">
+                <img
+                  src="https://res.cloudinary.com/dd4hmahlm/image/upload/v1774697521/rw9xm5nnegmsigzcke5q.png"
+                  alt="QuirkyHome Logo"
+                  className="h-14 w-auto object-contain mix-blend-multiply"
+                />
+              </Link>
               <button className="qh-focus inline-flex h-10 w-10 items-center justify-center rounded-full" onClick={onClose} aria-label="Close menu">
                 <X className="h-7 w-7" />
               </button>
@@ -47,10 +82,21 @@ export function MobileMenuDrawer({ open, onClose }: { open: boolean; onClose: ()
             <div className="border-y border-border bg-background-soft/70 py-4">
               <div className="flex items-center gap-4 px-6 py-3">
                 <UserRound className="h-7 w-7 text-text-main" />
-                <span className="flex-1 text-base font-bold text-text-main">Login / Register</span>
-                <Link href="/account" onClick={onClose}>
-                  <Button size="sm" className="bg-brand-accent text-text-main hover:bg-brand-accent">Sign In</Button>
-                </Link>
+                {isCustomerAuthed ? (
+                  <>
+                    <span className="flex-1 text-base font-bold text-text-main">My Account</span>
+                    <Link href="/account" onClick={onClose}>
+                      <Button size="sm" className="bg-brand-accent text-text-main hover:bg-brand-accent">Open</Button>
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <span className="flex-1 text-base font-bold text-text-main">Login / Register</span>
+                    <Link href="/account" onClick={onClose}>
+                      <Button size="sm" className="bg-brand-accent text-text-main hover:bg-brand-accent">Sign In</Button>
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
 

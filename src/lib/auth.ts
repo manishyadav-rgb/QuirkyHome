@@ -48,7 +48,7 @@ export function verifyToken(token: string): TokenPayload | null {
 
 // ─── Cookie helpers ───
 
-const TOKEN_COOKIE = "qh_token";
+export const TOKEN_COOKIE = process.env.AUTH_COOKIE_NAME ?? "qh_store_token";
 
 export function setAuthCookie(token: string, response?: Response) {
   // For use in route handlers, set on NextResponse
@@ -67,9 +67,16 @@ export function setAuthCookie(token: string, response?: Response) {
 export async function getAuthFromCookies(): Promise<TokenPayload | null> {
   try {
     const cookieStore = await cookies();
-    const token = cookieStore.get(TOKEN_COOKIE)?.value;
-    if (!token) return null;
-    return verifyToken(token);
+    const primary = cookieStore.get(TOKEN_COOKIE)?.value;
+    const legacy = cookieStore.get("qh_token")?.value;
+
+    const primaryPayload = primary ? verifyToken(primary) : null;
+    if (primaryPayload) return primaryPayload;
+
+    const legacyPayload = legacy ? verifyToken(legacy) : null;
+    if (legacyPayload) return legacyPayload;
+
+    return null;
   } catch {
     return null;
   }
@@ -99,5 +106,7 @@ export function normalizePhone(phone: string): string {
   const cleaned = phone.replace(/[^\d+]/g, "");
   if (cleaned.startsWith("+")) return cleaned;
   if (cleaned.length === 10) return `+91${cleaned}`;
+  if (cleaned.length === 12 && cleaned.startsWith("91")) return `+${cleaned}`;
+  if (cleaned.length === 11 && cleaned.startsWith("0")) return `+91${cleaned.slice(1)}`;
   return cleaned;
 }
