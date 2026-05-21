@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export function StorefrontReelImage({ settings }: { settings: Record<string, any> }) {
-  const cardH = settings.cardHeight ?? 380;
+  const cardH = settings.cardHeight ?? 400;
   const gap = settings.gap ?? 16;
   const radius = settings.borderRadius ?? 16;
 
@@ -25,13 +25,14 @@ export function StorefrontReelImage({ settings }: { settings: Record<string, any
 
     const handleScroll = () => {
       const { scrollLeft, scrollWidth, clientWidth } = container;
-      setCanScrollLeft(scrollLeft > 10);
-      setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 10);
+      setCanScrollLeft(scrollLeft > 5);
+      setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 5);
     };
 
     container.addEventListener("scroll", handleScroll, { passive: true });
     handleScroll();
 
+    // Re-check after images load
     const timer = setTimeout(handleScroll, 500);
 
     return () => {
@@ -45,31 +46,41 @@ export function StorefrontReelImage({ settings }: { settings: Record<string, any
   const scroll = (direction: "left" | "right") => {
     const container = containerRef.current;
     if (!container) return;
-
-    const cardWidth = container.clientWidth * 0.5;
-    const scrollAmount = direction === "left" ? -(cardWidth + gap) : (cardWidth + gap);
+    
+    // Scroll by about one visible viewport width minus one card to keep context
+    const scrollAmount = direction === "left" ? -container.clientWidth * 0.75 : container.clientWidth * 0.75;
     container.scrollBy({ left: scrollAmount, behavior: "smooth" });
   };
 
   const scrollContainerCss = `
     .qh-reel-scroll::-webkit-scrollbar { display: none; }
     .qh-reel-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+    
+    @media (max-width: 768px) {
+      .qh-reel-card {
+        height: ${Math.min(cardH, 320)}px !important;
+      }
+    }
   `;
 
   return (
-    <section className="relative w-full overflow-hidden" style={{ paddingTop: "8px", paddingBottom: "8px" }}>
-      {settings.heading && <h2 className="mb-4 text-center font-display text-2xl font-black text-text-main">{settings.heading}</h2>}
+    <section className="relative w-full overflow-hidden py-10 md:py-16">
+      {settings.heading && (
+        <div className="mb-8 text-center px-4">
+          <h2 className="font-display text-3xl font-black tracking-tight text-text-main md:text-4xl">{settings.heading}</h2>
+        </div>
+      )}
       <style dangerouslySetInnerHTML={{ __html: scrollContainerCss }} />
       
-      <div className="relative group/arrows max-w-4xl mx-auto px-4 md:px-8">
+      <div className="relative group/arrows w-full">
         {/* Left Arrow */}
         {canScrollLeft && (
           <button
             onClick={() => scroll("left")}
-            className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white/95 dark:bg-black/95 text-text-main shadow-md hover:shadow-lg transition-all duration-200 border border-border/40 hover:scale-105 active:scale-95"
+            className="absolute left-4 top-1/2 -translate-y-1/2 z-20 hidden md:flex h-12 w-12 items-center justify-center rounded-full bg-background-elevated text-text-main shadow-[0_4px_20px_rgba(0,0,0,0.15)] transition-all hover:scale-105 border border-border/50"
             aria-label="Previous slide"
           >
-            <ChevronLeft className="h-6 w-6 stroke-[2.5]" />
+            <ChevronLeft className="h-6 w-6 stroke-[2]" />
           </button>
         )}
 
@@ -77,69 +88,51 @@ export function StorefrontReelImage({ settings }: { settings: Record<string, any
         {canScrollRight && (
           <button
             onClick={() => scroll("right")}
-            className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white/95 dark:bg-black/95 text-text-main shadow-md hover:shadow-lg transition-all duration-200 border border-border/40 hover:scale-105 active:scale-95"
+            className="absolute right-4 top-1/2 -translate-y-1/2 z-20 hidden md:flex h-12 w-12 items-center justify-center rounded-full bg-background-elevated text-text-main shadow-[0_4px_20px_rgba(0,0,0,0.15)] transition-all hover:scale-105 border border-border/50"
             aria-label="Next slide"
           >
-            <ChevronRight className="h-6 w-6 stroke-[2.5]" />
+            <ChevronRight className="h-6 w-6 stroke-[2]" />
           </button>
         )}
 
         <div
           ref={containerRef}
-          className="qh-reel-scroll"
-          style={{
-            display: "flex",
-            gap: `${gap}px`,
-            overflowX: "auto",
-            scrollSnapType: "x mandatory",
-            paddingBottom: "8px",
-            paddingLeft: "25%",
-            paddingRight: "25%",
-            scrollPadding: "0 25%",
-          }}
+          className="qh-reel-scroll flex overflow-x-auto snap-x snap-mandatory px-4 md:px-12"
+          style={{ gap: `${gap}px` }}
         >
           {reels.map((reel, i) => {
             const inner = (
               <div
-                className="relative overflow-hidden group shadow-md"
+                className="qh-reel-card relative overflow-hidden group/card bg-gray-100 shadow-sm transition-shadow hover:shadow-lg"
                 style={{
-                  width: "100%",
                   height: `${cardH}px`,
+                  aspectRatio: "9/16",
                   borderRadius: `${radius}px`,
                 }}
               >
                 <img
                   src={reel.image}
                   alt={reel.text || ""}
-                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  style={{ borderRadius: `${radius}px` }}
+                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover/card:scale-110"
                 />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-80 transition-opacity duration-300 group-hover/card:opacity-100" />
                 {reel.text && (
-                  <div
-                    className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/50 to-transparent px-3 pb-4 pt-10 flex items-end justify-center text-center"
-                    style={{ borderRadius: `0 0 ${radius}px ${radius}px` }}
-                  >
-                    <p className="text-sm font-semibold text-white leading-tight drop-shadow-sm">{reel.text}</p>
+                  <div className="absolute inset-x-0 bottom-0 p-4 pb-6 text-center transform transition-transform duration-300 group-hover/card:-translate-y-1">
+                    <p className="text-base md:text-lg font-bold text-white drop-shadow-md">{reel.text}</p>
                   </div>
                 )}
               </div>
             );
 
-            const cardStyle: React.CSSProperties = {
-              width: "50%",
-              flexShrink: 0,
-              scrollSnapAlign: "center",
-            };
-
             if (reel.link && reel.link !== "#") {
               return (
-                <Link key={i} href={reel.link} className="block animate-fade-in" style={cardStyle}>
+                <Link key={i} href={reel.link} className="shrink-0 snap-start block animate-fade-in outline-none focus-visible:ring-2 focus-visible:ring-brand-primary rounded-[inherit]">
                   {inner}
                 </Link>
               );
             }
             return (
-              <div key={i} className="animate-fade-in" style={cardStyle}>
+              <div key={i} className="shrink-0 snap-start animate-fade-in">
                 {inner}
               </div>
             );
