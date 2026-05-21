@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { query } from "@/lib/db";
 import { hashOtp, normalizePhone, signToken, TOKEN_COOKIE } from "@/lib/auth";
-import { isTwoFactorEnabled } from "@/lib/twofactor";
+import { isTwoFactorEnabled, verifyTwoFactorOtp } from "@/lib/twofactor";
 
 export const runtime = "nodejs";
 
@@ -16,6 +16,7 @@ type OtpSessionRow = {
   id: string;
   otp_hash: string;
   external_session_id?: string | null;
+  provider?: string | null;
   attempts: number;
   max_attempts: number;
 };
@@ -38,7 +39,7 @@ export async function POST(request: Request) {
     }
 
     const sessionResult = await query<OtpSessionRow>(
-      `select id, otp_hash, external_session_id, attempts, max_attempts
+      `select id, otp_hash, external_session_id, provider, attempts, max_attempts
        from auth_otp_requests
        where phone_e164 = $1
          and purpose = 'login'
@@ -59,8 +60,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Too many attempts. Please request a new OTP." }, { status: 429 });
     }
 
-    const provider = "2factor-voice";
-    if (otpSession.otp_hash !== hashOtp(phone, otp)) {
+    const provider = otpSession.provider || "2factor-voice";
+    let isValid = false;
+
+    if (provider === "2factor-sms") {
+      if (otpSession.external_session_id) {
+        isValid = await verifyTwoFactorOtp(otpSession.external_session_id, otp);
+      }
+    } else {
+      isValid = otpSession.otp_hash === hashOtp(phone, otp);
+    }
+
+    if (!isValid) {
       await query("update auth_otp_requests set attempts = attempts + 1 where id = $1", [otpSession.id]);
       return NextResponse.json({ error: "Incorrect or expired OTP.", provider, sessionId: otpSession.external_session_id || null }, { status: 400 });
     }
