@@ -55,6 +55,7 @@ export type SectionType =
   | "Multicolumn"
   | "ImageWithText"
   | "ImageBanner"
+  | "ImageGrid"
   | "Video"
   | "RichText"
   | "CollapsibleContent"
@@ -65,7 +66,8 @@ export type SectionType =
   | "MapSection"
   | "SeoArticle"
   | "CustomHTML"
-  | "Divider";
+  | "Divider"
+  | "ReelImage";
 
 /** Single section in a page */
 export interface Section {

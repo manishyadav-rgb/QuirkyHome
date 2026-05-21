@@ -11,6 +11,7 @@
 import React from "react";
 import Link from "next/link";
 import type { Section, ThemeSettings } from "@/lib/builder/types";
+import { StorefrontReelImage } from "./StorefrontReelImage";
 
 /* ─── Import actual beautiful components ─────────────────────── */
 import { HeroSection } from "@/components/home/HeroSection";
@@ -18,10 +19,10 @@ import { CategoryGrid } from "@/components/home/CategoryGrid";
 import { CollectionsSection } from "@/components/home/CollectionsSection";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { ProductGrid as ActualProductGrid } from "@/components/product/ProductGrid";
-import { getCatalogProducts } from "@/lib/catalog";
+import { products as localCatalogProducts } from "@/data/products";
 import { ThemeSwitcher } from "@/components/ui/ThemeSwitcher";
 import { Button } from "@/components/ui/Button";
-import { ShieldCheck, Sparkles, Truck, Undo2, WalletCards } from "lucide-react";
+import { ShieldCheck, Sparkles, Truck, Undo2, WalletCards, ChevronLeft, ChevronRight } from "lucide-react";
 import { ProductCard } from "@/components/product/ProductCard";
 
 /* ─── HeroBanner — uses actual HeroSection with framer-motion ──── */
@@ -59,7 +60,7 @@ function StorefrontCollectionsSection({ settings }: { settings: Record<string, a
 
 /* ─── ProductGrid ───────────────────────────────────────────── */
 async function StorefrontProductGridWrapper({ settings }: { settings: Record<string, any> }) {
-  const allProducts = await getCatalogProducts();
+  const allProducts = localCatalogProducts;
   
   const source = settings.productSource || "all";
   let products = allProducts;
@@ -277,18 +278,158 @@ function StorefrontFeaturedCollection({ settings }: { settings: Record<string, a
   );
 }
 
-/* ─── ImageBanner ─────────────────────────────────────────── */
+function getDeterministicId(prefix: string, settings: Record<string, any>) {
+  const str = JSON.stringify(settings);
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash << 5) - hash + str.charCodeAt(i);
+    hash |= 0;
+  }
+  return `${prefix}-${Math.abs(hash)}`;
+}
+
+/* ─── ImageBanner (full-width clickable banner — no text, pure image) ── */
 function StorefrontImageBanner({ settings }: { settings: Record<string, any> }) {
-  return (
-    <section className="relative w-full" style={{ height: settings.height || "400px" }}>
-      <img src={settings.imageUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
-      <div className="absolute inset-0 bg-black" style={{ opacity: (settings.overlayOpacity || 40) / 100 }} />
-      <div className={`absolute inset-0 flex flex-col justify-center px-8 text-${settings.textAlign || "center"}`}>
-        <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">{settings.heading}</h2>
-        <p className="text-lg text-white/90 mb-6 max-w-2xl mx-auto">{settings.subheading}</p>
-        {settings.buttonText && (
-          <div><Link href={settings.buttonLink || "#"} className="inline-block bg-white text-black px-8 py-3 rounded-full font-bold hover:bg-gray-100 transition shadow-lg">{settings.buttonText}</Link></div>
+  const desktopHeight = settings.desktopHeight || 280;
+  const mobileHeight = settings.mobileHeight || 180;
+  const radius = settings.borderRadius ?? 12;
+  const fullWidth = settings.fullWidth ?? false;
+  const desktopImage = settings.desktopImageUrl || settings.imageUrl || "";
+  const mobileImage = settings.mobileImageUrl || desktopImage;
+  const link = settings.link || "#";
+  const alt = settings.altText || "";
+
+  const uid = getDeterministicId("qh-imgbanner", settings);
+  const css = `
+    .${uid} { height: ${mobileHeight}px; }
+    @media (min-width: 768px) { .${uid} { height: ${desktopHeight}px; } }
+    .${uid} .qh-ib-mobile { display: block; }
+    .${uid} .qh-ib-desktop { display: none; }
+    @media (min-width: 768px) {
+      .${uid} .qh-ib-mobile { display: none; }
+      .${uid} .qh-ib-desktop { display: block; }
+    }
+  `;
+
+  const content = (
+    <>
+      <style dangerouslySetInnerHTML={{ __html: css }} />
+      <div
+        className={`${uid} relative overflow-hidden transition-transform duration-300 hover:scale-[1.005]`}
+        style={{ borderRadius: fullWidth ? "0" : `${radius}px` }}
+      >
+        {desktopImage && (
+          <img src={desktopImage} alt={alt} className="qh-ib-desktop absolute inset-0 h-full w-full object-cover" />
         )}
+        {mobileImage && (
+          <img src={mobileImage} alt={alt} className="qh-ib-mobile absolute inset-0 h-full w-full object-cover" />
+        )}
+        {!desktopImage && !mobileImage && (
+          <div className="absolute inset-0 flex items-center justify-center bg-background-soft text-text-muted text-sm">
+            No banner image set
+          </div>
+        )}
+      </div>
+    </>
+  );
+
+  if (link && link !== "#") {
+    return (
+      <section className={fullWidth ? "" : "qh-container"} style={fullWidth ? {} : { paddingTop: "8px", paddingBottom: "8px" }}>
+        <Link href={link} className="block">{content}</Link>
+      </section>
+    );
+  }
+
+  return (
+    <section className={fullWidth ? "" : "qh-container"} style={fullWidth ? {} : { paddingTop: "8px", paddingBottom: "8px" }}>
+      {content}
+    </section>
+  );
+}
+
+/* ─── ImageGrid (3-image promo grid — Flipkart/Amazon style) ───── */
+function StorefrontImageGrid({ settings }: { settings: Record<string, any> }) {
+  const gap = settings.gap ?? 12;
+  const radius = settings.borderRadius ?? 12;
+  const desktopHeight = settings.desktopHeight ?? 360;
+  const mobileHeight = settings.mobileHeight ?? 420;
+
+  const uid = getDeterministicId("qh-imggrid", settings);
+  const css = `
+    .${uid} {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: ${gap}px;
+    }
+    .${uid} > div {
+      height: 140px;
+      width: 100%;
+    }
+    .${uid} .qh-ig-large {
+      grid-column: span 2;
+      height: 200px;
+    }
+    @media (min-width: 768px) {
+      .${uid} {
+        grid-template-columns: 2fr 1fr;
+        grid-template-rows: repeat(2, ${Math.round(desktopHeight / 2)}px);
+        height: ${desktopHeight}px;
+      }
+      .${uid} > div {
+        height: 100% !important;
+      }
+      .${uid} .qh-ig-large {
+        grid-column: span 1;
+        grid-row: 1 / 3;
+        height: 100% !important;
+      }
+    }
+  `;
+
+  const renderSlot = (imageUrl: string, link: string, alt: string) => {
+    const inner = (
+      <div
+        className="relative h-full w-full overflow-hidden group"
+        style={{ borderRadius: `${radius}px` }}
+      >
+        {imageUrl ? (
+          <img
+            src={imageUrl}
+            alt={alt || ""}
+            className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            style={{ borderRadius: `${radius}px` }}
+          />
+        ) : (
+          <div
+            className="absolute inset-0 flex items-center justify-center bg-background-soft text-text-muted text-sm"
+            style={{ borderRadius: `${radius}px` }}
+          >
+            No image set
+          </div>
+        )}
+      </div>
+    );
+
+    if (link && link !== "#") {
+      return <Link href={link} className="block h-full">{inner}</Link>;
+    }
+    return inner;
+  };
+
+  return (
+    <section className="qh-container" style={{ paddingTop: "8px", paddingBottom: "8px" }}>
+      <style dangerouslySetInnerHTML={{ __html: css }} />
+      <div className={uid}>
+        <div className="qh-ig-large">
+          {renderSlot(settings.image1Url || "", settings.image1Link || "#", settings.image1Alt || "")}
+        </div>
+        <div>
+          {renderSlot(settings.image2Url || "", settings.image2Link || "#", settings.image2Alt || "")}
+        </div>
+        <div>
+          {renderSlot(settings.image3Url || "", settings.image3Link || "#", settings.image3Alt || "")}
+        </div>
       </div>
     </section>
   );
@@ -463,6 +604,8 @@ function StorefrontDivider({ settings }: { settings: Record<string, any> }) {
   );
 }
 
+
+
 /* ─── Component Map ────────────────────────────────────────── */
 
 const storefrontComponentMap: Record<string, React.FC<{ settings: Record<string, any>; theme: ThemeSettings }>> = {
@@ -481,6 +624,7 @@ const storefrontComponentMap: Record<string, React.FC<{ settings: Record<string,
   BannerStrip: StorefrontBannerStrip,
   // newly added
   ImageBanner: StorefrontImageBanner,
+  ImageGrid: StorefrontImageGrid,
   Slideshow: StorefrontSlideshow,
   Multicolumn: StorefrontMulticolumn,
   CollapsibleContent: StorefrontCollapsibleContent,
@@ -491,6 +635,7 @@ const storefrontComponentMap: Record<string, React.FC<{ settings: Record<string,
   MapSection: StorefrontMapSection,
   CustomHTML: StorefrontCustomHTML,
   Divider: StorefrontDivider,
+  ReelImage: StorefrontReelImage,
 };
 
 /* ─── Public Renderer ──────────────────────────────────────── */

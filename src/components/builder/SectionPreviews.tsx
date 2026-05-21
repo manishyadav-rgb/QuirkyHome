@@ -5,8 +5,9 @@
  * CSS variables from the theme for consistent styling.
  */
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import type { Section } from "@/lib/builder/types";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 /* ─── HeroBanner ───────────────────────────────────────────── */
 
@@ -449,6 +450,269 @@ export function SeoArticlePreview({ settings }: { settings: Section["settings"] 
   );
 }
 
+/* ─── ImageGrid Preview ────────────────────────────────────── */
+
+export function ImageGridPreview({ settings }: { settings: Section["settings"] }) {
+  const gap = settings.gap ?? 12;
+  const radius = settings.borderRadius ?? 12;
+  const height = settings.desktopHeight ?? 360;
+
+  const uid = `qh-preview-imggrid-${Math.random().toString(36).slice(2, 8)}`;
+  const css = `
+    .${uid} {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      grid-template-rows: repeat(2, ${Math.round(height / 2)}px);
+      gap: ${gap}px;
+      height: ${height}px;
+    }
+    .${uid} > div {
+      height: 100%;
+      width: 100%;
+    }
+    .${uid} .qh-ig-large {
+      grid-row: 1 / 3;
+    }
+
+    @container (max-width: 767px) {
+      .${uid} {
+        grid-template-columns: repeat(2, 1fr) !important;
+        grid-template-rows: auto auto !important;
+        height: auto !important;
+        gap: ${gap}px !important;
+      }
+      .${uid} > div {
+        height: 160px !important;
+      }
+      .${uid} .qh-ig-large {
+        grid-column: span 2 !important;
+        grid-row: auto !important;
+        height: 240px !important;
+      }
+    }
+  `;
+
+  const renderSlot = (imageUrl: string, alt: string, placeholder: string) => (
+    <div
+      className="relative overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 h-full w-full"
+      style={{ borderRadius: `${radius}px` }}
+    >
+      {imageUrl ? (
+        <img src={imageUrl} alt={alt || ""} className="absolute inset-0 h-full w-full object-cover" style={{ borderRadius: `${radius}px` }} />
+      ) : (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-gray-400">
+          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+          <span className="text-xs font-medium">{placeholder}</span>
+        </div>
+      )}
+    </div>
+  );
+
+  return (
+    <div style={{ maxWidth: "var(--container-max)", margin: "0 auto", padding: "16px 24px" }}>
+      <style dangerouslySetInnerHTML={{ __html: css }} />
+      <div className={uid}>
+        <div className="qh-ig-large">
+          {renderSlot(settings.image1Url, settings.image1Alt, "Image 1 (Large — Left)")}
+        </div>
+        <div>
+          {renderSlot(settings.image2Url, settings.image2Alt, "Image 2 (Top Right)")}
+        </div>
+        <div>
+          {renderSlot(settings.image3Url, settings.image3Alt, "Image 3 (Bottom Right)")}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── ImageBanner Preview ──────────────────────────────────── */
+
+export function ImageBannerPreview({ settings }: { settings: Section["settings"] }) {
+  const height = settings.desktopHeight ?? 280;
+  const radius = settings.borderRadius ?? 12;
+  const fullWidth = settings.fullWidth ?? false;
+  const imageUrl = settings.desktopImageUrl || settings.imageUrl || "";
+
+  return (
+    <div style={{ maxWidth: fullWidth ? "100%" : "var(--container-max)", margin: "0 auto", padding: fullWidth ? "0" : "16px 24px" }}>
+      <div
+        className="relative overflow-hidden bg-gradient-to-r from-gray-100 to-gray-200"
+        style={{
+          height: `${height}px`,
+          borderRadius: fullWidth ? "0" : `${radius}px`,
+        }}
+      >
+        {imageUrl ? (
+          <img src={imageUrl} alt={settings.altText || ""} className="absolute inset-0 h-full w-full object-cover" />
+        ) : (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-gray-400">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+            <span className="text-sm font-medium">Upload a banner image</span>
+            <span className="text-xs text-gray-300">Recommended: 1920 × {height}px</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ─── ReelImage Preview ────────────────────────────────────── */
+
+export function ReelImagePreview({ settings }: { settings: Section["settings"] }) {
+  const cardH = settings.cardHeight ?? 380;
+  const gap = settings.gap ?? 16;
+  const radius = settings.borderRadius ?? 16;
+
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+
+  // Collect reel items
+  const reels: { image: string; text: string }[] = [];
+  for (let i = 1; i <= 8; i++) {
+    const img = settings[`reel${i}Image`];
+    if (img) reels.push({ image: img, text: settings[`reel${i}Text`] || "" });
+  }
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      const { scrollLeft, scrollWidth, clientWidth } = container;
+      setCanScrollLeft(scrollLeft > 10);
+      setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 10);
+    };
+
+    container.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+
+    const timer = setTimeout(handleScroll, 500);
+
+    return () => {
+      container.removeEventListener("scroll", handleScroll);
+      clearTimeout(timer);
+    };
+  }, [reels.length]);
+
+  const scroll = (direction: "left" | "right") => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const cardWidth = container.clientWidth * 0.5;
+    const scrollAmount = direction === "left" ? -(cardWidth + gap) : (cardWidth + gap);
+    container.scrollBy({ left: scrollAmount, behavior: "smooth" });
+  };
+
+  const scrollContainerCss = `
+    .qh-reel-scroll::-webkit-scrollbar { display: none; }
+    .qh-reel-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+  `;
+
+  const hasItems = reels.length > 0;
+  const displayItems = hasItems ? reels : Array.from({ length: 4 }).map((_, i) => ({
+    image: "",
+    text: `Reel ${i + 1}`,
+  }));
+
+  return (
+    <div className="relative w-full overflow-hidden" style={{ paddingTop: "8px", paddingBottom: "8px" }}>
+      {settings.heading && <h2 className="mb-4 text-center font-display text-2xl font-black text-text-main">{settings.heading}</h2>}
+      <style dangerouslySetInnerHTML={{ __html: scrollContainerCss }} />
+      
+      <div className="relative group/arrows max-w-4xl mx-auto px-4 md:px-8">
+        {/* Left Arrow */}
+        {canScrollLeft && (
+          <button
+            onClick={() => scroll("left")}
+            className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white/95 dark:bg-black/95 text-text-main shadow-md hover:shadow-lg transition-all duration-200 border border-border/40 hover:scale-105 active:scale-95"
+            aria-label="Previous slide"
+          >
+            <ChevronLeft className="h-6 w-6 stroke-[2.5]" />
+          </button>
+        )}
+
+        {/* Right Arrow */}
+        {canScrollRight && (
+          <button
+            onClick={() => scroll("right")}
+            className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white/95 dark:bg-black/95 text-text-main shadow-md hover:shadow-lg transition-all duration-200 border border-border/40 hover:scale-105 active:scale-95"
+            aria-label="Next slide"
+          >
+            <ChevronRight className="h-6 w-6 stroke-[2.5]" />
+          </button>
+        )}
+
+        <div
+          ref={containerRef}
+          className="qh-reel-scroll"
+          style={{
+            display: "flex",
+            gap: `${gap}px`,
+            overflowX: "auto",
+            scrollSnapType: "x mandatory",
+            paddingBottom: "8px",
+            paddingLeft: "25%",
+            paddingRight: "25%",
+            scrollPadding: "0 25%",
+          }}
+        >
+          {displayItems.map((reel, i) => {
+            const inner = (
+              <div
+                className="relative overflow-hidden group shadow-md w-full"
+                style={{
+                  height: `${cardH}px`,
+                  borderRadius: `${radius}px`,
+                }}
+              >
+                {reel.image ? (
+                  <img
+                    src={reel.image}
+                    alt={reel.text || ""}
+                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    style={{ borderRadius: `${radius}px` }}
+                  />
+                ) : (
+                  <div
+                    className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200 flex flex-col items-center justify-center text-gray-400 gap-2"
+                    style={{ borderRadius: `${radius}px` }}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                    <span className="text-xs font-medium">{reel.text}</span>
+                  </div>
+                )}
+                {reel.text && reel.image && (
+                  <div
+                    className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/50 to-transparent px-3 pb-4 pt-10 flex items-end justify-center text-center"
+                    style={{ borderRadius: `0 0 ${radius}px ${radius}px` }}
+                  >
+                    <p className="text-sm font-semibold text-white leading-tight drop-shadow-sm">{reel.text}</p>
+                  </div>
+                )}
+              </div>
+            );
+
+            return (
+              <div
+                key={i}
+                style={{
+                  width: "50%",
+                  flexShrink: 0,
+                  scrollSnapAlign: "center",
+                }}
+              >
+                {inner}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ─── Component Map ────────────────────────────────────────── */
 
 export const sectionComponentMap: Record<string, React.FC<{ settings: Section["settings"] }>> = {
@@ -465,4 +729,7 @@ export const sectionComponentMap: Record<string, React.FC<{ settings: Section["s
   SeoArticle: SeoArticlePreview,
   Testimonials: TestimonialsPreview,
   BannerStrip: BannerStripPreview,
+  ImageGrid: ImageGridPreview,
+  ImageBanner: ImageBannerPreview,
+  ReelImage: ReelImagePreview,
 };
