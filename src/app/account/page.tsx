@@ -40,8 +40,8 @@ export default function AccountPage() {
       .finally(() => setCheckingAuth(false));
   }, []);
 
-  async function handleSendOtp(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function handleSendOtp(event?: FormEvent<HTMLFormElement>, method: "sms" | "voice" = "sms") {
+    if (event) event.preventDefault();
     if (!phone.trim()) return;
 
     setLoading(true);
@@ -50,7 +50,7 @@ export default function AccountPage() {
       const response = await fetch("/api/auth/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone }),
+        body: JSON.stringify({ phone, method }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error ?? "Could not send OTP.");
@@ -59,6 +59,11 @@ export default function AccountPage() {
       setDevOtp(data.devOtp ?? "");
       setStep("otp");
       setOtp("");
+      if (method === "voice") {
+        setMessage("Calling you now with the OTP code... Please listen carefully.");
+      } else {
+        setMessage("OTP code sent successfully via SMS.");
+      }
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Could not send OTP.");
     } finally {
@@ -276,9 +281,19 @@ export default function AccountPage() {
               <Button type="submit" size="lg" disabled={loading || otp.length !== 6} className="w-full h-12 rounded-2xl bg-gradient-to-r from-brand-primary to-brand-secondary text-text-inverse hover:brightness-105 transition-all duration-200 shadow-md flex items-center justify-center gap-2">
                 <ShieldCheck className="h-5 w-5" /> {loading ? "Verifying..." : "Verify & Continue"}
               </Button>
-              <Button type="button" size="lg" variant="ghost" onClick={() => setStep("phone")} className="w-full h-12 rounded-2xl text-text-muted hover:text-brand-primary">
-                <ChevronLeft className="h-4 w-4" /> Change Number
-              </Button>
+              <div className="flex flex-col gap-2">
+                <Button type="button" size="lg" variant="ghost" onClick={() => setStep("phone")} className="w-full h-12 rounded-2xl text-text-muted hover:text-brand-primary">
+                  <ChevronLeft className="h-4 w-4" /> Change Number
+                </Button>
+                <button
+                  type="button"
+                  disabled={loading}
+                  onClick={() => handleSendOtp(undefined, "voice")}
+                  className="w-full h-12 rounded-2xl border border-dashed border-brand-primary/30 hover:border-brand-primary/60 text-[11px] font-bold text-brand-primary hover:bg-brand-primary/5 transition-all duration-200 flex items-center justify-center gap-2"
+                >
+                  📞 Didn't receive SMS? Get OTP via Phone Call
+                </button>
+              </div>
               {devOtp ? (
                 <div className="rounded-2xl bg-background-soft border border-brand-primary/20 p-3 text-center">
                   <p className="text-xs font-bold text-brand-secondary uppercase tracking-wider mb-1">Developer Testing OTP</p>

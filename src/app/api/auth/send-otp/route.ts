@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { randomInt } from "crypto";
 import { query } from "@/lib/db";
 import { hashOtp, normalizePhone } from "@/lib/auth";
-import { isTwoFactorEnabled, sendTwoFactorOtp } from "@/lib/twofactor";
+import { isTwoFactorEnabled, sendTwoFactorOtp, sendTwoFactorVoiceOtp } from "@/lib/twofactor";
 
 export const runtime = "nodejs";
 
@@ -10,6 +10,7 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const phone = normalizePhone(String(body.phone ?? ""));
+    const method = body.method ?? "sms"; // "sms" or "voice"
 
     if (!/^\+[1-9]\d{9,14}$/.test(phone)) {
       return NextResponse.json({ error: "Enter a valid phone number with country code." }, { status: 400 });
@@ -30,12 +31,17 @@ export async function POST(request: Request) {
 
     if (isTwoFactorEnabled()) {
       try {
-        sessionId = await sendTwoFactorOtp(phone);
-        provider = "2factor-sms";
+        if (method === "voice") {
+          sessionId = await sendTwoFactorVoiceOtp(phone, otp);
+          provider = "2factor-voice";
+        } else {
+          sessionId = await sendTwoFactorOtp(phone);
+          provider = "2factor-sms";
+        }
       } catch (apiError) {
-        console.error("2Factor SMS API failed, falling back to mock OTP:", apiError);
+        console.error(`2Factor ${method} API failed, falling back to mock OTP:`, apiError);
         isMock = true;
-        provider = "mock-fallback";
+        provider = method === "voice" ? "mock-voice-fallback" : "mock-fallback";
         mockReason = apiError instanceof Error ? apiError.message : "2Factor API error";
       }
     } else {
