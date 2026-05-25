@@ -53,11 +53,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const { collection } = data;
   return {
-    title: `${collection.name} Collection | QuirkyHome`,
+    title: `${collection.name} Collection`,
     description: collection.description || `Explore our handpicked curation of products in the ${collection.name} collection on QuirkyHome.`,
     alternates: { canonical: `/collections/${slug}` },
     openGraph: {
-      title: `${collection.name} Collection | QuirkyHome`,
+      title: `${collection.name} Collection`,
       description: collection.description || `Explore our handpicked curation of products in the ${collection.name} collection.`,
       images: collection.image_url ? [{ url: collection.image_url, alt: collection.name }] : [],
     },

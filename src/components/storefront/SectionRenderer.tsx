@@ -8,23 +8,25 @@
  * They use real CSS classes (not builder CSS vars) and fetch real data.
  */
 
-import "server-only";
 import React from "react";
 import Link from "next/link";
 import type { Section, ThemeSettings } from "@/lib/builder/types";
 import { StorefrontReelImage } from "./StorefrontReelImage";
+import { StorefrontSlideBanner } from "./StorefrontSlideBanner";
+import { StorefrontSaleBanner } from "./StorefrontSaleBanner";
+import { StorefrontNewArrival } from "./StorefrontNewArrival";
 
 /* ─── Import actual beautiful components ─────────────────────── */
 import { HeroSection } from "@/components/home/HeroSection";
 import { CategoryGrid } from "@/components/home/CategoryGrid";
 import { CollectionsSection } from "@/components/home/CollectionsSection";
 import { SectionHeader } from "@/components/ui/SectionHeader";
-import { ProductGrid as ActualProductGrid } from "@/components/product/ProductGrid";
 import { getCatalogProducts } from "@/lib/catalog";
 import { ThemeSwitcher } from "@/components/ui/ThemeSwitcher";
 import { Button } from "@/components/ui/Button";
 import { ShieldCheck, Sparkles, Truck, Undo2, WalletCards, ChevronLeft, ChevronRight } from "lucide-react";
 import { ProductCard } from "@/components/product/ProductCard";
+import { ProductGrid2Card } from "@/components/product/ProductGrid2Card";
 
 /* ─── HeroBanner — uses actual HeroSection with framer-motion ──── */
 
@@ -112,6 +114,65 @@ async function StorefrontProductGridWrapper({ settings }: { settings: Record<str
       ) : (
         <div className="rounded-lg border border-border bg-background-elevated p-6 text-center text-text-muted">
           No products selected or available.
+        </div>
+      )}
+    </section>
+  );
+}
+
+async function StorefrontProductGrid2({ settings, sectionId }: { settings: Record<string, any>; sectionId: string }) {
+  const desktopCols = Math.min(6, Math.max(2, parseInt(settings.desktopColumns || "6")));
+  const mobileCols = Math.min(2, Math.max(1, parseInt(settings.mobileColumns || "2")));
+  const gap = Math.min(32, Math.max(8, Number(settings.gap || 16)));
+  const radius = Math.min(28, Math.max(4, Number(settings.cardRadius || 14)));
+  const buttonText = settings.buttonText || "Add To Cart";
+  const source = settings.productSource || "manual";
+  const selectedIds: string[] = settings.productIds || [];
+  const viewAllText = settings.viewAllText || "View All Products";
+  const viewAllLink = `/all-product/${sectionId}`;
+
+  const allProducts = await getCatalogProducts();
+  let picked = allProducts;
+  if (source === "manual" && selectedIds.length > 0) {
+    picked = allProducts.filter((p) => selectedIds.includes(p.id || "") || selectedIds.includes(p.slug));
+  } else if (source === "latest") {
+    picked = allProducts.slice(0, 30);
+  }
+  const visible = picked.slice(0, 6);
+  const hasMore = picked.length > 6;
+
+  const uid = getDeterministicId("qh-pg2", settings);
+  const css = `
+    .${uid} { display: grid; grid-template-columns: repeat(${mobileCols}, minmax(0, 1fr)); gap: ${Math.min(gap, 12)}px; }
+    @media (min-width: 768px) {
+      .${uid} { grid-template-columns: repeat(${desktopCols}, minmax(0, 1fr)); gap: ${gap}px; }
+    }
+  `;
+
+  return (
+    <section className="qh-container qh-section-pad">
+      {(settings.heading || settings.subheading) && (
+        <div className="mb-5">
+          {settings.heading && <h2 className="font-display text-2xl font-black text-text-main md:text-3xl">{settings.heading}</h2>}
+          {settings.subheading && <p className="mt-2 text-sm text-text-muted md:text-base">{settings.subheading}</p>}
+        </div>
+      )}
+      <style dangerouslySetInnerHTML={{ __html: css }} />
+      <div className={uid}>
+        {visible.map((product) => (
+          <ProductGrid2Card
+            key={product.slug}
+            product={product}
+            radius={radius}
+            buttonText={buttonText}
+          />
+        ))}
+      </div>
+      {hasMore && (
+        <div className="mt-5 flex justify-center">
+          <Link href={viewAllLink} className="inline-flex rounded-[10px] border border-black/70 bg-white px-5 py-2 text-sm font-semibold text-black">
+            {viewAllText}
+          </Link>
         </div>
       )}
     </section>
@@ -247,9 +308,28 @@ function StorefrontBannerStrip({ settings }: { settings: Record<string, any>; th
 /* ─── RichText ────────────────────────────────────────── */
 
 function StorefrontRichText({ settings }: { settings: Record<string, any> }) {
+  const headingAlign = settings.headingAlign === "left" || settings.headingAlign === "right"
+    ? settings.headingAlign
+    : (settings.textAlign === "left" || settings.textAlign === "right" ? settings.textAlign : "center");
+  const contentAlign = settings.contentAlign === "left" || settings.contentAlign === "right"
+    ? settings.contentAlign
+    : (settings.textAlign === "left" || settings.textAlign === "right" ? settings.textAlign : "center");
+  const headingSize = settings.headingSize === "small" ? "1.15rem" : settings.headingSize === "large" ? "1.8rem" : "1.45rem";
+  const contentSize = settings.contentSize === "small" ? "0.92rem" : settings.contentSize === "large" ? "1.08rem" : "1rem";
   return (
-    <section className="qh-container qh-section-pad text-center">
-      <div dangerouslySetInnerHTML={{ __html: settings.content || "" }} />
+    <section className="qh-container qh-section-pad">
+      <div>
+        {settings.heading ? (
+          <h2 className="mb-4 font-display font-black text-text-main" style={{ fontSize: headingSize, lineHeight: 1.2, textAlign: headingAlign }}>
+            {settings.heading}
+          </h2>
+        ) : null}
+        <div
+          className="qh-seo-copy max-w-none text-text-muted"
+          style={{ fontSize: contentSize, textAlign: contentAlign }}
+          dangerouslySetInnerHTML={{ __html: settings.content || "" }}
+        />
+      </div>
     </section>
   );
 }
@@ -317,7 +397,7 @@ function StorefrontImageBanner({ settings }: { settings: Record<string, any> }) 
       <style dangerouslySetInnerHTML={{ __html: css }} />
       <div
         className={`${uid} relative overflow-hidden transition-transform duration-300 hover:scale-[1.005]`}
-        style={{ borderRadius: fullWidth ? "0" : `${radius}px` }}
+        style={{ borderRadius: fullWidth ? `0 0 ${Math.max(radius + 8, 20)}px ${Math.max(radius + 8, 20)}px` : `${radius}px` }}
       >
         {desktopImage && (
           <img src={desktopImage} alt={alt} className="qh-ib-desktop absolute inset-0 h-full w-full object-cover" />
@@ -431,6 +511,136 @@ function StorefrontImageGrid({ settings }: { settings: Record<string, any> }) {
         <div>
           {renderSlot(settings.image3Url || "", settings.image3Link || "#", settings.image3Alt || "")}
         </div>
+      </div>
+    </section>
+  );
+}
+
+function StorefrontFiveGrid({ settings }: { settings: Record<string, any> }) {
+  const gap = Number(settings.gap ?? 16);
+  const radius = Number(settings.radius ?? 22);
+  const uid = getDeterministicId("qh-fivegrid", settings);
+
+  const css = `
+    .${uid} { display: grid; gap: ${gap}px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .${uid} .fg-item { position: relative; min-height: 140px; overflow: hidden; }
+    .${uid} .fg-item-3, .${uid} .fg-item-5 { grid-column: 1 / -1; min-height: 170px; }
+    .${uid} .fg-item-2 { display: none; }
+    .${uid} .fg-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      background: linear-gradient(to top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.18) 56%, transparent 100%);
+    }
+    .${uid} .fg-copy {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 2;
+      padding: 14px;
+    }
+    .${uid} .fg-copy.right { text-align: right; }
+    .${uid} .fg-title {
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      line-height: 1.25;
+      text-transform: uppercase;
+      margin-bottom: 3px;
+    }
+    .${uid} .fg-off {
+      color: #f2f2f2;
+      font-size: 10px;
+      margin-bottom: 8px;
+    }
+    .${uid} .fg-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 0;
+      border-radius: 4px;
+      background: #fff;
+      color: #111;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      padding: 5px 12px;
+      line-height: 1;
+      min-height: 26px;
+    }
+    @media (min-width: 1024px) {
+      .${uid} {
+        grid-template-columns: 1.1fr 1fr 1fr;
+        grid-template-rows: repeat(2, minmax(230px, 1fr));
+      }
+      .${uid} .fg-item { min-height: 230px; }
+      .${uid} .fg-item-2 { display: block; }
+      .${uid} .fg-item-1 { grid-row: 1 / 3; grid-column: 1 / 2; min-height: 100%; }
+      .${uid} .fg-item-2 { grid-row: 1 / 2; grid-column: 2 / 3; min-height: auto; }
+      .${uid} .fg-item-3 { grid-row: 1 / 2; grid-column: 3 / 4; }
+      .${uid} .fg-item-4 { grid-row: 2 / 3; grid-column: 2 / 3; }
+      .${uid} .fg-item-5 { grid-row: 2 / 3; grid-column: 3 / 4; min-height: auto; }
+      .${uid} .fg-title { font-size: 14px; }
+      .${uid} .fg-off { font-size: 11px; }
+      .${uid} .fg-btn { font-size: 11px; padding: 6px 14px; }
+      .${uid} .fg-item-1 .fg-copy { padding: 18px; }
+      .${uid} .fg-item-1 .fg-title { font-size: 22px; line-height: 1.2; }
+      .${uid} .fg-item-1 .fg-off { font-size: 14px; }
+      .${uid} .fg-item-1 .fg-btn { min-height: 34px; padding: 8px 20px; font-size: 12px; }
+    }
+  `;
+
+  const items = [1, 2, 3, 4, 5].map((n) => ({
+    key: n,
+    image: settings[`image${n}Url`] || "",
+    alt: settings[`image${n}Alt`] || "",
+    link: settings[`image${n}Link`] || "",
+    title: settings[`image${n}Title`] || `Image ${n}`,
+    offer: settings[`image${n}Offer`] || "",
+    cta: settings[`image${n}Cta`] || "Shop Now",
+    textAlign: settings[`image${n}TextAlign`] === "right" ? "right" : "left",
+  }));
+
+  const renderItem = (item: { key: number; image: string; alt: string; link: string; title: string; offer: string; cta: string; textAlign: string }) => {
+    const content = (
+      <div className={`fg-item fg-item-${item.key} h-full w-full`} style={{ borderRadius: `${radius}px` }}>
+        {item.image ? (
+          <img
+            src={item.image}
+            alt={item.alt}
+            className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 hover:scale-[1.03]"
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center bg-background-soft text-sm text-text-muted">
+            No image
+          </div>
+        )}
+        <div className="fg-overlay" />
+        <div className={`fg-copy ${item.textAlign === "right" ? "right" : ""}`}>
+          <p className="fg-title">{item.title}</p>
+          {item.offer ? <p className="fg-off">{item.offer}</p> : null}
+          <span className="fg-btn">{item.cta}</span>
+        </div>
+      </div>
+    );
+
+    if (item.link && item.link !== "#") {
+      return (
+        <Link key={item.key} href={item.link} className="block h-full w-full">
+          {content}
+        </Link>
+      );
+    }
+    return <div key={item.key}>{content}</div>;
+  };
+
+  return (
+    <section className="qh-container" style={{ paddingTop: "8px", paddingBottom: "8px" }}>
+      <style dangerouslySetInnerHTML={{ __html: css }} />
+      <div className={uid}>
+        {items.map(renderItem)}
       </div>
     </section>
   );
@@ -615,6 +825,7 @@ const storefrontComponentMap: Record<string, React.FC<{ settings: Record<string,
   CategoryGrid: StorefrontCategoryGrid,
   CollectionsSection: StorefrontCollectionsSection,
   ProductGrid: StorefrontProductGridWrapper as unknown as React.FC<any>, // It's async
+  ProductGrid2: StorefrontProductGrid2 as unknown as React.FC<any>,
   PromisesSection: StorefrontPromisesSection,
   Newsletter: StorefrontNewsletterVaaree,
   SeoArticle: StorefrontSeoArticle,
@@ -626,6 +837,10 @@ const storefrontComponentMap: Record<string, React.FC<{ settings: Record<string,
   // newly added
   ImageBanner: StorefrontImageBanner,
   ImageGrid: StorefrontImageGrid,
+  FiveGrid: StorefrontFiveGrid,
+  SlideBanner: StorefrontSlideBanner,
+  SaleBanner: StorefrontSaleBanner,
+  NewArrival: StorefrontNewArrival,
   Slideshow: StorefrontSlideshow,
   Multicolumn: StorefrontMulticolumn,
   CollapsibleContent: StorefrontCollapsibleContent,
@@ -648,6 +863,19 @@ interface RenderSectionProps {
 
 export function RenderSection({ section, theme }: RenderSectionProps) {
   if (!section.visible) return null;
+  if (section.type === "ProductGrid2") {
+    const s = section.settings;
+    const wrapperStyle: React.CSSProperties = {};
+    if (s.sectionPaddingTop) wrapperStyle.paddingTop = `${s.sectionPaddingTop}px`;
+    if (s.sectionPaddingBottom) wrapperStyle.paddingBottom = `${s.sectionPaddingBottom}px`;
+    if (s.sectionBgColor) wrapperStyle.backgroundColor = s.sectionBgColor;
+    return (
+      <div style={wrapperStyle} className="qh-builder-section">
+        <StorefrontProductGrid2 settings={s} sectionId={section.id} />
+      </div>
+    );
+  }
+
   const Component = storefrontComponentMap[section.type];
   if (!Component) return null;
   
@@ -673,3 +901,4 @@ export function RenderSections({ sections, theme }: { sections: Section[]; theme
     </>
   );
 }
+

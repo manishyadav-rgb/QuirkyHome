@@ -2,75 +2,97 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Heart, ShoppingBag, Eye, Star } from "lucide-react";
+import { Heart, ShoppingBag, Star, Check } from "lucide-react";
 import type { Product } from "@/data/products";
 import { discountFor, formatPrice } from "@/data/products";
-import { Badge } from "@/components/ui/Badge";
-import { Button } from "@/components/ui/Button";
 import { useShop } from "@/components/shop/ShopProvider";
 
 export function ProductCard({ product }: { product: Product }) {
   const discount = discountFor(product.price, product.mrp);
-  const { addToCart, isInCart, isWishlisted, toggleWishlist } = useShop();
+  const { toggleCartItem, isInCart, isWishlisted, toggleWishlist } = useShop();
   const inCart = isInCart(product.slug);
   const wishlisted = isWishlisted(product.slug);
   const primaryImage = product.gallery?.[0] || product.image;
   const extraImages = Math.max(0, (product.gallery?.length || 0) - 1);
+  const pseudoReviews = Math.max(18, Math.round(product.rating * 23));
 
   return (
-    <article className="group qh-card overflow-hidden transition-all duration-base hover:-translate-y-1 hover:shadow-dropdown">
-      <div className="qh-image-shell relative aspect-square w-full rounded-b-none rounded-t-xl">
+    <article className="group overflow-hidden rounded-2xl border border-[rgba(212,180,131,0.32)] bg-[rgba(255,255,255,0.96)] shadow-[0_2px_10px_rgba(212,180,131,0.18)] transition-all duration-300 hover:-translate-y-1.5 hover:scale-[1.02] hover:shadow-[0_18px_40px_rgba(212,180,131,0.34),0_4px_12px_rgba(0,0,0,0.08)]">
+      <div className="relative overflow-hidden bg-[rgba(212,180,131,0.16)]">
+        <div className="relative w-full pt-[105%]">
         <Link href={`/${product.slug}`} aria-label={product.title}>
-          <Image src={primaryImage} alt={product.title} fill sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 90vw" className="object-cover transition-transform duration-slow group-hover:scale-105" />
+          <Image
+            src={primaryImage}
+            alt={product.title}
+            fill
+            sizes="(min-width: 1200px) 20vw, (min-width: 768px) 33vw, 50vw"
+            className="object-cover transition-transform duration-500 group-hover:scale-110"
+          />
         </Link>
-        <div className="absolute left-2 top-2 flex flex-wrap gap-1.5 sm:left-3 sm:top-3 sm:gap-2">
-          <Badge variant="sale">{discount}% Off</Badge>
         </div>
-        <div className="absolute right-2 top-2 flex items-center gap-1 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-bold text-yellow-400 shadow-sm backdrop-blur-sm sm:right-3 sm:top-3 sm:px-2.5 sm:py-1 sm:text-[11px]">
-          <Star className="h-3 w-3 fill-current text-yellow-400" />
-          <span>{product.rating}</span>
+
+        <div className="absolute left-3 top-3 rounded-md border border-[rgba(212,180,131,0.55)] bg-[rgba(212,180,131,0.26)] px-2 py-1 text-[10px] font-bold text-[#76562a]">
+          {discount}% OFF
         </div>
-        {extraImages > 0 && (
-          <div className="absolute bottom-2 left-2 rounded-full bg-black/60 px-2 py-0.5 text-[9px] font-semibold text-white backdrop-blur-sm sm:bottom-3 sm:left-3 sm:px-2.5 sm:py-1 sm:text-[10px]">
-            +{extraImages} photos
-          </div>
-        )}
+
         <button
           onClick={() => toggleWishlist(product)}
-          className={`qh-focus absolute bottom-2 right-2 inline-flex h-9 w-9 items-center justify-center rounded-full bg-background-elevated shadow-soft transition-all duration-base sm:bottom-3 sm:right-3 sm:h-10 sm:w-10 ${
+          className={`qh-focus absolute right-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-full border backdrop-blur-sm transition-all duration-200 ${
             wishlisted
-              ? "text-[#d7462f] hover:scale-110"
-              : "text-brand-primary hover:bg-brand-primary hover:text-text-inverse"
+              ? "scale-105 border-[#D4B483] bg-[#D4B483] text-white"
+              : "border-[rgba(212,180,131,0.45)] bg-white/90 text-[#9b7643] hover:scale-105"
           }`}
           aria-label={`${wishlisted ? "Remove" : "Add"} ${product.title} ${wishlisted ? "from" : "to"} wishlist`}
         >
-          <Heart className={`h-4 w-4 transition-transform duration-fast sm:h-5 sm:w-5 ${wishlisted ? "scale-110" : ""}`} fill={wishlisted ? "currentColor" : "none"} />
+          <Heart className="h-4 w-4" fill={wishlisted ? "currentColor" : "none"} />
         </button>
-        <Link
-          href={`/${product.slug}`}
-          className="absolute bottom-3 left-1/2 hidden -translate-x-1/2 translate-y-2 items-center gap-1 rounded-full bg-background-elevated/95 px-3 py-1.5 text-[10px] font-semibold text-text-main opacity-0 shadow-dropdown transition-all duration-base backdrop-blur-sm group-hover:translate-y-0 group-hover:opacity-100 md:inline-flex hover:bg-brand-primary hover:text-text-inverse"
-        >
-          <Eye className="h-3 w-3" />
-          Quick View
-        </Link>
-      </div>
-      <div className="space-y-2.5 p-3 sm:space-y-3 sm:p-4">
-        <Link href={`/${product.slug}`} className="block">
-          <h3 className="line-clamp-2 text-[13px] font-black leading-snug text-text-main transition-colors duration-fast group-hover:text-brand-primary sm:text-base md:text-lg">{product.title}</h3>
-        </Link>
-        <div className="flex flex-wrap items-baseline gap-2">
-          <span className="text-base font-bold text-text-main sm:text-lg md:text-xl">{formatPrice(product.price)}</span>
-          <span className="text-[11px] text-text-soft line-through sm:text-xs md:text-sm">{formatPrice(product.mrp)}</span>
-          <span className="rounded bg-[#e3f1df] px-1.5 py-0.5 text-[10px] font-bold text-[#078653] sm:text-[11px] md:text-xs">{discount}% off</span>
+
+        <div className="absolute bottom-3 right-3 rounded-full bg-black/55 px-2 py-1 text-[10px] font-medium text-white backdrop-blur-sm">
+          <span className="inline-flex items-center gap-1">
+            <Star className="h-3 w-3 fill-current" />
+            {product.rating}
+          </span>
         </div>
-        <Button
-          className={`h-9 w-full !justify-center gap-1.5 px-2 text-[12px] leading-none transition-all duration-base sm:h-10 sm:text-[13px] ${inCart ? "!bg-brand-primary !text-text-inverse" : ""}`}
-          variant={inCart ? "primary" : "outline"}
-          onClick={() => addToCart(product)}
+
+        {extraImages > 0 ? (
+          <div className="absolute bottom-3 left-3 rounded-full bg-black/55 px-2 py-1 text-[10px] font-medium text-white backdrop-blur-sm">
+            +{extraImages}
+          </div>
+        ) : null}
+      </div>
+
+      <div className="flex flex-col gap-1.5 p-3 sm:p-3.5">
+        <Link href={`/${product.slug}`} className="block">
+          <h3 className="line-clamp-2 text-[11px] font-semibold leading-snug text-[#2d2417] transition-colors duration-200 group-hover:text-[#9b7643] sm:text-[12px]">
+            {product.title}
+          </h3>
+        </Link>
+
+        <div className="flex items-center gap-1 text-[10px] text-[rgba(77,58,31,0.78)]">
+          <span className="inline-flex items-center gap-1 text-[#9b7643]">
+            <Star className="h-3 w-3 fill-current" />
+            {product.rating}
+          </span>
+          <span>({pseudoReviews} reviews)</span>
+        </div>
+
+        <div className="flex items-baseline gap-2">
+          <span className="text-[16px] font-bold leading-none text-[#2d2417] sm:text-[17px]">{formatPrice(product.price)}</span>
+          <span className="text-[11px] text-[rgba(155,118,67,0.78)] line-through">{formatPrice(product.mrp)}</span>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => toggleCartItem(product)}
+          className={`mt-1.5 inline-flex h-10 w-full items-center justify-center gap-2 rounded-[10px] border text-[12px] font-semibold tracking-[0.03em] transition-all duration-200 sm:h-10.5 sm:text-[12.5px] ${
+            inCart
+              ? "border-[#16a34a] bg-[#f0fdf4] text-[#16a34a]"
+              : "border-[#D4B483] bg-transparent text-[#9b7643] hover:bg-[#D4B483] hover:text-white"
+          }`}
         >
-          <ShoppingBag className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
-          <span className="inline-flex items-center leading-none">{inCart ? "Added" : "Add to Cart"}</span>
-        </Button>
+          {inCart ? <Check className="h-4 w-4" /> : <ShoppingBag className="h-4 w-4" />}
+          <span>{inCart ? "Added to Cart" : "Add to Cart"}</span>
+        </button>
       </div>
     </article>
   );

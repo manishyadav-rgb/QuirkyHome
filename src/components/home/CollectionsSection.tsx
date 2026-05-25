@@ -111,29 +111,29 @@ export async function CollectionsSection({ settings }: CollectionsSectionProps) 
           <div className="mt-8">
             <Link
               href={`/collections/${col.slug}`}
-              className="group block rounded-2xl border border-border bg-background-elevated overflow-hidden shadow-soft transition-all duration-base hover:-translate-y-1 hover:shadow-dropdown"
+              className="group block overflow-hidden rounded-2xl border border-[rgba(212,180,131,0.35)] bg-[rgba(255,255,255,0.96)] shadow-[0_4px_16px_rgba(212,180,131,0.22)] transition-all duration-base hover:-translate-y-1 hover:shadow-[0_14px_34px_rgba(212,180,131,0.30)]"
             >
-              <div className="grid md:grid-cols-12 items-stretch divide-y md:divide-y-0 md:divide-x divide-border">
+              <div className="grid items-stretch divide-y divide-[rgba(212,180,131,0.30)] md:grid-cols-12 md:divide-x md:divide-y-0">
                 {/* Info and Banner block */}
-                <div className="md:col-span-5 p-6 flex flex-col justify-between bg-gradient-to-br from-brand-primary/5 via-transparent to-transparent">
+                <div className="flex flex-col justify-between bg-gradient-to-br from-[rgba(212,180,131,0.22)] via-[rgba(212,180,131,0.08)] to-transparent p-6 md:col-span-5">
                   <div>
-                    <span className="rounded-full bg-brand-primary/10 px-3 py-1 text-xs font-bold text-brand-primary">Collection Spotlight</span>
-                    <h3 className="mt-4 font-display text-2xl font-black text-text-main group-hover:text-brand-primary transition-colors">{col.name}</h3>
+                    <span className="rounded-full bg-[rgba(212,180,131,0.22)] px-3 py-1 text-xs font-bold text-[#8a6636]">Collection Spotlight</span>
+                    <h3 className="mt-4 font-display text-2xl font-black text-[#2d2417] transition-colors group-hover:text-[#9b7643]">{col.name}</h3>
                     <p className="mt-3 text-sm leading-relaxed text-text-muted line-clamp-4">
                       {col.description || "Explore our carefully handpicked items curated for high quality and beautiful aesthetics."}
                     </p>
                   </div>
-                  <div className="mt-6 pt-4 border-t border-border/50 flex items-center justify-between">
+                  <div className="mt-6 flex items-center justify-between border-t border-[rgba(212,180,131,0.35)] pt-4">
                     <span className="text-xs font-semibold text-text-soft">{col.products.length} product(s) inside</span>
-                    <span className="text-sm font-bold text-brand-primary group-hover:translate-x-1 transition-transform">View Collection →</span>
+                    <span className="text-sm font-bold text-[#8a6636] transition-transform group-hover:translate-x-1">View Collection →</span>
                   </div>
                 </div>
                 {/* Products grid preview */}
-                <div className="md:col-span-7 bg-background-soft p-6 flex items-center justify-center">
+                <div className="flex items-center justify-center bg-[rgba(212,180,131,0.12)] p-6 md:col-span-7">
                   {col.products && col.products.length > 0 ? (
                     <div className="grid grid-cols-3 gap-3 w-full">
                       {col.products.slice(0, 3).map((p, i) => (
-                        <div key={p.slug} className="aspect-square bg-background-elevated rounded-xl border border-border/40 overflow-hidden relative shadow-soft">
+                        <div key={p.slug} className="relative aspect-square overflow-hidden rounded-xl border border-[rgba(212,180,131,0.40)] bg-[rgba(255,255,255,0.92)] shadow-[0_3px_10px_rgba(212,180,131,0.18)]">
                           {p.image_url ? (
                             <img
                               src={p.image_url}
@@ -141,7 +141,7 @@ export async function CollectionsSection({ settings }: CollectionsSectionProps) 
                               className="h-full w-full object-cover transition-transform duration-slow group-hover:scale-105"
                             />
                           ) : (
-                            <div className="absolute inset-0 flex items-center justify-center text-[10px] text-text-soft bg-background-muted">
+                            <div className="absolute inset-0 flex items-center justify-center bg-[rgba(212,180,131,0.18)] text-[10px] text-[#6d552f]">
                               No image
                             </div>
                           )}
@@ -149,7 +149,7 @@ export async function CollectionsSection({ settings }: CollectionsSectionProps) 
                         </div>
                       ))}
                       {col.products.length < 3 && Array.from({ length: 3 - col.products.length }).map((_, i) => (
-                        <div key={i} className="aspect-square bg-background-elevated/40 border border-dashed border-border rounded-xl" />
+                        <div key={i} className="aspect-square rounded-xl border border-dashed border-[rgba(212,180,131,0.45)] bg-[rgba(255,255,255,0.65)]" />
                       ))}
                     </div>
                   ) : (
@@ -178,12 +178,12 @@ export async function CollectionsSection({ settings }: CollectionsSectionProps) 
           <Link
             key={col.id}
             href={`/collections/${col.slug}`}
-            className="group qh-card overflow-hidden transition-all duration-base hover:-translate-y-1 hover:shadow-dropdown"
+            className="group overflow-hidden rounded-2xl border border-[rgba(212,180,131,0.35)] bg-[rgba(255,255,255,0.96)] shadow-[0_4px_16px_rgba(212,180,131,0.22)] transition-all duration-base hover:-translate-y-1 hover:shadow-[0_14px_34px_rgba(212,180,131,0.30)]"
           >
             {/* Image Grid */}
-            <div className="grid h-48 grid-cols-3 gap-px bg-background-muted">
+            <div className="grid h-48 grid-cols-3 gap-px bg-[rgba(212,180,131,0.20)]">
               {col.products.slice(0, 3).map((p, i) => (
-                <div key={p.slug} className="relative overflow-hidden bg-background-soft">
+                <div key={p.slug} className="relative overflow-hidden bg-[rgba(212,180,131,0.12)]">
                   {p.image_url ? (
                     <img
                       src={p.image_url}
@@ -191,24 +191,24 @@ export async function CollectionsSection({ settings }: CollectionsSectionProps) 
                       className="h-full w-full object-cover transition-transform duration-slow group-hover:scale-105"
                     />
                   ) : (
-                    <div className="flex h-full items-center justify-center text-xs text-text-soft">No image</div>
+                    <div className="flex h-full items-center justify-center text-xs text-[#6d552f]">No image</div>
                   )}
                 </div>
               ))}
               {col.products.length < 3 &&
                 Array.from({ length: 3 - col.products.length }).map((_, i) => (
-                  <div key={`empty-${i}`} className="bg-background-soft" />
+                  <div key={`empty-${i}`} className="bg-[rgba(212,180,131,0.12)]" />
                 ))}
             </div>
             {/* Info */}
             <div className="p-4">
-              <h3 className="text-lg font-black text-text-main group-hover:text-brand-primary transition-colors duration-fast">
+              <h3 className="text-lg font-black text-[#2d2417] transition-colors duration-fast group-hover:text-[#9b7643]">
                 {col.name}
               </h3>
               {col.description && (
                 <p className="mt-1 text-sm text-text-muted line-clamp-2">{col.description}</p>
               )}
-              <p className="mt-2 text-sm font-semibold text-brand-primary">
+              <p className="mt-2 text-sm font-semibold text-[#8a6636]">
                 {col.products.length} product{col.products.length !== 1 ? "s" : ""} →
               </p>
             </div>

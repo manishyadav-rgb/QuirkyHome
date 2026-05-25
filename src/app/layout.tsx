@@ -23,9 +23,6 @@ export const metadata: Metadata = {
     "home furnishing",
     "QuirkyHome",
   ],
-  alternates: {
-    canonical: "/",
-  },
   openGraph: {
     title: "QuirkyHome | Buy Home Decor Items & Essentials Online",
     description: "Curated home decor, furnishing, organizers, bath gifts and comforters for Indian homes.",

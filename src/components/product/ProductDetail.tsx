@@ -1,14 +1,14 @@
 "use client";
 
 import Image from "next/image";
-import { Heart, ShoppingBag, Truck, ShieldCheck, RotateCcw, Share2, ChevronLeft, ChevronRight, Star, ChevronDown } from "lucide-react";
+import { Heart, ShoppingBag, Truck, ShieldCheck, RotateCcw, Share2, ChevronLeft, ChevronRight, Star, ChevronDown, MapPin, AlertCircle, CheckCircle2 } from "lucide-react";
 import type { Product } from "@/data/products";
 import { discountFor, formatPrice } from "@/data/products";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { useShop } from "@/components/shop/ShopProvider";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 type DescriptionSections = {
   highlights?: string;
@@ -107,7 +107,7 @@ export function ProductDetail({
   collectionProducts?: Product[];
 }) {
   const discount = discountFor(product.price, product.mrp);
-  const { addToCart, isInCart, isWishlisted, toggleWishlist } = useShop();
+  const { addToCart, toggleCartItem, isInCart, isWishlisted, toggleWishlist } = useShop();
   const inCart = isInCart(product.slug);
   const wishlisted = isWishlisted(product.slug);
   const images = useMemo(() => {
@@ -115,9 +115,9 @@ export function ProductDetail({
     return Array.from(new Set(normalized)).slice(0, 10);
   }, [product.gallery, product.image]);
   const [activeImage, setActiveImage] = useState(images[0] || product.image);
-  const [couponCode, setCouponCode] = useState("");
-  const [couponMessage, setCouponMessage] = useState("");
-  const [applyingCoupon, setApplyingCoupon] = useState(false);
+  const [pincode, setPincode] = useState("");
+  const [pincodeStatus, setPincodeStatus] = useState<"idle" | "ok" | "error">("idle");
+  const [pincodeMessage, setPincodeMessage] = useState("");
   const [buying, setBuying] = useState(false);
   const activeIndex = Math.max(0, images.indexOf(activeImage));
   const previewThumbs = images.slice(0, 3);
@@ -137,36 +137,27 @@ export function ProductDetail({
     setActiveImage(images[nextIndex]);
   }
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const stored = window.localStorage.getItem("qh_coupon_code");
-    if (stored) setCouponCode(stored);
-  }, []);
-
-  async function applyCouponOnProduct() {
-    if (!couponCode.trim()) return;
-    setApplyingCoupon(true);
-    setCouponMessage("");
-    try {
-      const res = await fetch("/api/coupons/validate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: couponCode.trim(), subtotal: product.price }),
-      });
-      const data = await res.json();
-      if (!data.valid) {
-        setCouponMessage(data.error || "Invalid coupon code.");
-      } else {
-        const normalized = String(data.code || couponCode).toUpperCase();
-        if (typeof window !== "undefined") window.localStorage.setItem("qh_coupon_code", normalized);
-        setCouponCode(normalized);
-        setCouponMessage(`Coupon ${normalized} applied. Estimated savings: ${formatPrice(Number(data.discountAmount || 0))}.`);
-      }
-    } catch {
-      setCouponMessage("Could not validate coupon right now.");
-    } finally {
-      setApplyingCoupon(false);
+  function checkPincode() {
+    const value = pincode.trim();
+    if (!/^\d{6}$/.test(value)) {
+      setPincodeStatus("error");
+      setPincodeMessage("Enter a valid 6-digit pincode.");
+      return;
     }
+    if (value.startsWith("0")) {
+      setPincodeStatus("error");
+      setPincodeMessage("Delivery is currently unavailable for this pincode.");
+      return;
+    }
+
+    const minDate = new Date();
+    const maxDate = new Date();
+    minDate.setDate(minDate.getDate() + 3);
+    maxDate.setDate(maxDate.getDate() + 6);
+    const fmt = (d: Date) => d.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+
+    setPincodeStatus("ok");
+    setPincodeMessage(`Delivery between ${fmt(minDate)} - ${fmt(maxDate)}. COD available.`);
   }
 
   const handleShare = () => {
@@ -255,7 +246,7 @@ export function ProductDetail({
           <Badge variant="secondary">{product.badge}</Badge>
         </div>
         <div className="flex items-start justify-between gap-4">
-          <h1 className="font-display text-xl font-semibold leading-tight text-balance text-text-main break-words md:text-2xl lg:text-[28px]">{product.title}</h1>
+          <h1 className="font-display text-[17px] font-semibold leading-tight text-balance text-text-main break-words md:text-[19px] lg:text-[21px]">{product.title}</h1>
           <div className="flex shrink-0 gap-2">
             <button onClick={handleShare} className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-background-soft text-text-muted transition-colors hover:bg-brand-primary hover:text-text-inverse" aria-label="Share product">
               <Share2 className="h-4 w-4" />
@@ -265,11 +256,11 @@ export function ProductDetail({
             </button>
           </div>
         </div>
-        {product.description && <p className="mt-3 text-sm leading-relaxed text-text-muted md:text-[15px]">{product.description}</p>}
+        {product.description && <p className="mt-2.5 text-[12px] leading-relaxed text-text-muted md:text-[13px]">{product.description}</p>}
 
         {collectionProducts.length > 0 && (
           <div className="mt-6">
-            <p className="mb-2 text-xs font-bold uppercase tracking-wider text-text-main md:text-sm">Variants</p>
+            <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-text-main md:text-xs">Variants</p>
             <div className="flex flex-wrap gap-2">
               {collectionProducts.map((p) => (
                 <Link key={p.slug} href={`/${p.slug}`} className={`relative h-14 w-14 overflow-hidden rounded-md border-2 transition-all ${p.slug === product.slug ? "border-brand-primary ring-2 ring-brand-primary/20" : "border-border hover:border-text-soft"}`}>
@@ -282,7 +273,7 @@ export function ProductDetail({
 
         {product.size && (
           <div className="mt-6">
-            <p className="mb-2 text-xs font-bold uppercase tracking-wider text-text-main md:text-sm">Size</p>
+            <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-text-main md:text-xs">Size</p>
             <div className="inline-flex items-center justify-center rounded-lg border-2 border-brand-primary bg-brand-primary/5 px-4 py-2 text-sm font-semibold text-brand-primary">
               {product.size}
             </div>
@@ -290,37 +281,47 @@ export function ProductDetail({
         )}
 
         <div className="mt-5 flex flex-wrap items-baseline gap-2.5">
-          <span className="text-2xl font-bold text-text-main md:text-[30px]">{formatPrice(product.price)}</span>
-          <span className="text-base text-text-soft line-through md:text-lg">{formatPrice(product.mrp)}</span>
-          <span className="text-sm font-semibold text-accent-discount">Inclusive of all taxes</span>
+          <span className="text-xl font-bold text-text-main md:text-2xl">{formatPrice(product.price)}</span>
+          <span className="text-sm text-text-soft line-through md:text-base">{formatPrice(product.mrp)}</span>
+          <span className="text-[11px] font-semibold text-accent-discount md:text-xs">Inclusive of all taxes</span>
         </div>
-        <div className="mt-4 rounded-xl border border-border bg-background-soft/60 p-3">
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-text-soft">Coupon Code</p>
+        <div className="mt-4 rounded-xl border border-border bg-gradient-to-br from-background-soft to-background-elevated p-3.5">
+          <div className="mb-2 flex items-center gap-2">
+            <MapPin className="h-4 w-4 text-brand-primary" />
+            <p className="text-xs font-semibold uppercase tracking-wider text-text-main">Check Delivery</p>
+          </div>
           <div className="flex gap-2">
             <input
-              value={couponCode}
-              onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-              placeholder="Enter coupon code"
-              className="qh-focus h-10 flex-1 rounded-lg border border-border bg-background-main px-3 text-sm"
+              value={pincode}
+              onChange={(e) => setPincode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") checkPincode();
+              }}
+              placeholder="Enter 6-digit pincode"
+              inputMode="numeric"
+              className="qh-focus h-9 flex-1 rounded-lg border border-border bg-background-main px-3 text-[12px]"
             />
             <button
               type="button"
-              onClick={applyCouponOnProduct}
-              disabled={applyingCoupon}
+              onClick={checkPincode}
               className="rounded-lg bg-brand-primary px-3 text-xs font-semibold text-white hover:bg-brand-secondary disabled:opacity-60"
             >
-              {applyingCoupon ? "Applying" : "Apply"}
+              Check
             </button>
           </div>
-          {couponMessage && <p className="mt-2 text-xs text-text-muted">{couponMessage}</p>}
-          <p className="mt-1 text-[11px] text-text-soft">Applied coupon is auto-used at checkout.</p>
+          {pincodeStatus !== "idle" && (
+            <div className={`mt-2 flex items-start gap-2 rounded-lg px-2.5 py-2 text-[11px] ${pincodeStatus === "ok" ? "border border-emerald-200 bg-emerald-50 text-emerald-700" : "border border-red-200 bg-red-50 text-red-700"}`}>
+              {pincodeStatus === "ok" ? <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0" /> : <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />}
+              <p>{pincodeMessage}</p>
+            </div>
+          )}
         </div>
         <div className="mt-6 grid grid-cols-2 gap-2.5 md:gap-3">
-          <Button className="w-full h-11 text-sm md:h-14 md:text-base" variant="outline" onClick={() => addToCart(product)}>
-            <ShoppingBag className="mr-1.5 h-4 w-4 md:mr-2 md:h-5 md:w-5" /> {inCart ? "Add More" : "Add to Cart"}
+          <Button className="w-full h-9 text-[11px] md:h-10 md:text-[12px]" variant="outline" onClick={() => toggleCartItem(product)}>
+            <ShoppingBag className="mr-1.5 h-4 w-4 md:mr-2 md:h-5 md:w-5" /> {inCart ? "Remove" : "Add to Cart"}
           </Button>
           <Button
-            className="w-full h-11 text-sm md:h-14 md:text-base"
+            className="w-full h-10 text-[12px] md:h-11 md:text-[13px]"
             disabled={buying}
             onClick={async () => {
               setBuying(true);

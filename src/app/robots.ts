@@ -6,6 +6,10 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: "*",
       allow: "/",
     },
-    sitemap: "https://quirkyhome.in/sitemap.xml",
+    sitemap: [
+      "https://quirkyhome.in/sitemap.xml",
+      "https://quirkyhome.in/sitemap-index.xml",
+      "https://quirkyhome.in/sitemaps/index.xml",
+    ],
   };
 }

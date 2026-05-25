@@ -1,27 +1,36 @@
 import type { MetadataRoute } from "next";
-import { categories } from "@/data/categories";
-import { products } from "@/data/products";
+import {
+  BASE_URL,
+  getCategoryItems,
+  getCollectionItems,
+  getPageItems,
+  getPostItems,
+  getProductItems,
+} from "@/lib/sitemaps";
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://quirkyhome.in";
-  const now = new Date();
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const [products, categories, collections, pages, posts] = await Promise.all([
+    getProductItems(),
+    getCategoryItems(),
+    getCollectionItems(),
+    getPageItems(),
+    getPostItems(),
+  ]);
 
-  return [
-    { url: baseUrl, lastModified: now, changeFrequency: "daily", priority: 1 },
-    { url: `${baseUrl}/search`, lastModified: now, changeFrequency: "weekly", priority: 0.8 },
-    { url: `${baseUrl}/cart`, lastModified: now, changeFrequency: "monthly", priority: 0.3 },
-    { url: `${baseUrl}/wishlist`, lastModified: now, changeFrequency: "monthly", priority: 0.3 },
-    ...categories.map((category) => ({
-      url: `${baseUrl}/${category.slug}`,
-      lastModified: now,
-      changeFrequency: "weekly" as const,
-      priority: 0.85,
-    })),
-    ...products.map((product) => ({
-      url: `${baseUrl}/${product.slug}`,
-      lastModified: now,
-      changeFrequency: "weekly" as const,
-      priority: 0.75,
-    })),
-  ];
+  const all = [...pages, ...categories, ...collections, ...products, ...posts];
+  const seen = new Set<string>();
+
+  return all
+    .filter((item) => item.loc.startsWith(BASE_URL))
+    .filter((item) => {
+      if (seen.has(item.loc)) return false;
+      seen.add(item.loc);
+      return true;
+    })
+    .map((item) => ({
+      url: item.loc,
+      lastModified: item.lastmod ? new Date(item.lastmod) : new Date(),
+      changeFrequency: item.changefreq,
+      priority: item.priority,
+    }));
 }

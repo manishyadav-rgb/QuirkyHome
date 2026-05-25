@@ -146,7 +146,7 @@ export default function AccountPage() {
 
   if (step === "name") {
     return (
-      <section className="min-h-[75vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-transparent via-background-soft/10 to-transparent">
+      <section className="account-black-scope min-h-[75vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-transparent via-background-soft/10 to-transparent">
         <div className="w-full max-w-md space-y-6 qh-card bg-background-elevated p-8 sm:p-10 shadow-2xl border border-border/80 transition-all duration-300 rounded-3xl relative overflow-hidden">
           {/* Ambient top decoration */}
           <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-brand-primary via-brand-secondary to-brand-primary" />
@@ -221,75 +221,86 @@ export default function AccountPage() {
             </p>
           </div>
         </div>
+        <style jsx global>{`
+          .account-black-scope,
+          .account-black-scope * {
+            color: #000 !important;
+          }
+        `}</style>
       </section>
     );
   }
 
   if (step !== "done") {
     return (
-      <section className="min-h-[75vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-transparent via-background-soft/10 to-transparent">
-        <div className="w-full max-w-md space-y-8 qh-card bg-background-elevated p-8 sm:p-10 shadow-xl border border-border/80 transition-all duration-300">
+      <section className="account-black-scope min-h-[72vh] flex items-center justify-center py-8 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-transparent via-background-soft/10 to-transparent">
+        <div className="w-full max-w-sm space-y-6 qh-card bg-background-elevated p-5 sm:p-6 shadow-lg border border-border/80 transition-all duration-300 rounded-2xl">
           
-          <div className="text-center space-y-3">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-tr from-brand-primary to-brand-secondary text-text-inverse shadow-md">
-              <UserRound className="h-8 w-8" />
+          <div className="text-center space-y-2.5">
+            <img
+              src="https://res.cloudinary.com/dd4hmahlm/image/upload/v1774697521/rw9xm5nnegmsigzcke5q.png"
+              alt="QuirkyHome Logo"
+              className="mx-auto h-8 w-auto object-contain mix-blend-multiply sm:h-9"
+            />
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-tr from-brand-primary to-brand-secondary text-text-inverse shadow-sm">
+              <UserRound className="h-6 w-6" />
             </div>
-            <h2 className="text-2xl font-extrabold tracking-tight text-text-main sm:text-3xl">
+            <h2 className="text-lg font-extrabold tracking-tight text-text-main sm:text-xl">
               {step === "phone" ? "Login to QuirkyHome" : "Verify Your Number"}
             </h2>
-            <p className="text-sm text-text-muted leading-relaxed max-w-xs mx-auto">
+            <p className="text-xs text-text-muted leading-relaxed max-w-xs mx-auto">
               {step === "phone" && "Enter your phone number to access saved favorites, track live orders, and unlock exclusive discounts."}
               {step === "otp" && `We've sent a 6-digit OTP code to ${normalizedPhone || phone}.`}
             </p>
           </div>
 
           {step === "phone" ? (
-            <form onSubmit={handleSendOtp} className="grid gap-4 mt-6">
-              <div className="grid gap-2">
-                <label htmlFor="phone" className="text-xs font-bold text-text-muted uppercase tracking-wider">Phone Number</label>
+            <form onSubmit={handleSendOtp} className="grid gap-3.5 mt-4">
+              <div className="grid gap-1.5">
+                <label htmlFor="phone" className="text-[11px] font-bold text-text-muted uppercase tracking-wider">Phone Number</label>
                 <div className="relative">
-                  <Smartphone className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-text-soft" />
+                  <Smartphone className="pointer-events-none absolute left-3.5 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-text-soft" />
                   <input
                     id="phone"
                     value={phone}
                     onChange={(event) => setPhone(event.target.value)}
                     placeholder="+91 98765 43210"
                     inputMode="tel"
-                    className="qh-focus h-12 w-full rounded-2xl border border-border bg-background-elevated pl-11 pr-4 text-text-main placeholder:text-text-soft focus:border-brand-primary focus:ring-1 focus:ring-brand-primary transition-all duration-200"
+                    className="qh-focus h-10 w-full rounded-xl border border-border bg-background-elevated pl-10 pr-3.5 text-sm text-text-main placeholder:text-text-soft focus:border-brand-primary focus:ring-1 focus:ring-brand-primary transition-all duration-200"
                   />
                 </div>
               </div>
-              <Button type="submit" size="lg" disabled={loading} className="w-full h-12 rounded-2xl bg-gradient-to-r from-brand-primary to-brand-secondary text-text-inverse hover:brightness-105 transition-all duration-200 shadow-md">
+              <Button type="submit" size="lg" disabled={loading} className="w-full h-10 rounded-xl bg-gradient-to-r from-brand-primary to-brand-secondary text-sm text-text-inverse hover:brightness-105 transition-all duration-200 shadow-md">
                 {loading ? "Sending..." : "Send OTP"}
               </Button>
             </form>
           ) : null}
 
           {step === "otp" ? (
-            <form onSubmit={handleVerifyOtp} className="grid gap-4 mt-6">
-              <div className="grid gap-2">
-                <label htmlFor="otp" className="text-xs font-bold text-text-muted uppercase tracking-wider text-center">Enter 6-Digit OTP</label>
+            <form onSubmit={handleVerifyOtp} className="grid gap-3.5 mt-4">
+              <div className="grid gap-1.5">
+                <label htmlFor="otp" className="text-[11px] font-bold text-text-muted uppercase tracking-wider text-center">Enter 6-Digit OTP</label>
                 <input
                   id="otp"
                   value={otp}
                   onChange={(event) => setOtp(event.target.value.replace(/\D/g, "").slice(0, 6))}
                   placeholder="000000"
                   inputMode="numeric"
-                  className="qh-focus h-14 w-full min-w-0 rounded-2xl border border-border bg-background-elevated px-4 text-center text-2xl font-bold tracking-[0.25em] text-text-main placeholder:tracking-normal placeholder:text-sm placeholder:font-normal placeholder:text-text-soft sm:px-5 sm:text-3xl transition-all duration-200"
+                  className="qh-focus h-11 w-full min-w-0 rounded-xl border border-border bg-background-elevated px-3.5 text-center text-xl font-bold tracking-[0.2em] text-text-main placeholder:tracking-normal placeholder:text-sm placeholder:font-normal placeholder:text-text-soft sm:px-4 transition-all duration-200"
                 />
               </div>
-              <Button type="submit" size="lg" disabled={loading || otp.length !== 6} className="w-full h-12 rounded-2xl bg-gradient-to-r from-brand-primary to-brand-secondary text-text-inverse hover:brightness-105 transition-all duration-200 shadow-md flex items-center justify-center gap-2">
-                <ShieldCheck className="h-5 w-5" /> {loading ? "Verifying..." : "Verify & Continue"}
+              <Button type="submit" size="lg" disabled={loading || otp.length !== 6} className="w-full h-10 rounded-xl bg-gradient-to-r from-brand-primary to-brand-secondary text-sm text-text-inverse hover:brightness-105 transition-all duration-200 shadow-md flex items-center justify-center gap-2">
+                <ShieldCheck className="h-4.5 w-4.5" /> {loading ? "Verifying..." : "Verify & Continue"}
               </Button>
-              <div className="flex flex-col gap-2">
-                <Button type="button" size="lg" variant="ghost" onClick={() => setStep("phone")} className="w-full h-12 rounded-2xl text-text-muted hover:text-brand-primary">
+              <div className="flex flex-col gap-1.5">
+                <Button type="button" size="lg" variant="ghost" onClick={() => setStep("phone")} className="w-full h-10 rounded-xl text-sm text-text-muted hover:text-brand-primary">
                   <ChevronLeft className="h-4 w-4" /> Change Number
                 </Button>
                 <button
                   type="button"
                   disabled={loading}
                   onClick={() => handleSendOtp(undefined, "voice")}
-                  className="w-full h-12 rounded-2xl border border-dashed border-brand-primary/30 hover:border-brand-primary/60 text-[11px] font-bold text-brand-primary hover:bg-brand-primary/5 transition-all duration-200 flex items-center justify-center gap-2"
+                  className="w-full h-10 rounded-xl border border-dashed border-brand-primary/30 hover:border-brand-primary/60 text-[10px] font-bold text-brand-primary hover:bg-brand-primary/5 transition-all duration-200 flex items-center justify-center gap-2"
                 >
                   📞 Didn't receive SMS? Get OTP via Phone Call
                 </button>
@@ -310,12 +321,18 @@ export default function AccountPage() {
           ) : null}
 
         </div>
+        <style jsx global>{`
+          .account-black-scope,
+          .account-black-scope * {
+            color: #000 !important;
+          }
+        `}</style>
       </section>
     );
   }
 
   return (
-    <section className="qh-container py-8 sm:py-12">
+    <section className="account-black-scope qh-container py-8 sm:py-12">
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
         
         {/* Left Column (Sidebar) */}
@@ -488,6 +505,12 @@ export default function AccountPage() {
         </div>
 
       </div>
+      <style jsx global>{`
+        .account-black-scope,
+        .account-black-scope * {
+          color: #000 !important;
+        }
+      `}</style>
     </section>
   );
 }

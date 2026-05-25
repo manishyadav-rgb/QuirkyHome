@@ -36,11 +36,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       ? seoText.slice(0, 160)
       : `Explore ${page.name} on QuirkyHome with curated products and easy shopping.`;
     return {
-      title: `${page.name} | QuirkyHome`,
+      title: page.name,
       description,
       alternates: { canonical: `/${slug}` },
       openGraph: {
-        title: `${page.name} | QuirkyHome`,
+        title: page.name,
         description,
         type: "website",
       },
@@ -51,11 +51,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const category = categories.find((item) => item.slug === slug);
   if (category) {
     return {
-      title: `Buy ${category.name} Online | QuirkyHome`,
+      title: `Buy ${category.name} Online`,
       description: category.description,
       alternates: { canonical: `/${category.slug}` },
       openGraph: {
-        title: `Buy ${category.name} Online | QuirkyHome`,
+        title: `Buy ${category.name} Online`,
         description: category.description,
         images: [{ url: category.image, alt: category.name }],
       },
@@ -65,14 +65,24 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   // 3. Try Product
   const product = await getCatalogProduct(slug);
   if (product) {
+    const fallbackDescription = `Buy ${product.title} online at QuirkyHome. Explore latest pricing, offers and fast delivery across India.`;
+    const description = (product.description || "").trim() || fallbackDescription;
     return {
       title: `${product.title} - Buy Online`,
-      description: product.description,
+      description,
       alternates: { canonical: `/${product.slug}` },
       openGraph: {
         title: `${product.title} | QuirkyHome`,
-        description: product.description,
+        description,
+        url: `https://quirkyhome.in/${product.slug}`,
+        type: "website",
         images: [{ url: product.image, alt: product.title }],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: `${product.title} | QuirkyHome`,
+        description,
+        images: [product.image],
       },
     };
   }
@@ -120,30 +130,52 @@ export default async function DynamicPage({ params }: PageProps) {
   const product = await getCatalogProduct(slug);
   if (product) {
     const products = await getCatalogProducts();
+    const productDescription = (product.description || "").trim() || `Buy ${product.title} online at QuirkyHome.`;
+    const inStock = typeof product.stock === "number" ? product.stock > 0 : true;
+    const priceValidUntil = new Date(Date.now() + 1000 * 60 * 60 * 24 * 365).toISOString().slice(0, 10);
+
+    const breadcrumbJsonLd = {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: "https://quirkyhome.in/" },
+        { "@type": "ListItem", position: 2, name: product.category || "Products", item: `https://quirkyhome.in/${product.category || ""}` },
+        { "@type": "ListItem", position: 3, name: product.title, item: `https://quirkyhome.in/${product.slug}` },
+      ],
+    };
+
     const productJsonLd = {
       "@context": "https://schema.org",
       "@type": "Product",
       name: product.title,
       image: product.gallery,
-      description: product.description,
+      description: productDescription,
       sku: product.slug,
       brand: {
         "@type": "Brand",
         name: "QuirkyHome",
       },
-      aggregateRating: {
-        "@type": "AggregateRating",
-        ratingValue: product.rating,
-        reviewCount: product.reviews,
-      },
       offers: {
         "@type": "Offer",
         priceCurrency: "INR",
         price: product.price,
-        availability: "https://schema.org/InStock",
+        availability: inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+        itemCondition: "https://schema.org/NewCondition",
+        priceValidUntil,
+        seller: {
+          "@type": "Organization",
+          name: "QuirkyHome",
+        },
         url: `https://quirkyhome.in/${product.slug}`,
       },
-    };
+    } as Record<string, any>;
+    if (product.reviews > 0 && product.rating > 0) {
+      productJsonLd.aggregateRating = {
+        "@type": "AggregateRating",
+        ratingValue: Number(product.rating.toFixed(1)),
+        reviewCount: product.reviews,
+      };
+    }
     // Related products logic (prioritize collection)
     const relatedProducts = products.filter((item) => item.slug !== slug);
     const collectionMatches = product.collection 
@@ -160,6 +192,7 @@ export default async function DynamicPage({ params }: PageProps) {
 
     return (
       <>
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }} />
         <ProductDetail product={product} collectionProducts={displayCollection} />
         <section className="qh-container qh-section-pad">

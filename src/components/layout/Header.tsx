@@ -65,19 +65,19 @@ export function Header() {
                           <p className="text-sm text-text-muted">Manage your profile and orders</p>
                         </div>
                         <div className="flex flex-col py-2">
-                          <Link href="/account/orders" className="flex items-center gap-3 px-5 py-2.5 text-sm text-text-main hover:bg-background-soft hover:text-brand-primary">
+                          <Link href="/account/orders" className="flex items-center gap-3 px-5 py-2.5 text-sm text-text-main hover:text-[#8a6636]">
                             <Package className="h-4 w-4" /> Orders
                           </Link>
-                          <Link href="/wishlist" className="flex items-center gap-3 px-5 py-2.5 text-sm text-text-main hover:bg-background-soft hover:text-brand-primary">
+                          <Link href="/wishlist" className="flex items-center gap-3 px-5 py-2.5 text-sm text-text-main hover:text-[#8a6636]">
                             <Heart className="h-4 w-4" /> Wishlist
                           </Link>
-                          <Link href="/account/coupons" className="flex items-center gap-3 px-5 py-2.5 text-sm text-text-main hover:bg-background-soft hover:text-brand-primary">
+                          <Link href="/account/coupons" className="flex items-center gap-3 px-5 py-2.5 text-sm text-text-main hover:text-[#8a6636]">
                             <Ticket className="h-4 w-4" /> Coupons
                           </Link>
-                          <Link href="/account/reviews" className="flex items-center gap-3 px-5 py-2.5 text-sm text-text-main hover:bg-background-soft hover:text-brand-primary">
+                          <Link href="/account/reviews" className="flex items-center gap-3 px-5 py-2.5 text-sm text-text-main hover:text-[#8a6636]">
                             <Star className="h-4 w-4" /> My Reviews
                           </Link>
-                          <Link href="/account/help" className="flex items-center gap-3 border-t border-border mt-1 pt-3 px-5 pb-2 text-sm text-text-main hover:bg-background-soft hover:text-brand-primary">
+                          <Link href="/account/help" className="flex items-center gap-3 border-t border-border mt-1 pt-3 px-5 pb-2 text-sm text-text-main hover:text-[#8a6636]">
                             <Headset className="h-4 w-4" /> Help Center
                           </Link>
                         </div>
