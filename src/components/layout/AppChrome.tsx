@@ -17,9 +17,10 @@ export function AppChrome({ children }: { children: React.ReactNode }) {
     <>
       <AnnouncementBar />
       <Header />
-      <div aria-hidden className="h-[86px] md:h-[56px] lg:h-[92px]" />
-      <Breadcrumbs />
-      <main className="pt-[10px]">{children}</main>
+      <div>
+        <Breadcrumbs />
+        <main>{children}</main>
+      </div>
       <Footer />
       <BottomNav />
     </>

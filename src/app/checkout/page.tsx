@@ -20,6 +20,7 @@ export default function CheckoutPage() {
   const [couponCode, setCouponCode] = useState("");
   const [coupon, setCoupon] = useState<CouponState>({ code: "", discountAmount: 0, error: "", applying: false, applied: false });
   const [availableCoupons, setAvailableCoupons] = useState<any[]>([]);
+  const [showCouponModal, setShowCouponModal] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -33,11 +34,18 @@ export default function CheckoutPage() {
   });
 
   const cartCount = useMemo(() => cart.reduce((sum, item) => sum + item.quantity, 0), [cart]);
-  const totalMrp = useMemo(() => cart.reduce((sum, item) => sum + (item.product.mrp || item.product.price) * item.quantity, 0), [cart]);
+  const totalMrp = useMemo(() => cart.reduce((sum, item) => sum + Math.max(item.product.price, item.product.mrp || 0) * item.quantity, 0), [cart]);
   const mrpDiscount = useMemo(() => Math.max(0, totalMrp - subtotal), [totalMrp, subtotal]);
-  const savingsPercentage = useMemo(() => (totalMrp === 0 ? 0 : Math.round((mrpDiscount / totalMrp) * 100)), [mrpDiscount, totalMrp]);
+  const savingsPercentage = useMemo(() => {
+    if (totalMrp <= 0) return 0;
+    return Math.max(0, Math.min(100, Math.round((mrpDiscount / totalMrp) * 100)));
+  }, [mrpDiscount, totalMrp]);
   const payableTotal = useMemo(() => Math.max(0, subtotal - coupon.discountAmount), [subtotal, coupon.discountAmount]);
   const totalSavings = useMemo(() => mrpDiscount + coupon.discountAmount, [mrpDiscount, coupon.discountAmount]);
+  const featuredCoupon = useMemo(() => {
+    if (!availableCoupons.length) return null;
+    return availableCoupons[0];
+  }, [availableCoupons]);
 
   async function fetchCoupons() {
     try {
@@ -193,6 +201,14 @@ export default function CheckoutPage() {
         .avail-coupons { margin-top: 10px; display: grid; gap: 8px; max-height: 170px; overflow: auto; }
         .avail-coupon { border: 1px dashed #d9d3f4; border-radius: 10px; padding: 9px; text-align: left; background: #fff; cursor: pointer; }
         .avail-coupon.applied { border-color: #18a84a; background: #f1fff7; }
+        .coupon-teaser { border: 1px dashed #d9d3f4; border-radius: 10px; background: #fff; padding: 10px; margin-top: 10px; }
+        .coupon-teaser-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+        .view-all-offers { border: 0; background: transparent; color: #4b2ecc; font-weight: 700; font-size: 12px; cursor: pointer; }
+        .coupon-modal-overlay { position: fixed; inset: 0; background: rgba(18, 16, 40, 0.45); z-index: 130; display: flex; align-items: center; justify-content: center; padding: 16px; }
+        .coupon-modal { width: min(560px, 100%); max-height: 86vh; overflow: hidden; background: #fff; border-radius: 14px; border: 1px solid #e8e6f0; box-shadow: 0 14px 36px rgba(30, 24, 90, 0.25); display: flex; flex-direction: column; }
+        .coupon-modal-head { padding: 14px 16px; border-bottom: 1px solid #eceaf6; display: flex; align-items: center; justify-content: space-between; }
+        .coupon-modal-list { padding: 12px; overflow: auto; display: grid; gap: 9px; }
+        .coupon-modal-close { border: 0; background: transparent; font-size: 20px; line-height: 1; color: #7a7890; cursor: pointer; }
         .price-rows .row { display: flex; justify-content: space-between; align-items: center; padding: 9px 14px; border-bottom: 1px solid #e8e6f0; font-size: 12px; }
         .price-rows .row.total { font-size: 15px; font-weight: 800; }
         .green { color: #18a84a; font-weight: 700; }
@@ -277,7 +293,7 @@ export default function CheckoutPage() {
               </div>
 
               <div className="card">
-                <div className="card-head"><span>Address</span><h2>Delivery Details</h2></div>
+                <div className="card-head"><span>Step 1</span><h2>Shipping Address</h2></div>
                 <div className="card-body">
                   <form id="checkout-form" onSubmit={handlePayment} className="form-grid">
                     <div className="field"><label>Full Name</label><input type="text" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} /></div>
@@ -314,19 +330,24 @@ export default function CheckoutPage() {
                       <button type="button" onClick={() => applyCoupon()} disabled={coupon.applying} className="coupon-btn">{coupon.applying ? "Applying" : "Apply"}</button>
                     </div>
                     {coupon.error ? <p style={{ marginTop: 8, color: "#d32f2f", fontSize: 12 }}>{coupon.error}</p> : null}
-                    {availableCoupons.length > 0 ? (
-                      <div className="avail-coupons">
-                        {availableCoupons.map((c) => {
-                          const isThisApplied = coupon.applied && coupon.code === c.code;
-                          const hasSufficientSubtotal = !c.min_order_amount || subtotal >= Number(c.min_order_amount);
-                          return (
-                            <button key={c.code} type="button" disabled={!hasSufficientSubtotal} onClick={() => (isThisApplied ? clearCoupon() : applyCoupon(c.code))} className={`avail-coupon ${isThisApplied ? "applied" : ""}`}>
-                              <div style={{ fontSize: 11, fontWeight: 800, color: "#4b2ecc" }}>{c.code}</div>
-                              <div style={{ fontSize: 12, fontWeight: 700 }}>{c.discount_type === "percent" ? `${Number(c.discount_value)}% Off` : `Flat INR ${Number(c.discount_value)} Off`}</div>
-                              {c.min_order_amount ? <div style={{ fontSize: 10, color: "#7a7890" }}>Min order INR {c.min_order_amount}</div> : null}
-                            </button>
-                          );
-                        })}
+                    {featuredCoupon ? (
+                      <div className="coupon-teaser">
+                        <div className="coupon-teaser-head">
+                          <div style={{ fontSize: 12, fontWeight: 800, color: "#4b2ecc" }}>{featuredCoupon.code}</div>
+                          <button type="button" className="view-all-offers" onClick={() => setShowCouponModal(true)}>
+                            View all offers
+                          </button>
+                        </div>
+                        <div style={{ marginTop: 3, fontSize: 12, fontWeight: 700 }}>
+                          {featuredCoupon.discount_type === "percent"
+                            ? `${Number(featuredCoupon.discount_value)}% OFF`
+                            : `Flat INR ${Number(featuredCoupon.discount_value)} OFF`}
+                        </div>
+                        {featuredCoupon.min_order_amount ? (
+                          <div style={{ marginTop: 2, fontSize: 10, color: "#7a7890" }}>
+                            Min order INR {featuredCoupon.min_order_amount}
+                          </div>
+                        ) : null}
                       </div>
                     ) : null}
                   </div>
@@ -334,15 +355,15 @@ export default function CheckoutPage() {
               </div>
 
               <div className="card">
-                <div className="card-head"><span>Bill</span><h2>Price Details</h2><span className="muted">{cartCount} Item{cartCount > 1 ? "s" : ""}</span></div>
+                <div className="card-head"><h2>Order Summary</h2><span className="muted">{cartCount} Item{cartCount > 1 ? "s" : ""}</span></div>
                 <div className="price-rows">
-                  <div className="row"><span className="muted">Cart Total</span><span>INR {totalMrp}</span></div>
-                  {mrpDiscount > 0 ? <div className="row"><span className="muted">Discount on MRP ({savingsPercentage}%)</span><span className="green">- INR {mrpDiscount}</span></div> : null}
+                  <div className="row"><span className="muted">Total MRP</span><span>INR {totalMrp}</span></div>
+                  {mrpDiscount > 0 ? <div className="row"><span className="muted">Product Discount ({savingsPercentage}%)</span><span className="green">- INR {mrpDiscount}</span></div> : null}
                   {coupon.applied ? <div className="row"><span className="muted">Coupon ({coupon.code})</span><span className="green">- INR {coupon.discountAmount}</span></div> : null}
-                  <div className="row"><span className="muted">Delivery Charges</span><span className="green">FREE</span></div>
-                  <div className="row total"><span>Total Amount</span><span>INR {payableTotal}</span></div>
+                  <div className="row"><span className="muted">Shipping Fee</span><span className="green">FREE</span></div>
+                  <div className="row total"><span>To Pay</span><span>INR {payableTotal}</span></div>
                 </div>
-                <div className="savings-pill">You are saving INR {totalSavings} on this order.</div>
+                <div className="savings-pill">Yay! You saved INR {totalSavings} on this order.</div>
                 <div className="cta-wrap">
                   <button type="submit" form="checkout-form" disabled={loading} className="checkout-btn">{loading ? "Processing..." : `Proceed to Pay INR ${payableTotal}`}</button>
                   <div className="secure-txt">100% Secure and SSL Encrypted</div>
@@ -355,8 +376,56 @@ export default function CheckoutPage() {
 
       {cart.length > 0 ? (
         <div className="mob-bar">
-          <div className="mob-total"><small>Total Amount</small><strong>INR {payableTotal}</strong></div>
+          <div className="mob-total"><small>To Pay</small><strong>INR {payableTotal}</strong></div>
           <button type="submit" form="checkout-form" disabled={loading} className="mob-cta">{loading ? "Processing..." : "Checkout ->"}</button>
+        </div>
+      ) : null}
+
+      {showCouponModal ? (
+        <div className="coupon-modal-overlay" onClick={() => setShowCouponModal(false)}>
+          <div className="coupon-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="coupon-modal-head">
+              <div>
+                <div style={{ fontSize: 15, fontWeight: 800 }}>Available Offers</div>
+                <div style={{ fontSize: 12, color: "#7a7890" }}>Tap any coupon to apply instantly</div>
+              </div>
+              <button type="button" className="coupon-modal-close" onClick={() => setShowCouponModal(false)}>×</button>
+            </div>
+            <div className="coupon-modal-list">
+              {availableCoupons.length === 0 ? (
+                <div className="muted">No active offers right now.</div>
+              ) : (
+                availableCoupons.map((c) => {
+                  const isThisApplied = coupon.applied && coupon.code === c.code;
+                  const hasSufficientSubtotal = !c.min_order_amount || subtotal >= Number(c.min_order_amount);
+                  return (
+                    <button
+                      key={c.code}
+                      type="button"
+                      disabled={!hasSufficientSubtotal}
+                      onClick={() => {
+                        if (isThisApplied) clearCoupon();
+                        else applyCoupon(c.code);
+                        setShowCouponModal(false);
+                      }}
+                      className={`avail-coupon ${isThisApplied ? "applied" : ""}`}
+                    >
+                      <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
+                        <div style={{ fontSize: 11, fontWeight: 800, color: "#4b2ecc" }}>{c.code}</div>
+                        <div style={{ fontSize: 11, color: isThisApplied ? "#18a84a" : "#7a7890", fontWeight: 700 }}>
+                          {isThisApplied ? "Applied" : hasSufficientSubtotal ? "Apply" : "Not eligible"}
+                        </div>
+                      </div>
+                      <div style={{ fontSize: 12, fontWeight: 700, marginTop: 3 }}>
+                        {c.discount_type === "percent" ? `${Number(c.discount_value)}% Off` : `Flat INR ${Number(c.discount_value)} Off`}
+                      </div>
+                      {c.min_order_amount ? <div style={{ fontSize: 10, color: "#7a7890", marginTop: 2 }}>Min order INR {c.min_order_amount}</div> : null}
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          </div>
         </div>
       ) : null}
     </div>

@@ -16,7 +16,7 @@ import { StorefrontSlideBanner } from "./StorefrontSlideBanner";
 import { StorefrontSaleBanner } from "./StorefrontSaleBanner";
 import { StorefrontNewArrival } from "./StorefrontNewArrival";
 
-/* ─── Import actual beautiful components ─────────────────────── */
+/* --- Import actual beautiful components ----------------------- */
 import { HeroSection } from "@/components/home/HeroSection";
 import { CategoryGrid } from "@/components/home/CategoryGrid";
 import { CollectionsSection } from "@/components/home/CollectionsSection";
@@ -28,13 +28,13 @@ import { ShieldCheck, Sparkles, Truck, Undo2, WalletCards, ChevronLeft, ChevronR
 import { ProductCard } from "@/components/product/ProductCard";
 import { ProductGrid2Card } from "@/components/product/ProductGrid2Card";
 
-/* ─── HeroBanner — uses actual HeroSection with framer-motion ──── */
+/* --- HeroBanner - uses actual HeroSection with framer-motion ---- */
 
 function StorefrontHeroBanner({ settings }: { settings: Record<string, any>; theme: ThemeSettings }) {
   return <HeroSection settings={settings} />;
 }
 
-/* ─── SearchBand ───────────────────────────────────────────── */
+/* --- SearchBand --------------------------------------------- */
 function StorefrontSearchBand({ settings }: { settings: Record<string, any> }) {
   const chips = (settings.chips || "").split(",").map((c: string) => c.trim()).filter(Boolean);
   return (
@@ -51,17 +51,17 @@ function StorefrontSearchBand({ settings }: { settings: Record<string, any> }) {
   );
 }
 
-/* ─── CategoryGrid — uses actual CategoryGrid component ──────── */
+/* --- CategoryGrid - uses actual CategoryGrid component -------- */
 function StorefrontCategoryGrid({ settings }: { settings: Record<string, any> }) {
   return <CategoryGrid settings={settings} />;
 }
 
-/* ─── CollectionsSection — uses actual CollectionsSection component ─ */
+/* --- CollectionsSection - uses actual CollectionsSection component - */
 function StorefrontCollectionsSection({ settings }: { settings: Record<string, any> }) {
   return <CollectionsSection settings={settings} />;
 }
 
-/* ─── ProductGrid ───────────────────────────────────────────── */
+/* --- ProductGrid --------------------------------------------- */
 async function StorefrontProductGridWrapper({ settings }: { settings: Record<string, any> }) {
   const allProducts = await getCatalogProducts();
   
@@ -179,7 +179,7 @@ async function StorefrontProductGrid2({ settings, sectionId }: { settings: Recor
   );
 }
 
-/* ─── PromisesSection — exact replica of original page.tsx ──── */
+/* --- PromisesSection - exact replica of original page.tsx ---- */
 function StorefrontPromisesSection({ settings }: { settings: Record<string, any> }) {
   const promises = [
     { icon: Sparkles, title: "Curated decor", text: "Thoughtfully selected pieces with warmth and personality." },
@@ -207,7 +207,7 @@ function StorefrontPromisesSection({ settings }: { settings: Record<string, any>
   );
 }
 
-/* ─── Newsletter — exact replica of original page.tsx ────────── */
+/* --- Newsletter - exact replica of original page.tsx ---------- */
 function StorefrontNewsletterVaaree({ settings }: { settings: Record<string, any> }) {
   return (
     <section className="qh-container qh-section-pad">
@@ -225,7 +225,7 @@ function StorefrontNewsletterVaaree({ settings }: { settings: Record<string, any
   );
 }
 
-/* ─── SeoArticle ───────────────────────────────────────────── */
+/* --- SeoArticle --------------------------------------------- */
 function StorefrontSeoArticle({ settings }: { settings: Record<string, any> }) {
   type HeadingTagName = "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
   const allowedTags: HeadingTagName[] = ["h1", "h2", "h3", "h4", "h5", "h6"];
@@ -264,7 +264,7 @@ function StorefrontSeoArticle({ settings }: { settings: Record<string, any> }) {
   );
 }
 
-/* ─── Testimonials ─────────────────────────────────────────── */
+/* --- Testimonials ------------------------------------------- */
 
 function StorefrontTestimonials({ settings, theme }: { settings: Record<string, any>; theme: ThemeSettings }) {
   const testimonials = [
@@ -281,7 +281,7 @@ function StorefrontTestimonials({ settings, theme }: { settings: Record<string, 
           <div key={i} className="qh-card p-6">
             <div className="mb-3 text-2xl" style={{ color: theme.colors.primary }}>"</div>
             <p className="text-sm leading-relaxed text-text-muted">{t.text}</p>
-            <p className="mt-4 text-sm font-semibold text-text-main">— {t.name}</p>
+            <p className="mt-4 text-sm font-semibold text-text-main">- {t.name}</p>
           </div>
         ))}
       </div>
@@ -289,7 +289,7 @@ function StorefrontTestimonials({ settings, theme }: { settings: Record<string, 
   );
 }
 
-/* ─── BannerStrip ──────────────────────────────────────────── */
+/* --- BannerStrip -------------------------------------------- */
 
 function StorefrontBannerStrip({ settings }: { settings: Record<string, any>; theme: ThemeSettings }) {
   return (
@@ -305,7 +305,7 @@ function StorefrontBannerStrip({ settings }: { settings: Record<string, any>; th
   );
 }
 
-/* ─── RichText ────────────────────────────────────────── */
+/* --- RichText ------------------------------------------ */
 
 function StorefrontRichText({ settings }: { settings: Record<string, any> }) {
   const headingAlign = settings.headingAlign === "left" || settings.headingAlign === "right"
@@ -334,7 +334,7 @@ function StorefrontRichText({ settings }: { settings: Record<string, any> }) {
   );
 }
 
-/* ─── ImageWithText ────────────────────────────────────── */
+/* --- ImageWithText -------------------------------------- */
 
 function StorefrontImageWithText({ settings }: { settings: Record<string, any> }) {
   return (
@@ -348,7 +348,7 @@ function StorefrontImageWithText({ settings }: { settings: Record<string, any> }
   );
 }
 
-/* ─── FeaturedCollection ────────────────────────────────── */
+/* --- FeaturedCollection ---------------------------------- */
 
 function StorefrontFeaturedCollection({ settings }: { settings: Record<string, any> }) {
   return (
@@ -369,7 +369,7 @@ function getDeterministicId(prefix: string, settings: Record<string, any>) {
   return `${prefix}-${Math.abs(hash)}`;
 }
 
-/* ─── ImageBanner (full-width clickable banner — no text, pure image) ── */
+/* --- ImageBanner (full-width clickable banner - no text, pure image) -- */
 function StorefrontImageBanner({ settings }: { settings: Record<string, any> }) {
   const desktopHeight = settings.desktopHeight || 280;
   const mobileHeight = settings.mobileHeight || 180;
@@ -429,7 +429,7 @@ function StorefrontImageBanner({ settings }: { settings: Record<string, any> }) 
   );
 }
 
-/* ─── ImageGrid (3-image promo grid — Flipkart/Amazon style) ───── */
+/* --- ImageGrid (3-image promo grid - Flipkart/Amazon style) ----- */
 function StorefrontImageGrid({ settings }: { settings: Record<string, any> }) {
   const gap = settings.gap ?? 12;
   const radius = settings.borderRadius ?? 12;
@@ -646,7 +646,7 @@ function StorefrontFiveGrid({ settings }: { settings: Record<string, any> }) {
   );
 }
 
-/* ─── Slideshow ───────────────────────────────────────────── */
+/* --- Slideshow --------------------------------------------- */
 function StorefrontSlideshow({ settings }: { settings: Record<string, any> }) {
   return (
     <section className="relative w-full overflow-hidden" style={{ height: settings.height || "500px" }}>
@@ -660,7 +660,7 @@ function StorefrontSlideshow({ settings }: { settings: Record<string, any> }) {
   );
 }
 
-/* ─── Multicolumn ─────────────────────────────────────────── */
+/* --- Multicolumn ------------------------------------------- */
 function StorefrontMulticolumn({ settings }: { settings: Record<string, any> }) {
   const cols = parseInt(settings.columns || "3");
   const data = [];
@@ -695,7 +695,7 @@ function StorefrontMulticolumn({ settings }: { settings: Record<string, any> }) 
   );
 }
 
-/* ─── CollapsibleContent ──────────────────────────────────── */
+/* --- CollapsibleContent ------------------------------------ */
 function StorefrontCollapsibleContent({ settings }: { settings: Record<string, any> }) {
   return (
     <section className="qh-container qh-section-pad max-w-3xl mx-auto">
@@ -720,7 +720,7 @@ function StorefrontCollapsibleContent({ settings }: { settings: Record<string, a
   );
 }
 
-/* ─── FeaturedProduct ─────────────────────────────────────── */
+/* --- FeaturedProduct --------------------------------------- */
 function StorefrontFeaturedProduct({ settings }: { settings: Record<string, any> }) {
   return (
     <section className="qh-container qh-section-pad text-center">
@@ -730,7 +730,7 @@ function StorefrontFeaturedProduct({ settings }: { settings: Record<string, any>
   );
 }
 
-/* ─── Video ───────────────────────────────────────────────── */
+/* --- Video ------------------------------------------------- */
 function StorefrontVideo({ settings }: { settings: Record<string, any> }) {
   return (
     <section className="qh-container qh-section-pad text-center">
@@ -747,7 +747,7 @@ function StorefrontVideo({ settings }: { settings: Record<string, any> }) {
   );
 }
 
-/* ─── LogoList ────────────────────────────────────────────── */
+/* --- LogoList ---------------------------------------------- */
 function StorefrontLogoList({ settings }: { settings: Record<string, any> }) {
   return (
     <section className="qh-container py-12 border-y border-border/50 bg-background-soft/50">
@@ -762,7 +762,7 @@ function StorefrontLogoList({ settings }: { settings: Record<string, any> }) {
   );
 }
 
-/* ─── ContactForm ─────────────────────────────────────────── */
+/* --- ContactForm ------------------------------------------- */
 function StorefrontContactForm({ settings }: { settings: Record<string, any> }) {
   return (
     <section className="qh-container qh-section-pad max-w-2xl mx-auto text-center">
@@ -781,7 +781,7 @@ function StorefrontContactForm({ settings }: { settings: Record<string, any> }) 
   );
 }
 
-/* ─── MapSection ──────────────────────────────────────────── */
+/* --- MapSection -------------------------------------------- */
 function StorefrontMapSection({ settings }: { settings: Record<string, any> }) {
   return (
     <section className="qh-container qh-section-pad grid md:grid-cols-2 gap-8 items-center">
@@ -800,12 +800,12 @@ function StorefrontMapSection({ settings }: { settings: Record<string, any> }) {
   );
 }
 
-/* ─── CustomHTML ──────────────────────────────────────────── */
+/* --- CustomHTML -------------------------------------------- */
 function StorefrontCustomHTML({ settings }: { settings: Record<string, any> }) {
   return <div dangerouslySetInnerHTML={{ __html: settings.content }} />;
 }
 
-/* ─── Divider ─────────────────────────────────────────────── */
+/* --- Divider ----------------------------------------------- */
 function StorefrontDivider({ settings }: { settings: Record<string, any> }) {
   return (
     <div style={{ paddingTop: `${settings.paddingTop}px`, paddingBottom: `${settings.paddingBottom}px` }} className="qh-container">
@@ -817,7 +817,7 @@ function StorefrontDivider({ settings }: { settings: Record<string, any> }) {
 
 
 
-/* ─── Component Map ────────────────────────────────────────── */
+/* --- Component Map ------------------------------------------ */
 
 const storefrontComponentMap: Record<string, React.FC<{ settings: Record<string, any>; theme: ThemeSettings }>> = {
   HeroBanner: StorefrontHeroBanner,
@@ -854,7 +854,7 @@ const storefrontComponentMap: Record<string, React.FC<{ settings: Record<string,
   ReelImage: StorefrontReelImage,
 };
 
-/* ─── Public Renderer ──────────────────────────────────────── */
+/* --- Public Renderer ---------------------------------------- */
 
 interface RenderSectionProps {
   section: Section;
@@ -894,11 +894,11 @@ export function RenderSection({ section, theme }: RenderSectionProps) {
 
 export function RenderSections({ sections, theme }: { sections: Section[]; theme: ThemeSettings }) {
   return (
-    <>
+    <div className="qh-builder-sections">
       {sections.filter((s) => s.visible && s.type !== "BannerStrip").map((section) => (
         <RenderSection key={section.id} section={section} theme={theme} />
       ))}
-    </>
+    </div>
   );
 }
 

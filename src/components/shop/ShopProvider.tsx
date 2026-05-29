@@ -22,6 +22,7 @@ type ShopContextValue = {
   wishlistCount: number;
   subtotal: number;
   addToCart: (product: Product, quantity?: number) => void;
+  toggleCartItem: (product: Product) => void;
   removeFromCart: (slug: string) => void;
   updateCartQuantity: (slug: string, quantity: number) => void;
   isInCart: (slug: string) => boolean;
@@ -59,6 +60,32 @@ const ShopContext = createContext<ShopContextValue | null>(null);
 
 function productBySlug(slug: string) {
   return products.find((product) => product.slug === slug);
+}
+
+function toCartProduct(item: ApiCartItem): Product {
+  const fromCatalog = productBySlug(item.product_slug);
+  const unitPrice = Number(item.unit_price || 0);
+  const mrp = Number(item.mrp || item.unit_price || 0);
+  const image = item.product_image || fromCatalog?.image || "";
+
+  return {
+    id: fromCatalog?.id,
+    slug: item.product_slug,
+    title: item.product_title || fromCatalog?.title || item.product_slug,
+    category: fromCatalog?.category || "misc",
+    sku: fromCatalog?.sku,
+    size: fromCatalog?.size,
+    collection: fromCatalog?.collection,
+    stock: fromCatalog?.stock,
+    image,
+    gallery: image ? [image] : fromCatalog?.gallery || [],
+    rating: fromCatalog?.rating || 0,
+    reviews: fromCatalog?.reviews || 0,
+    price: unitPrice,
+    mrp,
+    badge: fromCatalog?.badge || "",
+    description: fromCatalog?.description || "",
+  };
 }
 
 function toProductFromWishlistItem(item: ApiWishlistItem): Product | null {
@@ -118,31 +145,11 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
       const items = (cartData.items || []) as ApiCartItem[];
       setCartLines(
         items
-          .map((item) => {
-            const fallback = productBySlug(item.product_slug);
-            return {
-              slug: item.product_slug,
-              quantity: item.quantity,
-              product: fallback
-                ? fallback
-                : {
-                    slug: item.product_slug,
-                    title: item.product_title || item.product_slug,
-                    category: "misc",
-                    sku: undefined,
-                    collection: undefined,
-                    stock: undefined,
-                    image: item.product_image || "",
-                    gallery: item.product_image ? [item.product_image] : [],
-                    rating: 0,
-                    reviews: 0,
-                    price: Number(item.unit_price || 0),
-                    mrp: Number(item.mrp || item.unit_price || 0),
-                    badge: "",
-                    description: "",
-                  },
-            };
-          })
+          .map((item) => ({
+            slug: item.product_slug,
+            quantity: item.quantity,
+            product: toCartProduct(item),
+          }))
           .filter((item) => item.product),
       );
     }
@@ -218,6 +225,15 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
     if (res.ok) await syncFromServer();
   }, [requireCustomerLogin, syncFromServer]);
 
+  const toggleCartItem = useCallback(async (product: Product) => {
+    const inCartNow = cartLines.some((line) => line.slug === product.slug);
+    if (inCartNow) {
+      await removeFromCart(product.slug);
+      return;
+    }
+    await addToCart(product, 1);
+  }, [addToCart, cartLines, removeFromCart]);
+
   const updateCartQuantity = useCallback(async (slug: string, quantity: number) => {
     const ok = await requireCustomerLogin();
     if (!ok) return;
@@ -273,12 +289,13 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
     wishlistCount: wishlist.length,
     subtotal,
     addToCart,
+    toggleCartItem,
     removeFromCart,
     updateCartQuantity,
     isInCart: (slug) => cartLines.some((item) => item.slug === slug),
     toggleWishlist,
     isWishlisted: (slug) => wishlistSlugs.includes(slug),
-  }), [addToCart, cart, cartLines, removeFromCart, subtotal, toggleWishlist, updateCartQuantity, wishlist, wishlistSlugs]);
+  }), [addToCart, cart, cartLines, removeFromCart, subtotal, toggleCartItem, toggleWishlist, updateCartQuantity, wishlist, wishlistSlugs]);
 
   return <ShopContext.Provider value={value}>{children}</ShopContext.Provider>;
 }

@@ -21,7 +21,7 @@ export function Header() {
   return (
     <>
       <header
-        className="fixed inset-x-0 top-0 z-[120] border-b border-border qh-header-surface backdrop-blur"
+        className="sticky inset-x-0 top-0 z-[120] border-b border-border qh-header-surface backdrop-blur"
       >
 
         <div className="qh-mobile-header md:hidden flex items-center gap-2 px-3 py-2 bg-background-elevated">
@@ -98,7 +98,6 @@ export function Header() {
         </div>
         <CategoryNav />
       </header>
-      <div aria-hidden className="h-[58px] md:h-[100px] lg:h-[144px]" />
       <MobileMenuDrawer open={menuOpen} onClose={() => setMenuOpen(false)} />
     </>
   );

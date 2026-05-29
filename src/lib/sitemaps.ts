@@ -80,7 +80,7 @@ export async function getProductItems(): Promise<SitemapItem[]> {
         rows
           .filter((r) => r.slug && r.is_active)
           .map((r) => ({
-            loc: `${BASE_URL}/${r.slug}`,
+            loc: `${BASE_URL}/${r.category || "bedsheet"}/${r.slug}`,
             lastmod: r.created_at ? new Date(r.created_at).toISOString() : now,
             changefreq: "weekly",
             priority: 0.8,
@@ -90,7 +90,7 @@ export async function getProductItems(): Promise<SitemapItem[]> {
   } catch {}
 
   return staticProducts.map((p) => ({
-    loc: `${BASE_URL}/${p.slug}`,
+    loc: `${BASE_URL}/${p.category || "bedsheet"}/${p.slug}`,
     lastmod: now,
     changefreq: "weekly",
     priority: 0.8,

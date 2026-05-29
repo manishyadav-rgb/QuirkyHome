@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { getBuilderSchema } from "@/lib/builder/fetch-schema";
 import { RenderSections } from "@/components/storefront/SectionRenderer";
@@ -65,16 +65,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   // 3. Try Product
   const product = await getCatalogProduct(slug);
   if (product) {
+    const categorySlug = product.category || "bedsheet";
     const fallbackDescription = `Buy ${product.title} online at QuirkyHome. Explore latest pricing, offers and fast delivery across India.`;
     const description = (product.description || "").trim() || fallbackDescription;
     return {
       title: `${product.title} - Buy Online`,
       description,
-      alternates: { canonical: `/${product.slug}` },
+      alternates: { canonical: `/${categorySlug}/${product.slug}` },
       openGraph: {
         title: `${product.title} | QuirkyHome`,
         description,
-        url: `https://quirkyhome.in/${product.slug}`,
+        url: `https://quirkyhome.in/${categorySlug}/${product.slug}`,
         type: "website",
         images: [{ url: product.image, alt: product.title }],
       },
@@ -129,78 +130,7 @@ export default async function DynamicPage({ params }: PageProps) {
   // 3. Check Product
   const product = await getCatalogProduct(slug);
   if (product) {
-    const products = await getCatalogProducts();
-    const productDescription = (product.description || "").trim() || `Buy ${product.title} online at QuirkyHome.`;
-    const inStock = typeof product.stock === "number" ? product.stock > 0 : true;
-    const priceValidUntil = new Date(Date.now() + 1000 * 60 * 60 * 24 * 365).toISOString().slice(0, 10);
-
-    const breadcrumbJsonLd = {
-      "@context": "https://schema.org",
-      "@type": "BreadcrumbList",
-      itemListElement: [
-        { "@type": "ListItem", position: 1, name: "Home", item: "https://quirkyhome.in/" },
-        { "@type": "ListItem", position: 2, name: product.category || "Products", item: `https://quirkyhome.in/${product.category || ""}` },
-        { "@type": "ListItem", position: 3, name: product.title, item: `https://quirkyhome.in/${product.slug}` },
-      ],
-    };
-
-    const productJsonLd = {
-      "@context": "https://schema.org",
-      "@type": "Product",
-      name: product.title,
-      image: product.gallery,
-      description: productDescription,
-      sku: product.slug,
-      brand: {
-        "@type": "Brand",
-        name: "QuirkyHome",
-      },
-      offers: {
-        "@type": "Offer",
-        priceCurrency: "INR",
-        price: product.price,
-        availability: inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-        itemCondition: "https://schema.org/NewCondition",
-        priceValidUntil,
-        seller: {
-          "@type": "Organization",
-          name: "QuirkyHome",
-        },
-        url: `https://quirkyhome.in/${product.slug}`,
-      },
-    } as Record<string, any>;
-    if (product.reviews > 0 && product.rating > 0) {
-      productJsonLd.aggregateRating = {
-        "@type": "AggregateRating",
-        ratingValue: Number(product.rating.toFixed(1)),
-        reviewCount: product.reviews,
-      };
-    }
-    // Related products logic (prioritize collection)
-    const relatedProducts = products.filter((item) => item.slug !== slug);
-    const collectionMatches = product.collection 
-      ? relatedProducts.filter((item) => item.collection === product.collection)
-      : [];
-    
-    const displayCollection = product.collection 
-      ? products.filter((item) => item.collection === product.collection)
-      : [];
-    
-    const displayRelated = collectionMatches.length > 0 
-      ? collectionMatches.slice(0, 4) 
-      : relatedProducts.slice(0, 4);
-
-    return (
-      <>
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }} />
-        <ProductDetail product={product} collectionProducts={displayCollection} />
-        <section className="qh-container qh-section-pad">
-          <SectionHeader eyebrow="You may also like" title={collectionMatches.length > 0 ? `More from ${product.collection}` : "More pieces for this mood"} />
-          <ProductGrid products={displayRelated} />
-        </section>
-      </>
-    );
+    redirect(`/${product.category || "bedsheet"}/${product.slug}`);
   }
 
   // 4. Not Found

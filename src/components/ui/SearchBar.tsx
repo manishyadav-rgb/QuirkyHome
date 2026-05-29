@@ -34,7 +34,7 @@ export function SearchBar({
   const containerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
-  // ── Dynamic Typing Placeholder Effect ──
+  // -- Dynamic Typing Placeholder Effect --
   const typingWords = categories.slice(0, 8).map(c => c.name.toLowerCase() + "s");
   const [wordIdx, setWordIdx] = useState(0);
   const [currentText, setCurrentText] = useState("");
@@ -193,7 +193,7 @@ export function SearchBar({
         ) : null}
       </form>
 
-      {/* ── Vaaree-style Instant Search Dropdown ── */}
+      {/* -- Vaaree-style Instant Search Dropdown -- */}
       {focused && query.trim().length >= 2 && (
         <div className="absolute left-0 right-0 top-full z-header mt-2 max-h-[480px] overflow-y-auto rounded-2xl border border-border bg-background-main p-4 shadow-xl backdrop-blur-md animate-in fade-in slide-in-from-top-2 duration-150">
           
@@ -234,7 +234,7 @@ export function SearchBar({
                   return (
                     <Link
                       key={product.slug}
-                      href={`/${product.slug}`}
+                      href={`/${product.category || "bedsheet"}/${product.slug}`}
                       onClick={() => {
                         setQuery("");
                         setFocused(false);

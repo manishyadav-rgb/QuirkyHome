@@ -1,12 +1,12 @@
 /**
- * QuirkyHome Visual Page Builder — Type Definitions (Shopify-complete)
+ * QuirkyHome Visual Page Builder - Type Definitions (Shopify-complete)
  * 
  * Drives the entire builder with a JSON-first architecture.
  * Every page is a list of typed sections, and global theme
  * settings are injected as CSS variables for instant previews.
  */
 
-/* ─── Theme Settings (Maps directly to CSS custom properties) ── */
+/* --- Theme Settings (Maps directly to CSS custom properties) -- */
 
 export interface ThemeColors {
   primary: string;      // --color-brand-primary
@@ -39,16 +39,19 @@ export interface ThemeSettings {
   spacing: ThemeSpacing;
 }
 
-/* ─── Section Types (Shopify-complete set) ──────────────────── */
+/* --- Section Types (Shopify-complete set) -------------------- */
 
 export type SectionType =
   | "BannerStrip"
   | "HeroBanner"
   | "Slideshow"
+  | "SlideBanner"
+  | "SaleBanner"
   | "SearchBand"
   | "CategoryGrid"
   | "CollectionsSection"
   | "ProductGrid"
+  | "ProductGrid2"
   | "FeaturedCollection"
   | "FeaturedProduct"
   | "PromisesSection"
@@ -56,6 +59,8 @@ export type SectionType =
   | "ImageWithText"
   | "ImageBanner"
   | "ImageGrid"
+  | "FiveGrid"
+  | "NewArrival"
   | "Video"
   | "RichText"
   | "CollapsibleContent"
@@ -77,7 +82,7 @@ export interface Section {
   visible: boolean;
 }
 
-/* ─── Page Schema ──────────────────────────────────────────── */
+/* --- Page Schema -------------------------------------------- */
 
 export interface PageConfig {
   name: string;
@@ -91,7 +96,7 @@ export interface BuilderSchema {
   pages: Record<string, PageConfig>;
 }
 
-/* ─── Section Field Schema (drives dynamic editor forms) ──── */
+/* --- Section Field Schema (drives dynamic editor forms) ---- */
 
 export type FieldType =
   | "text"

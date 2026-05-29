@@ -19,6 +19,12 @@ type AdminProduct = {
   is_active: boolean;
 };
 
+type AdminCategory = {
+  id: string;
+  name: string;
+  slug: string;
+};
+
 const MAX_IMAGES = 10;
 
 export default function AdminProductsPage() {
@@ -31,6 +37,8 @@ export default function AdminProductsPage() {
   const [imageInputs, setImageInputs] = useState<string[]>(Array(MAX_IMAGES).fill(""));
   const [imageLoading, setImageLoading] = useState(false);
   const [imageSaving, setImageSaving] = useState(false);
+  const [categories, setCategories] = useState<AdminCategory[]>([]);
+  const [selectedCategorySlug, setSelectedCategorySlug] = useState("");
 
   async function loadProducts() {
     setLoading(true);
@@ -38,6 +46,12 @@ export default function AdminProductsPage() {
     const data = await response.json();
     setProducts(Array.isArray(data) ? data : []);
     setLoading(false);
+  }
+
+  async function loadCategories() {
+    const response = await fetch("/api/admin/categories");
+    const data = await response.json();
+    setCategories(Array.isArray(data.categories) ? data.categories : []);
   }
 
   async function deleteProduct(id: string) {
@@ -79,9 +93,11 @@ export default function AdminProductsPage() {
       const next = [...gallery.slice(0, MAX_IMAGES)];
       while (next.length < MAX_IMAGES) next.push("");
       setImageInputs(next);
+      setSelectedCategorySlug(typeof data.category_slug === "string" ? data.category_slug : product.category || "");
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "Failed to load images");
       setImageInputs(Array(MAX_IMAGES).fill(""));
+      setSelectedCategorySlug(product.category || "");
     } finally {
       setImageLoading(false);
     }
@@ -92,6 +108,7 @@ export default function AdminProductsPage() {
     setImageInputs(Array(MAX_IMAGES).fill(""));
     setImageLoading(false);
     setImageSaving(false);
+    setSelectedCategorySlug("");
   }
 
   function updateImageAt(index: number, value: string) {
@@ -120,7 +137,7 @@ export default function AdminProductsPage() {
       const response = await fetch("/api/admin/products", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: editing.id, images: cleaned }),
+        body: JSON.stringify({ id: editing.id, images: cleaned, categorySlug: selectedCategorySlug || null }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Failed to save images");
@@ -136,7 +153,7 @@ export default function AdminProductsPage() {
   }
 
   useEffect(() => {
-    loadProducts();
+    Promise.all([loadProducts(), loadCategories()]);
   }, []);
 
   const filtered = products.filter(
@@ -233,8 +250,8 @@ export default function AdminProductsPage() {
           <div className="w-full rounded-t-2xl bg-white md:max-w-4xl md:rounded-2xl">
             <div className="flex items-center justify-between border-b border-[#e1e3e5] px-5 py-4">
               <div>
-                <h3 className="text-[18px] font-semibold text-[#202223]">Edit Product Images</h3>
-                <p className="text-[12px] text-[#6d7175]">{editing.title} · up to 10 image URLs</p>
+                <h3 className="text-[18px] font-semibold text-[#202223]">Edit Product</h3>
+                <p className="text-[12px] text-[#6d7175]">{editing.title} · category + up to 10 image URLs</p>
               </div>
               <button onClick={closeImageEditor} className="rounded-md p-1 text-[#6d7175] hover:bg-[#f6f6f7]">
                 <X className="h-5 w-5" />
@@ -243,6 +260,21 @@ export default function AdminProductsPage() {
 
             <div className="grid gap-5 p-5 md:grid-cols-2">
               <div className="grid gap-2">
+                <label className="mb-1 block text-[12px] font-semibold uppercase tracking-wide text-[#6d7175]">
+                  Category
+                </label>
+                <select
+                  value={selectedCategorySlug}
+                  onChange={(e) => setSelectedCategorySlug(e.target.value)}
+                  className="mb-2 rounded-md border border-[#c9cccf] px-3 py-2 text-[13px] focus:border-[#008060] focus:outline-none focus:ring-2 focus:ring-[#008060]/20"
+                >
+                  <option value="">Uncategorized</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.slug}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
                 {Array.from({ length: MAX_IMAGES }).map((_, index) => (
                   <input key={index} type="url" value={imageInputs[index]} onChange={(e) => updateImageAt(index, e.target.value)} placeholder={`Image URL ${index + 1}`} className="rounded-md border border-[#c9cccf] px-3 py-2 text-[13px] focus:border-[#008060] focus:outline-none focus:ring-2 focus:ring-[#008060]/20" />
                 ))}
@@ -270,7 +302,7 @@ export default function AdminProductsPage() {
               <button onClick={closeImageEditor} className="rounded-md border border-[#d6d9dc] bg-white px-4 py-2 text-[13px] font-semibold text-[#202223] hover:bg-[#f6f6f7]">Cancel</button>
               <button onClick={saveImages} disabled={imageSaving || imageLoading} className="inline-flex items-center gap-1.5 rounded-md bg-[#008060] px-4 py-2 text-[13px] font-semibold text-white hover:bg-[#006e52] disabled:opacity-50">
                 <Save className="h-4 w-4" />
-                {imageSaving ? "Saving..." : "Save Images"}
+                {imageSaving ? "Saving..." : "Save Product"}
               </button>
             </div>
           </div>

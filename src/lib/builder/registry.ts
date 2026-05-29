@@ -1,5 +1,5 @@
-﻿/**
- * QuirkyHome Visual Page Builder â€” Section Registry
+/**
+ * QuirkyHome Visual Page Builder - Section Registry
  * 
  * Maps each SectionType to its metadata, default settings,
  * and the field schema used by the dynamic sidebar editor.
@@ -272,20 +272,20 @@ export const sectionRegistry: SectionDefinition[] = [
     category: "hero",
     description: "Announcement strip for the top of the page",
     fields: [
-      { key: "text", label: "Announcement Text", type: "text", defaultValue: "Free shipping on orders above â‚¹999!" },
+      { key: "text", label: "Announcement Text", type: "text", defaultValue: "Free shipping on orders above ₹999!" },
       { key: "bgColor", label: "Background Color", type: "color", defaultValue: "#008060" },
       { key: "textColor", label: "Text Color", type: "color", defaultValue: "#ffffff" },
       { key: "link", label: "Link (optional)", type: "text", defaultValue: "" },
     ],
     defaultSettings: {
-      text: "Free shipping on orders above â‚¹999!",
+      text: "Free shipping on orders above ₹999!",
       bgColor: "#008060",
       textColor: "#ffffff",
       link: "",
     },
   },
 
-  /* â”€â”€â”€ Image Grid (3 images with links â€” Flipkart/Amazon style) â”€â”€ */
+  /* --- Image Grid (3 images with links - Flipkart/Amazon style) -- */
   {
     type: "ImageGrid",
     label: "Image Grid",
@@ -293,7 +293,7 @@ export const sectionRegistry: SectionDefinition[] = [
     category: "media",
     description: "3-image promotional grid with clickable links (1 large + 2 small)",
     fields: [
-      { key: "image1Url", label: "Image 1 URL (Large â€” Left)", type: "image", defaultValue: "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?auto=format&fit=crop&w=800&q=80" },
+      { key: "image1Url", label: "Image 1 URL (Large - Left)", type: "image", defaultValue: "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?auto=format&fit=crop&w=800&q=80" },
       { key: "image1Link", label: "Image 1 Link", type: "text", defaultValue: "/", placeholder: "/collections/lamps" },
       { key: "image1Alt", label: "Image 1 Alt Text", type: "text", defaultValue: "Lamps & Lighting" },
       { key: "image2Url", label: "Image 2 URL (Top Right)", type: "image", defaultValue: "https://images.unsplash.com/photo-1578500494198-246f612d3b3d?auto=format&fit=crop&w=800&q=80" },
@@ -324,7 +324,7 @@ export const sectionRegistry: SectionDefinition[] = [
     },
   },
 
-  /* â”€â”€â”€ Image Banner (full-width clickable banner image) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* --- Image Banner (full-width clickable banner image) ---------- */
   {
     type: "FiveGrid",
     label: "5 Grid",
@@ -438,7 +438,7 @@ export const sectionRegistry: SectionDefinition[] = [
     },
   },
 
-  /* â”€â”€â”€ Reel Image (horizontal scrolling portrait reel) â”€â”€â”€â”€â”€â”€â”€â”€ */
+  /* --- Reel Image (horizontal scrolling portrait reel) -------- */
   {
     type: "SlideBanner",
     label: "Slide Banner",
@@ -518,8 +518,8 @@ export const sectionRegistry: SectionDefinition[] = [
       { key: "subtitle", label: "Subtitle", type: "textarea", defaultValue: "Be the first to explore our newest furniture and home essentials, crafted for modern homes." },
       { key: "accessoryLabel", label: "Accessory Label", type: "text", defaultValue: "Accessory" },
       { key: "furnitureLabel", label: "Furniture Label", type: "text", defaultValue: "Furniture" },
-      { key: "accessoryDataJson", label: "Accessory Data JSON", type: "textarea", defaultValue: "[{\"tab\":\"Wall Decor\",\"items\":[{\"icon\":\"ðŸ–¼ï¸\",\"label\":\"Canvas Art\"},{\"icon\":\"ðŸªž\",\"label\":\"Mirrors\"},{\"icon\":\"ðŸ•¯ï¸\",\"label\":\"Candle Holders\"},{\"icon\":\"ðŸŒ¿\",\"label\":\"Planters\"},{\"icon\":\"ðŸ’¡\",\"label\":\"Wall Lights\"},{\"icon\":\"ðŸŽ¨\",\"label\":\"Paintings\"}]},{\"tab\":\"Beddings\",\"items\":[{\"icon\":\"ðŸ›ï¸\",\"label\":\"Bed Sheets\"},{\"icon\":\"ðŸ›‹ï¸\",\"label\":\"Pillow Covers\"},{\"icon\":\"ðŸ§¸\",\"label\":\"Comforters\"}]},{\"tab\":\"Nursery And Bedding\",\"items\":[{\"icon\":\"ðŸ¼\",\"label\":\"Baby Beds\"},{\"icon\":\"ðŸ§¸\",\"label\":\"Crib Sheets\"},{\"icon\":\"ðŸŒ™\",\"label\":\"Night Lights\"}]},{\"tab\":\"Mosaic\",\"items\":[{\"icon\":\"ðŸ”·\",\"label\":\"Mosaic Tiles\"},{\"icon\":\"ðŸŒ€\",\"label\":\"Art Panels\"},{\"icon\":\"ðŸŽ­\",\"label\":\"Geometric Art\"}]},{\"tab\":\"Rugs\",\"items\":[{\"icon\":\"ðŸŸ«\",\"label\":\"Area Rugs\"},{\"icon\":\"ðŸŸ§\",\"label\":\"Door Mats\"},{\"icon\":\"ðŸŽ­\",\"label\":\"Runner Rugs\"}]}]" },
-      { key: "furnitureDataJson", label: "Furniture Data JSON", type: "textarea", defaultValue: "[{\"tab\":\"Sofas & Seating\",\"items\":[{\"icon\":\"ðŸ›‹ï¸\",\"label\":\"3-Seater Sofa\"},{\"icon\":\"ðŸª‘\",\"label\":\"Recliners\"},{\"icon\":\"ðŸ›‹ï¸\",\"label\":\"L-Shape Sofa\"},{\"icon\":\"ðŸª‘\",\"label\":\"Accent Chair\"},{\"icon\":\"ðŸ›ï¸\",\"label\":\"Sofa Cum Bed\"},{\"icon\":\"ðŸŽª\",\"label\":\"Ottoman\"}]},{\"tab\":\"Coffee Table\",\"items\":[{\"icon\":\"â˜•\",\"label\":\"Round Tables\"},{\"icon\":\"ðŸªµ\",\"label\":\"Wooden Tables\"},{\"icon\":\"ðŸ”²\",\"label\":\"Glass Top\"}]},{\"tab\":\"TV Unit\",\"items\":[{\"icon\":\"ðŸ“º\",\"label\":\"Wall Mounted\"},{\"icon\":\"ðŸ—„ï¸\",\"label\":\"Floor Standing\"}]},{\"tab\":\"Study Table\",\"items\":[{\"icon\":\"ðŸ“š\",\"label\":\"Writing Desk\"},{\"icon\":\"ðŸ’¼\",\"label\":\"Computer Desk\"},{\"icon\":\"ðŸ“–\",\"label\":\"Kids Study\"}]},{\"tab\":\"Beds\",\"items\":[{\"icon\":\"ðŸ›ï¸\",\"label\":\"King Size\"},{\"icon\":\"ðŸ›ï¸\",\"label\":\"Queen Size\"},{\"icon\":\"ðŸªµ\",\"label\":\"Wooden Bed\"}]}]" },
+      { key: "accessoryDataJson", label: "Accessory Data JSON", type: "textarea", defaultValue: "[{\"tab\":\"Wall Decor\",\"items\":[{\"icon\":\"🖼️\",\"label\":\"Canvas Art\"},{\"icon\":\"🪞\",\"label\":\"Mirrors\"},{\"icon\":\"🕯️\",\"label\":\"Candle Holders\"},{\"icon\":\"🌿\",\"label\":\"Planters\"},{\"icon\":\"💡\",\"label\":\"Wall Lights\"},{\"icon\":\"🎨\",\"label\":\"Paintings\"}]},{\"tab\":\"Beddings\",\"items\":[{\"icon\":\"🛏️\",\"label\":\"Bed Sheets\"},{\"icon\":\"🛋️\",\"label\":\"Pillow Covers\"},{\"icon\":\"🧸\",\"label\":\"Comforters\"}]},{\"tab\":\"Nursery And Bedding\",\"items\":[{\"icon\":\"🍼\",\"label\":\"Baby Beds\"},{\"icon\":\"🧸\",\"label\":\"Crib Sheets\"},{\"icon\":\"🌙\",\"label\":\"Night Lights\"}]},{\"tab\":\"Mosaic\",\"items\":[{\"icon\":\"🔷\",\"label\":\"Mosaic Tiles\"},{\"icon\":\"🌀\",\"label\":\"Art Panels\"},{\"icon\":\"🎭\",\"label\":\"Geometric Art\"}]},{\"tab\":\"Rugs\",\"items\":[{\"icon\":\"🟫\",\"label\":\"Area Rugs\"},{\"icon\":\"🟧\",\"label\":\"Door Mats\"},{\"icon\":\"🎭\",\"label\":\"Runner Rugs\"}]}]" },
+      { key: "furnitureDataJson", label: "Furniture Data JSON", type: "textarea", defaultValue: "[{\"tab\":\"Sofas & Seating\",\"items\":[{\"icon\":\"🛋️\",\"label\":\"3-Seater Sofa\"},{\"icon\":\"🪑\",\"label\":\"Recliners\"},{\"icon\":\"🛋️\",\"label\":\"L-Shape Sofa\"},{\"icon\":\"🪑\",\"label\":\"Accent Chair\"},{\"icon\":\"🛏️\",\"label\":\"Sofa Cum Bed\"},{\"icon\":\"🎪\",\"label\":\"Ottoman\"}]},{\"tab\":\"Coffee Table\",\"items\":[{\"icon\":\"☕\",\"label\":\"Round Tables\"},{\"icon\":\"🪵\",\"label\":\"Wooden Tables\"},{\"icon\":\"🔲\",\"label\":\"Glass Top\"}]},{\"tab\":\"TV Unit\",\"items\":[{\"icon\":\"📺\",\"label\":\"Wall Mounted\"},{\"icon\":\"🗄️\",\"label\":\"Floor Standing\"}]},{\"tab\":\"Study Table\",\"items\":[{\"icon\":\"📚\",\"label\":\"Writing Desk\"},{\"icon\":\"💼\",\"label\":\"Computer Desk\"},{\"icon\":\"📖\",\"label\":\"Kids Study\"}]},{\"tab\":\"Beds\",\"items\":[{\"icon\":\"🛏️\",\"label\":\"King Size\"},{\"icon\":\"🛏️\",\"label\":\"Queen Size\"},{\"icon\":\"🪵\",\"label\":\"Wooden Bed\"}]}]" },
       { key: "sectionBgColor2", label: "Section Background", type: "color", defaultValue: "#f0c8bc" },
       { key: "cardBgColor", label: "Container Background", type: "color", defaultValue: "#ffffff" },
       { key: "titleColor", label: "Title Color", type: "color", defaultValue: "#2a1c19" },
@@ -543,8 +543,8 @@ export const sectionRegistry: SectionDefinition[] = [
       subtitle: "Be the first to explore our newest furniture and home essentials, crafted for modern homes.",
       accessoryLabel: "Accessory",
       furnitureLabel: "Furniture",
-      accessoryDataJson: "[{\"tab\":\"Wall Decor\",\"items\":[{\"icon\":\"ðŸ–¼ï¸\",\"label\":\"Canvas Art\"},{\"icon\":\"ðŸªž\",\"label\":\"Mirrors\"},{\"icon\":\"ðŸ•¯ï¸\",\"label\":\"Candle Holders\"},{\"icon\":\"ðŸŒ¿\",\"label\":\"Planters\"},{\"icon\":\"ðŸ’¡\",\"label\":\"Wall Lights\"},{\"icon\":\"ðŸŽ¨\",\"label\":\"Paintings\"}]},{\"tab\":\"Beddings\",\"items\":[{\"icon\":\"ðŸ›ï¸\",\"label\":\"Bed Sheets\"},{\"icon\":\"ðŸ›‹ï¸\",\"label\":\"Pillow Covers\"},{\"icon\":\"ðŸ§¸\",\"label\":\"Comforters\"}]},{\"tab\":\"Nursery And Bedding\",\"items\":[{\"icon\":\"ðŸ¼\",\"label\":\"Baby Beds\"},{\"icon\":\"ðŸ§¸\",\"label\":\"Crib Sheets\"},{\"icon\":\"ðŸŒ™\",\"label\":\"Night Lights\"}]},{\"tab\":\"Mosaic\",\"items\":[{\"icon\":\"ðŸ”·\",\"label\":\"Mosaic Tiles\"},{\"icon\":\"ðŸŒ€\",\"label\":\"Art Panels\"},{\"icon\":\"ðŸŽ­\",\"label\":\"Geometric Art\"}]},{\"tab\":\"Rugs\",\"items\":[{\"icon\":\"ðŸŸ«\",\"label\":\"Area Rugs\"},{\"icon\":\"ðŸŸ§\",\"label\":\"Door Mats\"},{\"icon\":\"ðŸŽ­\",\"label\":\"Runner Rugs\"}]}]",
-      furnitureDataJson: "[{\"tab\":\"Sofas & Seating\",\"items\":[{\"icon\":\"ðŸ›‹ï¸\",\"label\":\"3-Seater Sofa\"},{\"icon\":\"ðŸª‘\",\"label\":\"Recliners\"},{\"icon\":\"ðŸ›‹ï¸\",\"label\":\"L-Shape Sofa\"},{\"icon\":\"ðŸª‘\",\"label\":\"Accent Chair\"},{\"icon\":\"ðŸ›ï¸\",\"label\":\"Sofa Cum Bed\"},{\"icon\":\"ðŸŽª\",\"label\":\"Ottoman\"}]},{\"tab\":\"Coffee Table\",\"items\":[{\"icon\":\"â˜•\",\"label\":\"Round Tables\"},{\"icon\":\"ðŸªµ\",\"label\":\"Wooden Tables\"},{\"icon\":\"ðŸ”²\",\"label\":\"Glass Top\"}]},{\"tab\":\"TV Unit\",\"items\":[{\"icon\":\"ðŸ“º\",\"label\":\"Wall Mounted\"},{\"icon\":\"ðŸ—„ï¸\",\"label\":\"Floor Standing\"}]},{\"tab\":\"Study Table\",\"items\":[{\"icon\":\"ðŸ“š\",\"label\":\"Writing Desk\"},{\"icon\":\"ðŸ’¼\",\"label\":\"Computer Desk\"},{\"icon\":\"ðŸ“–\",\"label\":\"Kids Study\"}]},{\"tab\":\"Beds\",\"items\":[{\"icon\":\"ðŸ›ï¸\",\"label\":\"King Size\"},{\"icon\":\"ðŸ›ï¸\",\"label\":\"Queen Size\"},{\"icon\":\"ðŸªµ\",\"label\":\"Wooden Bed\"}]}]",
+      accessoryDataJson: "[{\"tab\":\"Wall Decor\",\"items\":[{\"icon\":\"🖼️\",\"label\":\"Canvas Art\"},{\"icon\":\"🪞\",\"label\":\"Mirrors\"},{\"icon\":\"🕯️\",\"label\":\"Candle Holders\"},{\"icon\":\"🌿\",\"label\":\"Planters\"},{\"icon\":\"💡\",\"label\":\"Wall Lights\"},{\"icon\":\"🎨\",\"label\":\"Paintings\"}]},{\"tab\":\"Beddings\",\"items\":[{\"icon\":\"🛏️\",\"label\":\"Bed Sheets\"},{\"icon\":\"🛋️\",\"label\":\"Pillow Covers\"},{\"icon\":\"🧸\",\"label\":\"Comforters\"}]},{\"tab\":\"Nursery And Bedding\",\"items\":[{\"icon\":\"🍼\",\"label\":\"Baby Beds\"},{\"icon\":\"🧸\",\"label\":\"Crib Sheets\"},{\"icon\":\"🌙\",\"label\":\"Night Lights\"}]},{\"tab\":\"Mosaic\",\"items\":[{\"icon\":\"🔷\",\"label\":\"Mosaic Tiles\"},{\"icon\":\"🌀\",\"label\":\"Art Panels\"},{\"icon\":\"🎭\",\"label\":\"Geometric Art\"}]},{\"tab\":\"Rugs\",\"items\":[{\"icon\":\"🟫\",\"label\":\"Area Rugs\"},{\"icon\":\"🟧\",\"label\":\"Door Mats\"},{\"icon\":\"🎭\",\"label\":\"Runner Rugs\"}]}]",
+      furnitureDataJson: "[{\"tab\":\"Sofas & Seating\",\"items\":[{\"icon\":\"🛋️\",\"label\":\"3-Seater Sofa\"},{\"icon\":\"🪑\",\"label\":\"Recliners\"},{\"icon\":\"🛋️\",\"label\":\"L-Shape Sofa\"},{\"icon\":\"🪑\",\"label\":\"Accent Chair\"},{\"icon\":\"🛏️\",\"label\":\"Sofa Cum Bed\"},{\"icon\":\"🎪\",\"label\":\"Ottoman\"}]},{\"tab\":\"Coffee Table\",\"items\":[{\"icon\":\"☕\",\"label\":\"Round Tables\"},{\"icon\":\"🪵\",\"label\":\"Wooden Tables\"},{\"icon\":\"🔲\",\"label\":\"Glass Top\"}]},{\"tab\":\"TV Unit\",\"items\":[{\"icon\":\"📺\",\"label\":\"Wall Mounted\"},{\"icon\":\"🗄️\",\"label\":\"Floor Standing\"}]},{\"tab\":\"Study Table\",\"items\":[{\"icon\":\"📚\",\"label\":\"Writing Desk\"},{\"icon\":\"💼\",\"label\":\"Computer Desk\"},{\"icon\":\"📖\",\"label\":\"Kids Study\"}]},{\"tab\":\"Beds\",\"items\":[{\"icon\":\"🛏️\",\"label\":\"King Size\"},{\"icon\":\"🛏️\",\"label\":\"Queen Size\"},{\"icon\":\"🪵\",\"label\":\"Wooden Bed\"}]}]",
       sectionBgColor2: "#f0c8bc",
       cardBgColor: "#ffffff",
       titleColor: "#2a1c19",

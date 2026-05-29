@@ -3,6 +3,7 @@ import { listAdminProducts, type AdminProductRow } from "@/lib/admin-products";
 import { query } from "@/lib/db";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://qhbackend.onrender.com/api";
+const DEFAULT_CATEGORY = "bedsheet";
 
 /** Convert a DB row to a Product */
 function rowToProduct(row: AdminProductRow): Product {
@@ -13,7 +14,7 @@ function rowToProduct(row: AdminProductRow): Product {
     id: row.id,
     title: row.title,
     slug: row.slug,
-    category: row.category || "general",
+    category: row.category || DEFAULT_CATEGORY,
     sku: row.sku || undefined,
     size: row.size || undefined,
     collection: row.collection || undefined,

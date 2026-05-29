@@ -15,13 +15,14 @@ export function ProductGrid2Card({
 }) {
   const { toggleCartItem, isInCart } = useShop();
   const inCart = isInCart(product.slug);
+  const productHref = `/${product.category || "bedsheet"}/${product.slug}`;
 
   return (
     <article
       className="rounded-xl border border-[rgba(212,180,131,0.36)] bg-[rgba(212,180,131,0.14)] p-2"
       style={{ borderRadius: `${Math.max(radius - 2, 8)}px` }}
     >
-      <Link href={`/${product.slug}`} className="block">
+      <Link href={productHref} className="block">
         <div className="relative overflow-hidden" style={{ borderRadius: `${radius}px`, aspectRatio: "3 / 4" }}>
           {product.image ? (
             <img src={product.image} alt={product.title} className="absolute inset-0 h-full w-full object-cover" />

@@ -182,3 +182,7 @@
 .qh-builder-section .qh-section-pad {
   padding-block: 0 !important;
 }
+
+.qh-builder-sections > .qh-builder-section:first-child .qh-section-pad {
+  padding-top: 0 !important;
+}

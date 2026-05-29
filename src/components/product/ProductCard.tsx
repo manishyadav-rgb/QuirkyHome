@@ -15,12 +15,13 @@ export function ProductCard({ product }: { product: Product }) {
   const primaryImage = product.gallery?.[0] || product.image;
   const extraImages = Math.max(0, (product.gallery?.length || 0) - 1);
   const pseudoReviews = Math.max(18, Math.round(product.rating * 23));
+  const productHref = `/${product.category || "bedsheet"}/${product.slug}`;
 
   return (
     <article className="group overflow-hidden rounded-2xl border border-[rgba(212,180,131,0.32)] bg-[rgba(255,255,255,0.96)] shadow-[0_2px_10px_rgba(212,180,131,0.18)] transition-all duration-300 hover:-translate-y-1.5 hover:scale-[1.02] hover:shadow-[0_18px_40px_rgba(212,180,131,0.34),0_4px_12px_rgba(0,0,0,0.08)]">
       <div className="relative overflow-hidden bg-[rgba(212,180,131,0.16)]">
         <div className="relative w-full pt-[105%]">
-        <Link href={`/${product.slug}`} aria-label={product.title}>
+        <Link href={productHref} aria-label={product.title}>
           <Image
             src={primaryImage}
             alt={product.title}
@@ -62,7 +63,7 @@ export function ProductCard({ product }: { product: Product }) {
       </div>
 
       <div className="flex flex-col gap-1.5 p-3 sm:p-3.5">
-        <Link href={`/${product.slug}`} className="block">
+        <Link href={productHref} className="block">
           <h3 className="line-clamp-2 text-[11px] font-semibold leading-snug text-[#2d2417] transition-colors duration-200 group-hover:text-[#9b7643] sm:text-[12px]">
             {product.title}
           </h3>

@@ -338,7 +338,7 @@ export function ProductDetail({
           </Button>
         </div>
 
-        {/* ── Description Sections (Myntra/Amazon style accordions) ── */}
+        {/* -- Description Sections (Myntra/Amazon style accordions) -- */}
         {descSections && (descSections.highlights || descSections.details || descSections.care) && (
           <div className="mt-8 border-t border-border pt-2">
             <DescriptionAccordion

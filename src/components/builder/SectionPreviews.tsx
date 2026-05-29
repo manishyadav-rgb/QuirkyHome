@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Builder Canvas Section Components
  * 
  * Each component renders a storefront section using
@@ -9,7 +9,7 @@ import React, { useState, useEffect } from "react";
 import type { Section } from "@/lib/builder/types";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-/* â”€â”€â”€ HeroBanner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* --- HeroBanner --------------------------------------------- */
 
 export function HeroBannerPreview({ settings }: { settings: Section["settings"] }) {
   const h = settings.height === "100vh" ? "100vh" : `${settings.height}px`;
@@ -49,7 +49,7 @@ export function HeroBannerPreview({ settings }: { settings: Section["settings"] 
   );
 }
 
-/* â”€â”€â”€ RichText â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* --- RichText ----------------------------------------------- */
 
 export function RichTextPreview({ settings }: { settings: Section["settings"] }) {
   const headingAlign = settings.headingAlign === "center" || settings.headingAlign === "right" || settings.headingAlign === "left"
@@ -101,7 +101,7 @@ export function RichTextPreview({ settings }: { settings: Section["settings"] })
   );
 }
 
-/* â”€â”€â”€ ImageWithText â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* --- ImageWithText ------------------------------------------ */
 
 export function ImageWithTextPreview({ settings }: { settings: Section["settings"] }) {
   const isLeft = settings.imagePosition !== "right";
@@ -150,7 +150,7 @@ export function ImageWithTextPreview({ settings }: { settings: Section["settings
   );
 }
 
-/* â”€â”€â”€ FeaturedCollection â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* --- FeaturedCollection ------------------------------------- */
 
 export function FeaturedCollectionPreview({ settings }: { settings: Section["settings"] }) {
   const cols = parseInt(settings.columns) || 4;
@@ -191,7 +191,7 @@ export function FeaturedCollectionPreview({ settings }: { settings: Section["set
   );
 }
 
-/* â”€â”€â”€ ProductGrid â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* --- ProductGrid -------------------------------------------- */
 
 export function ProductGridPreview({ settings }: { settings: Section["settings"] }) {
   const cols = parseInt(settings.columns) || 4;
@@ -222,7 +222,7 @@ export function ProductGridPreview({ settings }: { settings: Section["settings"]
               {settings.showPrice && <div className="h-3 w-1/3 rounded" style={{ backgroundColor: "var(--color-primary)", opacity: 0.3 }} />}
               {settings.showRating && (
                 <div className="flex gap-0.5">
-                  {[1,2,3,4,5].map((s) => <span key={s} className="text-[10px]" style={{ color: "var(--color-accent)" }}>â˜…</span>)}
+                  {[1,2,3,4,5].map((s) => <span key={s} className="text-[10px]" style={{ color: "var(--color-accent)" }}>★</span>)}
                 </div>
               )}
             </div>
@@ -233,7 +233,7 @@ export function ProductGridPreview({ settings }: { settings: Section["settings"]
   );
 }
 
-/* â”€â”€â”€ Newsletter â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* --- Newsletter --------------------------------------------- */
 
 export function NewsletterPreview({ settings }: { settings: Section["settings"] }) {
   return (
@@ -274,7 +274,7 @@ export function NewsletterPreview({ settings }: { settings: Section["settings"] 
   );
 }
 
-/* â”€â”€â”€ Testimonials â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* --- Testimonials ------------------------------------------- */
 
 export function TestimonialsPreview({ settings }: { settings: Section["settings"] }) {
   const testimonials = [
@@ -307,7 +307,7 @@ export function TestimonialsPreview({ settings }: { settings: Section["settings"
             <p className="text-sm" style={{ color: "var(--color-text-muted)", fontFamily: "var(--font-family)", lineHeight: 1.7 }}>
               {t.text}
             </p>
-            <p className="mt-4 text-sm font-semibold" style={{ color: "var(--color-text)" }}>â€” {t.name}</p>
+            <p className="mt-4 text-sm font-semibold" style={{ color: "var(--color-text)" }}>- {t.name}</p>
           </div>
         ))}
       </div>
@@ -315,7 +315,7 @@ export function TestimonialsPreview({ settings }: { settings: Section["settings"
   );
 }
 
-/* â”€â”€â”€ BannerStrip â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* --- BannerStrip -------------------------------------------- */
 
 export function BannerStripPreview({ settings }: { settings: Section["settings"] }) {
   return (
@@ -460,7 +460,7 @@ export function SeoArticlePreview({ settings }: { settings: Section["settings"] 
   );
 }
 
-/* â”€â”€â”€ ImageGrid Preview â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* --- ImageGrid Preview -------------------------------------- */
 
 export function ImageGridPreview({ settings }: { settings: Section["settings"] }) {
   const gap = settings.gap ?? 12;
@@ -523,7 +523,7 @@ export function ImageGridPreview({ settings }: { settings: Section["settings"] }
       <style dangerouslySetInnerHTML={{ __html: css }} />
       <div className={uid}>
         <div className="qh-ig-large">
-          {renderSlot(settings.image1Url, settings.image1Alt, "Image 1 (Large â€” Left)")}
+          {renderSlot(settings.image1Url, settings.image1Alt, "Image 1 (Large - Left)")}
         </div>
         <div>
           {renderSlot(settings.image2Url, settings.image2Alt, "Image 2 (Top Right)")}
@@ -536,7 +536,7 @@ export function ImageGridPreview({ settings }: { settings: Section["settings"] }
   );
 }
 
-/* â”€â”€â”€ ImageBanner Preview â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* --- ImageBanner Preview ------------------------------------ */
 
 export function FiveGridPreview({ settings }: { settings: Section["settings"] }) {
   const gap = Number(settings.gap ?? 16);
@@ -634,7 +634,7 @@ export function ImageBannerPreview({ settings }: { settings: Section["settings"]
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-gray-400">
             <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
             <span className="text-sm font-medium">Upload a banner image</span>
-            <span className="text-xs text-gray-300">Recommended: 1920 Ã— {height}px</span>
+            <span className="text-xs text-gray-300">Recommended: 1920 × {height}px</span>
           </div>
         )}
       </div>
@@ -642,7 +642,7 @@ export function ImageBannerPreview({ settings }: { settings: Section["settings"]
   );
 }
 
-/* â”€â”€â”€ ReelImage Preview â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* --- ReelImage Preview -------------------------------------- */
 
 export function SlideBannerPreview({ settings }: { settings: Section["settings"] }) {
   const slides = Array.from({ length: 15 }, (_, i) => {
@@ -976,7 +976,7 @@ export function ReelImagePreview({ settings }: { settings: Section["settings"] }
   );
 }
 
-/* â”€â”€â”€ Component Map â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* --- Component Map ------------------------------------------ */
 
 export const sectionComponentMap: Record<string, React.FC<{ settings: Section["settings"] }>> = {
   HeroBanner: HeroBannerPreview,

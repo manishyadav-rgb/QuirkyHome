@@ -1,5 +1,5 @@
 /**
- * Builder Sidebar — Section Management & Theme Settings
+ * Builder Sidebar - Section Management & Theme Settings
  * 
  * Two tabs: "Sections" shows the section list + section editor,
  * "Theme" shows the global theme settings editor.
@@ -24,7 +24,7 @@ import { useBuilderStore } from "@/lib/builder/store";
 import { sectionRegistry, getSectionDef } from "@/lib/builder/registry";
 import type { FieldSchema, Section } from "@/lib/builder/types";
 
-/* ─── Field Renderer ───────────────────────────────────────── */
+/* --- Field Renderer ----------------------------------------- */
 
 function FieldInput({
   field,
@@ -128,7 +128,7 @@ function FieldInput({
   }
 }
 
-/* ─── Section Editor ───────────────────────────────────────── */
+/* --- Section Editor ----------------------------------------- */
 
 function SectionEditor({ section }: { section: Section }) {
   const updateSection = useBuilderStore((s) => s.updateSection);
@@ -165,7 +165,7 @@ function SectionEditor({ section }: { section: Section }) {
   );
 }
 
-/* ─── Theme Editor ─────────────────────────────────────────── */
+/* --- Theme Editor ------------------------------------------- */
 
 function ThemeEditor() {
   const theme = useBuilderStore((s) => s.schema.themeSettings);
@@ -287,7 +287,7 @@ function ThemeEditor() {
   );
 }
 
-/* ─── Section List ─────────────────────────────────────────── */
+/* --- Section List ------------------------------------------- */
 
 function SectionList() {
   const schema = useBuilderStore((s) => s.schema);
@@ -321,7 +321,7 @@ function SectionList() {
         </button>
       </div>
       {page.sections.length === 0 ? (
-        <p className="text-center text-[13px] text-[#8c9196] py-8">No sections — click "Add" to start building</p>
+        <p className="text-center text-[13px] text-[#8c9196] py-8">No sections - click "Add" to start building</p>
       ) : (
         <div className="grid gap-1">
           {page.sections.map((section, idx) => {
@@ -368,7 +368,7 @@ function SectionList() {
   );
 }
 
-/* ─── Add Section Modal ────────────────────────────────────── */
+/* --- Add Section Modal -------------------------------------- */
 
 function AddSectionPanel() {
   const addSection = useBuilderStore((s) => s.addSection);
@@ -405,7 +405,7 @@ function AddSectionPanel() {
   );
 }
 
-/* ─── Main Sidebar ─────────────────────────────────────────── */
+/* --- Main Sidebar ------------------------------------------- */
 
 export function BuilderSidebar() {
   const sidebarTab = useBuilderStore((s) => s.sidebarTab);

@@ -1,5 +1,5 @@
 /**
- * QuirkyHome Visual Page Builder — Zustand Store
+ * QuirkyHome Visual Page Builder - Zustand Store
  * 
  * Central state for the builder. Manages:
  * - Global theme settings (colors, typography, spacing)
@@ -12,7 +12,7 @@ import { create } from "zustand";
 import type { BuilderSchema, PageConfig, Section, ThemeSettings } from "./types";
 import { sectionRegistry } from "./registry";
 
-/* ─── Default Theme ────────────────────────────────────────── */
+/* --- Default Theme ------------------------------------------ */
 
 const defaultTheme: ThemeSettings = {
   colors: {
@@ -39,7 +39,7 @@ const defaultTheme: ThemeSettings = {
   },
 };
 
-/* ─── Default Pages ────────────────────────────────────────── */
+/* --- Default Pages ------------------------------------------ */
 
 function uid(): string {
   return crypto.randomUUID ? crypto.randomUUID() : `s-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -102,7 +102,7 @@ const defaultPages: Record<string, PageConfig> = {
   },
 };
 
-/* ─── Store Interface ──────────────────────────────────────── */
+/* --- Store Interface ---------------------------------------- */
 
 interface BuilderStore {
   // Schema
@@ -141,7 +141,7 @@ interface BuilderStore {
   markClean: () => void;
 }
 
-/* ─── Store Implementation ─────────────────────────────────── */
+/* --- Store Implementation ----------------------------------- */
 
 export const useBuilderStore = create<BuilderStore>((set, get) => ({
   schema: {
@@ -154,7 +154,7 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
   addSectionOpen: false,
   isDirty: false,
 
-  /* ── Theme ── */
+  /* -- Theme -- */
   updateTheme(path, value) {
     set((state) => {
       const schema = structuredClone(state.schema);
@@ -166,7 +166,7 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
     });
   },
 
-  /* ── Pages ── */
+  /* -- Pages -- */
   setActivePage(pageId) {
     set({ activePage: pageId, activeSection: null });
   },
@@ -189,7 +189,7 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
     });
   },
 
-  /* ── Sections ── */
+  /* -- Sections -- */
   setActiveSection(sectionId) {
     set({ activeSection: sectionId, sidebarTab: sectionId ? "sections" : get().sidebarTab });
   },
@@ -268,11 +268,11 @@ export const useBuilderStore = create<BuilderStore>((set, get) => ({
     });
   },
 
-  /* ── UI ── */
+  /* -- UI -- */
   setSidebarTab(tab) { set({ sidebarTab: tab }); },
   setAddSectionOpen(open) { set({ addSectionOpen: open }); },
 
-  /* ── Persistence ── */
+  /* -- Persistence -- */
   loadSchema(schema) {
     set({ schema, isDirty: false, activePage: Object.keys(schema.pages)[0] || "home", activeSection: null });
   },

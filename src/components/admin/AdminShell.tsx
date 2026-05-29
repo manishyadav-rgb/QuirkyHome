@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import {
   BarChart3,
   Boxes,
+  FolderTree,
   ChevronRight,
   ExternalLink,
   FileText,
@@ -37,6 +38,7 @@ const navGroups = [
       { href: "/qh-admin/orders", label: "Orders", icon: ShoppingBag },
       { href: "/qh-admin/products", label: "Products", icon: Tag },
       { href: "/qh-admin/collections", label: "Collections", icon: LayoutGrid },
+      { href: "/qh-admin/categories", label: "Categories", icon: FolderTree },
       { href: "/qh-admin/customers", label: "Customers", icon: UsersRound },
     ],
   },
@@ -76,6 +78,7 @@ const pageTitleMap: Record<string, string> = {
   "/qh-admin/orders": "Orders",
   "/qh-admin/products": "Products",
   "/qh-admin/collections": "Collections",
+  "/qh-admin/categories": "Categories",
   "/qh-admin/customers": "Customers",
   "/qh-admin/marketing": "Marketing",
   "/qh-admin/discounts": "Discounts",

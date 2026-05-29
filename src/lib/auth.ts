@@ -2,7 +2,7 @@ import { createHash, createHmac, randomBytes } from "crypto";
 import { cookies } from "next/headers";
 import { query } from "@/lib/db";
 
-// ─── JWT-like Token (HMAC-SHA256) ───
+// --- JWT-like Token (HMAC-SHA256) ---
 
 const JWT_SECRET = () => process.env.JWT_SECRET ?? process.env.DATABASE_URL ?? "qh-fallback-secret";
 
@@ -46,7 +46,7 @@ export function verifyToken(token: string): TokenPayload | null {
   }
 }
 
-// ─── Cookie helpers ───
+// --- Cookie helpers ---
 
 export const TOKEN_COOKIE = process.env.AUTH_COOKIE_NAME ?? "qh_store_token";
 
@@ -82,7 +82,7 @@ export async function getAuthFromCookies(): Promise<TokenPayload | null> {
   }
 }
 
-// ─── Hash helpers ───
+// --- Hash helpers ---
 
 export function hashPassword(password: string): string {
   const salt = randomBytes(16).toString("hex");

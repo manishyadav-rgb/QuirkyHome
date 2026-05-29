@@ -15,10 +15,13 @@ export async function GET(request: Request) {
       return Response.json({ skus: rows.rows.map((row) => row.sku) });
     }
     if (id) {
-      const product = await query<{ id: string; title: string; slug: string; image_url: string | null }>(
+      const product = await query<{ id: string; title: string; slug: string; image_url: string | null; category_slug: string | null }>(
         `select p.id, p.title, p.slug, pi.image_url
+              , c.slug as category_slug
          from products p
          left join product_images pi on pi.product_id = p.id and pi.sort_order = 0
+         left join product_category_map pcm on pcm.product_id = p.id
+         left join categories c on c.id = pcm.category_id
          where p.id = $1
          limit 1`,
         [id],
@@ -51,6 +54,7 @@ export async function PUT(request: Request) {
     const body = await request.json();
     const id = typeof body?.id === "string" ? body.id : "";
     const images = Array.isArray(body?.images) ? body.images : [];
+    const categorySlug = typeof body?.categorySlug === "string" ? body.categorySlug.trim() : "";
     const cleaned = Array.from(
       new Set(images.map((value: unknown) => (typeof value === "string" ? value.trim() : "")).filter(Boolean)),
     ).slice(0, 10);
@@ -83,6 +87,26 @@ export async function PUT(request: Request) {
          values ($1, $2, $3, $4, $5)`,
         [id, variantId, cleaned[i], `Product image ${i + 1}`, i],
       );
+    }
+
+    await query("delete from product_category_map where product_id = $1", [id]);
+    if (categorySlug) {
+      const categoryResult = await query<{ id: string }>(
+        `select id
+         from categories
+         where slug = $1
+         limit 1`,
+        [categorySlug],
+      );
+      const categoryId = categoryResult.rows[0]?.id;
+      if (categoryId) {
+        await query(
+          `insert into product_category_map (product_id, category_id)
+           values ($1, $2)
+           on conflict do nothing`,
+          [id, categoryId],
+        );
+      }
     }
 
     return Response.json({ ok: true, count: cleaned.length });
