@@ -6,6 +6,20 @@ export const runtime = "nodejs";
 
 // GET - List all sites
 export async function GET() {
+  if (!process.env.DATABASE_URL) {
+    return NextResponse.json({
+      sites: [
+        {
+          id: "quirkyhome",
+          name: "QuirkyHome",
+          domain: "quirkyhome.in",
+          logo_text: "QH",
+          brand_color: "#008060",
+        },
+      ],
+    });
+  }
+
   try {
     // Ensure table exists
     await query(`
@@ -42,6 +56,10 @@ export async function GET() {
 
 // POST - Create a new site (admin only)
 export async function POST(request: Request) {
+  if (!process.env.DATABASE_URL) {
+    return NextResponse.json({ error: "DATABASE_URL is not configured" }, { status: 503 });
+  }
+
   const auth = await getAuthFromCookies();
   if (!auth || auth.role !== "admin") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -72,6 +90,10 @@ export async function POST(request: Request) {
 
 // DELETE - Remove a site
 export async function DELETE(request: Request) {
+  if (!process.env.DATABASE_URL) {
+    return NextResponse.json({ error: "DATABASE_URL is not configured" }, { status: 503 });
+  }
+
   const auth = await getAuthFromCookies();
   if (!auth || auth.role !== "admin") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

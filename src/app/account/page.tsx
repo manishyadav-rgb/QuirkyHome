@@ -20,6 +20,7 @@ export default function AccountPage() {
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<UserInfo | null>(null);
   const [checkingAuth, setCheckingAuth] = useState(true);
+  const [orderCount, setOrderCount] = useState(0);
   const { wishlistCount } = useShop();
 
   // Check if already logged in
@@ -39,6 +40,17 @@ export default function AccountPage() {
       .catch(() => {})
       .finally(() => setCheckingAuth(false));
   }, []);
+
+  useEffect(() => {
+    if (step !== "done") return;
+    fetch("/api/orders")
+      .then((r) => r.json())
+      .then((data) => {
+        const total = Array.isArray(data?.orders) ? data.orders.length : 0;
+        setOrderCount(total);
+      })
+      .catch(() => setOrderCount(0));
+  }, [step]);
 
   async function handleSendOtp(event?: FormEvent<HTMLFormElement>, method: "sms" | "voice" = "sms") {
     if (event) event.preventDefault();
@@ -428,7 +440,7 @@ export default function AccountPage() {
             <div className="qh-card bg-background-elevated p-4 flex flex-col justify-between shadow-sm hover:shadow-md transition-all duration-200 border border-border/80 rounded-2xl">
               <span className="text-[10px] sm:text-xs font-bold text-text-muted uppercase tracking-wider">My Orders</span>
               <div className="flex items-baseline gap-1 mt-2">
-                <span className="text-xl sm:text-2xl font-black text-brand-primary">0</span>
+                <span className="text-xl sm:text-2xl font-black text-brand-primary">{orderCount}</span>
                 <span className="text-[10px] text-text-soft font-semibold">Active</span>
               </div>
             </div>

@@ -6,7 +6,7 @@ export type Category = {
 };
 
 export const categories: Category[] = [
-  { name: "Bedding", slug: "bedding", image: "https://images.unsplash.com/photo-1616627561950-9f746e330187?auto=format&fit=crop&w=900&q=80", description: "Layered sheets, dohars, quilts, and cushion stories." },
+  { name: "Bedding", slug: "bedding", image: "https://images.unsplash.com/photo-1616627561950-9f746e330187?auto=format&fit=crop&w=900&q=80", description: "Layered Sheets, Dohars, Quilts, and Cushion Styles." },
   { name: "Furnishing", slug: "furnishing", image: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=900&q=80", description: "Soft furnishings, curtains, and upholstered pieces." },
   { name: "Organiser", slug: "organiser", image: "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=900&q=80", description: "Storage solutions, organizers, and decluttering essentials." },
   { name: "Bath", slug: "bath", image: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=900&q=80", description: "Bath accessories, towels, and self-care essentials for everyday comfort." },

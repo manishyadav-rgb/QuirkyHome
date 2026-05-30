@@ -39,6 +39,7 @@ export default function AdminProductsPage() {
   const [imageSaving, setImageSaving] = useState(false);
   const [categories, setCategories] = useState<AdminCategory[]>([]);
   const [selectedCategorySlug, setSelectedCategorySlug] = useState("");
+  const [selectedVariantSlugs, setSelectedVariantSlugs] = useState<string[]>([]);
 
   async function loadProducts() {
     setLoading(true);
@@ -94,10 +95,12 @@ export default function AdminProductsPage() {
       while (next.length < MAX_IMAGES) next.push("");
       setImageInputs(next);
       setSelectedCategorySlug(typeof data.category_slug === "string" ? data.category_slug : product.category || "");
+      setSelectedVariantSlugs(Array.isArray(data.variant_slugs) ? data.variant_slugs : []);
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "Failed to load images");
       setImageInputs(Array(MAX_IMAGES).fill(""));
       setSelectedCategorySlug(product.category || "");
+      setSelectedVariantSlugs([]);
     } finally {
       setImageLoading(false);
     }
@@ -109,6 +112,7 @@ export default function AdminProductsPage() {
     setImageLoading(false);
     setImageSaving(false);
     setSelectedCategorySlug("");
+    setSelectedVariantSlugs([]);
   }
 
   function updateImageAt(index: number, value: string) {
@@ -137,7 +141,12 @@ export default function AdminProductsPage() {
       const response = await fetch("/api/admin/products", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: editing.id, images: cleaned, categorySlug: selectedCategorySlug || null }),
+        body: JSON.stringify({
+          id: editing.id,
+          images: cleaned,
+          categorySlug: selectedCategorySlug || null,
+          variantSlugs: selectedVariantSlugs,
+        }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Failed to save images");
@@ -162,6 +171,17 @@ export default function AdminProductsPage() {
       p.slug.toLowerCase().includes(search.toLowerCase()) ||
       (p.sku ?? "").toLowerCase().includes(search.toLowerCase()),
   );
+
+  const variantCandidates = useMemo(() => {
+    if (!editing) return [];
+    return products.filter((product) => product.id !== editing.id).sort((a, b) => a.title.localeCompare(b.title));
+  }, [products, editing]);
+
+  function toggleVariant(slug: string) {
+    setSelectedVariantSlugs((current) =>
+      current.includes(slug) ? current.filter((item) => item !== slug) : [...current, slug],
+    );
+  }
 
   return (
     <div className="grid gap-5">
@@ -278,6 +298,26 @@ export default function AdminProductsPage() {
                 {Array.from({ length: MAX_IMAGES }).map((_, index) => (
                   <input key={index} type="url" value={imageInputs[index]} onChange={(e) => updateImageAt(index, e.target.value)} placeholder={`Image URL ${index + 1}`} className="rounded-md border border-[#c9cccf] px-3 py-2 text-[13px] focus:border-[#008060] focus:outline-none focus:ring-2 focus:ring-[#008060]/20" />
                 ))}
+                <div className="mt-3">
+                  <p className="mb-2 text-[12px] font-semibold uppercase tracking-wide text-[#6d7175]">Linked Variants</p>
+                  <div className="max-h-56 space-y-1 overflow-auto rounded-md border border-[#e1e3e5] bg-[#fafbfc] p-2">
+                    {variantCandidates.length === 0 ? (
+                      <p className="px-1 py-2 text-[12px] text-[#8c9196]">No other products available.</p>
+                    ) : (
+                      variantCandidates.map((candidate) => (
+                        <label key={candidate.id} className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-[12px] text-[#202223] hover:bg-white">
+                          <input
+                            type="checkbox"
+                            checked={selectedVariantSlugs.includes(candidate.slug)}
+                            onChange={() => toggleVariant(candidate.slug)}
+                            className="h-3.5 w-3.5 rounded border-[#c9cccf] text-[#008060] focus:ring-[#008060]/30"
+                          />
+                          <span className="truncate">{candidate.title}</span>
+                        </label>
+                      ))
+                    )}
+                  </div>
+                </div>
               </div>
 
               <div>

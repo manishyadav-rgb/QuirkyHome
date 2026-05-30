@@ -15,6 +15,14 @@ export type Product = {
   mrp: number;
   badge: string;
   description: string;
+  linkedVariantSlugs?: string[];
+  variantOptions?: {
+    sku?: string;
+    label: string;
+    price: number;
+    mrp: number;
+    size?: string;
+  }[];
 };
 
 export const products: Product[] = [

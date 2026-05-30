@@ -28,21 +28,28 @@ export async function listAdminProducts() {
        p.slug,
        p.short_description as description,
        p.long_description,
-       pv.sku,
-       pv.attributes->>'size' as size,
-       pv.attributes->>'collection' as collection,
-       pv.sale_price::text,
-       pv.mrp::text,
+       pv_sel.sku,
+       pv_sel.attributes->>'size' as size,
+       pv_sel.attributes->>'collection' as collection,
+       pv_sel.sale_price::text,
+       pv_sel.mrp::text,
        ii.quantity_available,
-       coalesce(pi0.image_url, pi.image_url) as image_url,
+       pi0.image_url as image_url,
        pig.gallery_images,
        c.slug as category,
        p.is_active,
        p.created_at::text
      from products p
-     left join product_variants pv on pv.product_id = p.id
-     left join inventory_items ii on ii.variant_id = pv.id
-     left join product_images pi on pi.product_id = p.id and pi.sort_order = 0
+     left join lateral (
+       select pv.id, pv.sku, pv.attributes, pv.sale_price, pv.mrp
+       from product_variants pv
+       where pv.product_id = p.id
+       order by
+         case when coalesce(pv.attributes->>'size', '') <> '' then 0 else 1 end,
+         pv.created_at asc
+       limit 1
+     ) pv_sel on true
+     left join inventory_items ii on ii.variant_id = pv_sel.id
      left join lateral (
        select image_url
        from product_images
@@ -55,8 +62,14 @@ export async function listAdminProducts() {
        from product_images
        where product_id = p.id
      ) pig on true
-     left join product_category_map pcm on pcm.product_id = p.id
-     left join categories c on c.id = pcm.category_id
+     left join lateral (
+       select c.slug
+       from product_category_map pcm
+       join categories c on c.id = pcm.category_id
+       where pcm.product_id = p.id
+       order by c.sort_order asc, c.created_at asc
+       limit 1
+     ) c on true
      order by p.created_at desc
      limit 100`,
   );

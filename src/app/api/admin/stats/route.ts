@@ -5,13 +5,23 @@ type CountRow = {
 };
 
 export async function GET() {
+  if (!process.env.DATABASE_URL) {
+    return Response.json({
+      totalUsers: 0,
+      totalProducts: 0,
+      totalOrders: 0,
+      totalCarts: 0,
+      totalWishlists: 0,
+    });
+  }
+
   try {
     const [usersResult, productsResult, ordersResult, cartsResult, wishlistsResult] = await Promise.all([
       query<CountRow>("SELECT COUNT(*) as count FROM users"),
       query<CountRow>("SELECT COUNT(*) as count FROM products"),
-      query<CountRow>("SELECT COUNT(*) as count FROM orders"),
-      query<CountRow>("SELECT COUNT(*) as count FROM carts"),
-      query<CountRow>("SELECT COUNT(*) as count FROM wishlists"),
+      query<CountRow>("SELECT COUNT(*) as count FROM customer_orders"),
+      query<CountRow>("SELECT COUNT(*) as count FROM customer_carts"),
+      query<CountRow>("SELECT COUNT(*) as count FROM customer_wishlists"),
     ]);
 
     const stats = {
@@ -25,6 +35,12 @@ export async function GET() {
     return Response.json(stats);
   } catch (error) {
     console.error("Admin stats error:", error);
-    return Response.json({ error: "Failed to fetch stats" }, { status: 500 });
+    return Response.json({
+      totalUsers: 0,
+      totalProducts: 0,
+      totalOrders: 0,
+      totalCarts: 0,
+      totalWishlists: 0,
+    });
   }
 }

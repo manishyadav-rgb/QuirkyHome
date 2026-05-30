@@ -2,6 +2,7 @@
 
 import { load } from "@cashfreepayments/cashfree-js";
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useShop } from "@/components/shop/ShopProvider";
 
 type CouponState = {
@@ -15,8 +16,10 @@ type CouponState = {
 };
 
 export default function CheckoutPage() {
+  const router = useRouter();
   const { cart, subtotal, updateCartQuantity, removeFromCart } = useShop();
   const [loading, setLoading] = useState(false);
+  const [placingTestOrder, setPlacingTestOrder] = useState(false);
   const [couponCode, setCouponCode] = useState("");
   const [coupon, setCoupon] = useState<CouponState>({ code: "", discountAmount: 0, error: "", applying: false, applied: false });
   const [availableCoupons, setAvailableCoupons] = useState<any[]>([]);
@@ -59,6 +62,26 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     fetchCoupons();
+  }, []);
+
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((r) => r.json())
+      .then((data) => {
+        if (!data?.authenticated || !data?.user) return;
+        const u = data.user;
+        setFormData((prev) => ({
+          ...prev,
+          name: prev.name || u.name || "",
+          email: prev.email || u.email || "",
+          phone: prev.phone || (u.phone ? String(u.phone).replace(/\D/g, "").slice(-10) : ""),
+          address: prev.address || u.shippingAddress || "",
+          city: prev.city || u.shippingCity || "",
+          state: prev.state || u.shippingState || "",
+          pincode: prev.pincode || u.shippingPincode || "",
+        }));
+      })
+      .catch(() => {});
   }, []);
 
   async function applyCoupon(codeToApply?: string) {
@@ -113,6 +136,19 @@ export default function CheckoutPage() {
 
     setLoading(true);
     try {
+      await fetch("/api/auth/update-profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          shippingAddress: formData.address,
+          shippingCity: formData.city,
+          shippingState: formData.state,
+          shippingPincode: formData.pincode,
+        }),
+      });
+
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -144,6 +180,55 @@ export default function CheckoutPage() {
       console.error("Checkout error:", error);
       alert("Something went wrong");
       setLoading(false);
+    }
+  };
+
+  const handlePlaceTestOrder = async () => {
+    if (!formData.phone || subtotal === 0) return;
+    setPlacingTestOrder(true);
+    try {
+      await fetch("/api/auth/update-profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          shippingAddress: formData.address,
+          shippingCity: formData.city,
+          shippingState: formData.state,
+          shippingPincode: formData.pincode,
+        }),
+      });
+
+      const res = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          address: formData.address,
+          city: formData.city,
+          state: formData.state,
+          pincode: formData.pincode,
+          notes: formData.notes,
+          couponCode: coupon.applied ? coupon.code : undefined,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data?.ok) {
+        alert(data?.error || "Unable to place test order.");
+        setPlacingTestOrder(false);
+        return;
+      }
+      alert(`Test order placed: ${data.order?.orderNumber || "Order Created"}`);
+      router.push("/account/orders");
+      router.refresh();
+    } catch (error) {
+      console.error("Test order error:", error);
+      alert("An error occurred while placing the test order.");
+    } finally {
+      setPlacingTestOrder(false);
     }
   };
 
@@ -216,6 +301,8 @@ export default function CheckoutPage() {
         .cta-wrap { padding: 0 14px 14px; }
         .checkout-btn { width: 100%; border: none; padding: 12px; border-radius: 10px; color: #fff; font-size: 14px; font-weight: 700; background: linear-gradient(115deg, #4b2ecc 0%, #7b52ff 100%); box-shadow: 0 8px 20px rgba(75, 46, 204, 0.28); cursor: pointer; }
         .checkout-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .test-order-btn { width: 100%; margin-top: 10px; border: 1px solid #d7d3ea; padding: 11px; border-radius: 10px; color: #2e2556; font-size: 13px; font-weight: 700; background: #f8f7ff; cursor: pointer; }
+        .test-order-btn:disabled { opacity: 0.6; cursor: not-allowed; }
         .secure-txt { text-align: center; margin-top: 10px; font-size: 11px; color: #7a7890; }
         .mob-bar { display: none; }
         @media (max-width: 640px) {
@@ -366,6 +453,9 @@ export default function CheckoutPage() {
                 <div className="savings-pill">Yay! You saved INR {totalSavings} on this order.</div>
                 <div className="cta-wrap">
                   <button type="submit" form="checkout-form" disabled={loading} className="checkout-btn">{loading ? "Processing..." : `Proceed to Pay INR ${payableTotal}`}</button>
+                  <button type="button" onClick={handlePlaceTestOrder} disabled={placingTestOrder || loading} className="test-order-btn">
+                    {placingTestOrder ? "Placing Test Order..." : "Place Test Order (No Payment API)"}
+                  </button>
                   <div className="secure-txt">100% Secure and SSL Encrypted</div>
                 </div>
               </div>

@@ -27,6 +27,12 @@ import { Button } from "@/components/ui/Button";
 import { ShieldCheck, Sparkles, Truck, Undo2, WalletCards, ChevronLeft, ChevronRight } from "lucide-react";
 import { ProductCard } from "@/components/product/ProductCard";
 import { ProductGrid2Card } from "@/components/product/ProductGrid2Card";
+import { RecentlyViewedSection } from "@/components/home/RecentlyViewedSection";
+
+function toNumberOr(value: unknown, fallback: number) {
+  const num = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(num) ? num : fallback;
+}
 
 /* --- HeroBanner - uses actual HeroSection with framer-motion ---- */
 
@@ -75,10 +81,10 @@ async function StorefrontProductGridWrapper({ settings }: { settings: Record<str
     products = allProducts.slice(0, 20);
   }
 
-  const cols = parseInt(settings.columns || "4");
-  const mobileCols = parseInt(settings.mobileColumns || "2");
-  const rows = parseInt(settings.rows || "2");
-  const gap = parseInt(settings.gap || "24");
+  const cols = Math.max(1, Math.floor(toNumberOr(settings.columns, 4)));
+  const mobileCols = Math.max(1, Math.floor(toNumberOr(settings.mobileColumns, 2)));
+  const rows = Math.max(1, Math.floor(toNumberOr(settings.rows, 2)));
+  const gap = Math.max(0, Math.floor(toNumberOr(settings.gap, 24)));
   const mobileGap = Math.min(gap, 12);
   const limit = cols * rows;
   const limitedProducts = products.slice(0, limit);
@@ -121,10 +127,10 @@ async function StorefrontProductGridWrapper({ settings }: { settings: Record<str
 }
 
 async function StorefrontProductGrid2({ settings, sectionId }: { settings: Record<string, any>; sectionId: string }) {
-  const desktopCols = Math.min(6, Math.max(2, parseInt(settings.desktopColumns || "6")));
-  const mobileCols = Math.min(2, Math.max(1, parseInt(settings.mobileColumns || "2")));
-  const gap = Math.min(32, Math.max(8, Number(settings.gap || 16)));
-  const radius = Math.min(28, Math.max(4, Number(settings.cardRadius || 14)));
+  const desktopCols = Math.min(6, Math.max(2, Math.floor(toNumberOr(settings.desktopColumns, 6))));
+  const mobileCols = Math.min(2, Math.max(1, Math.floor(toNumberOr(settings.mobileColumns, 2))));
+  const gap = Math.min(32, Math.max(8, toNumberOr(settings.gap, 16)));
+  const radius = Math.min(28, Math.max(4, toNumberOr(settings.cardRadius, 14)));
   const buttonText = settings.buttonText || "Add To Cart";
   const source = settings.productSource || "manual";
   const selectedIds: string[] = settings.productIds || [];
@@ -153,7 +159,7 @@ async function StorefrontProductGrid2({ settings, sectionId }: { settings: Recor
     <section className="qh-container qh-section-pad">
       {(settings.heading || settings.subheading) && (
         <div className="mb-5">
-          {settings.heading && <h2 className="font-display text-2xl font-black text-text-main md:text-3xl">{settings.heading}</h2>}
+          {settings.heading && <h2 className="font-display text-[22px] font-black leading-tight text-text-main">{settings.heading}</h2>}
           {settings.subheading && <p className="mt-2 text-sm text-text-muted md:text-base">{settings.subheading}</p>}
         </div>
       )}
@@ -355,6 +361,30 @@ function StorefrontFeaturedCollection({ settings }: { settings: Record<string, a
     <section className="qh-container qh-section-pad">
       <h2 className="text-2xl font-bold mb-6 text-center text-text-main">{settings.heading}</h2>
       <div className="text-center text-text-muted">Featured Collection: {settings.collectionId || "None"}</div>
+    </section>
+  );
+}
+
+function StorefrontRecentlyViewedProducts({ settings }: { settings: Record<string, any> }) {
+  return (
+    <RecentlyViewedSection
+      eyebrow={settings.eyebrow || ""}
+      heading={settings.heading || ""}
+      subheading={settings.subheading || ""}
+    />
+  );
+}
+
+function StorefrontHeading({ settings }: { settings: Record<string, any> }) {
+  const title = settings.heading || settings.title || settings.text || "Heading";
+  const subtitle = settings.subheading || settings.subtitle || "";
+  const align = settings.align === "left" || settings.align === "right" ? settings.align : "center";
+  return (
+    <section className="qh-container qh-section-pad">
+      <div style={{ textAlign: align as "left" | "center" | "right" }}>
+        <h2 className="font-display text-[22px] font-black leading-tight text-text-main">{title}</h2>
+        {subtitle ? <p className="mt-2 text-sm text-text-muted md:text-base">{subtitle}</p> : null}
+      </div>
     </section>
   );
 }
@@ -662,7 +692,7 @@ function StorefrontSlideshow({ settings }: { settings: Record<string, any> }) {
 
 /* --- Multicolumn ------------------------------------------- */
 function StorefrontMulticolumn({ settings }: { settings: Record<string, any> }) {
-  const cols = parseInt(settings.columns || "3");
+  const cols = Math.max(1, Math.floor(toNumberOr(settings.columns, 3)));
   const data = [];
   for(let i=1; i<=cols; i++) {
     data.push({
@@ -831,6 +861,7 @@ const storefrontComponentMap: Record<string, React.FC<{ settings: Record<string,
   SeoArticle: StorefrontSeoArticle,
   RichText: StorefrontRichText,
   ImageWithText: StorefrontImageWithText,
+  Heading: StorefrontHeading,
   FeaturedCollection: StorefrontFeaturedCollection,
   Testimonials: StorefrontTestimonials,
   BannerStrip: StorefrontBannerStrip,
@@ -852,6 +883,7 @@ const storefrontComponentMap: Record<string, React.FC<{ settings: Record<string,
   CustomHTML: StorefrontCustomHTML,
   Divider: StorefrontDivider,
   ReelImage: StorefrontReelImage,
+  RecentlyViewedProducts: StorefrontRecentlyViewedProducts,
 };
 
 /* --- Public Renderer ---------------------------------------- */
@@ -866,8 +898,8 @@ export function RenderSection({ section, theme }: RenderSectionProps) {
   if (section.type === "ProductGrid2") {
     const s = section.settings;
     const wrapperStyle: React.CSSProperties = {};
-    if (s.sectionPaddingTop) wrapperStyle.paddingTop = `${s.sectionPaddingTop}px`;
-    if (s.sectionPaddingBottom) wrapperStyle.paddingBottom = `${s.sectionPaddingBottom}px`;
+    if (Number.isFinite(Number(s.sectionPaddingTop))) wrapperStyle.paddingTop = `${Number(s.sectionPaddingTop)}px`;
+    if (Number.isFinite(Number(s.sectionPaddingBottom))) wrapperStyle.paddingBottom = `${Number(s.sectionPaddingBottom)}px`;
     if (s.sectionBgColor) wrapperStyle.backgroundColor = s.sectionBgColor;
     return (
       <div style={wrapperStyle} className="qh-builder-section">
@@ -881,8 +913,8 @@ export function RenderSection({ section, theme }: RenderSectionProps) {
   
   const s = section.settings;
   const wrapperStyle: React.CSSProperties = {};
-  if (s.sectionPaddingTop) wrapperStyle.paddingTop = `${s.sectionPaddingTop}px`;
-  if (s.sectionPaddingBottom) wrapperStyle.paddingBottom = `${s.sectionPaddingBottom}px`;
+  if (Number.isFinite(Number(s.sectionPaddingTop))) wrapperStyle.paddingTop = `${Number(s.sectionPaddingTop)}px`;
+  if (Number.isFinite(Number(s.sectionPaddingBottom))) wrapperStyle.paddingBottom = `${Number(s.sectionPaddingBottom)}px`;
   if (s.sectionBgColor) wrapperStyle.backgroundColor = s.sectionBgColor;
 
   return (

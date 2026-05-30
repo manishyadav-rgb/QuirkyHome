@@ -1,6 +1,18 @@
 import { listAdminProducts } from "@/lib/admin-products";
 import { query } from "@/lib/db";
 
+async function ensureVariantLinksTable() {
+  await query(
+    `create table if not exists product_variant_links (
+       product_id uuid not null references products(id) on delete cascade,
+       variant_product_id uuid not null references products(id) on delete cascade,
+       created_at timestamptz not null default now(),
+       primary key (product_id, variant_product_id),
+       check (product_id <> variant_product_id)
+     )`,
+  );
+}
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -36,9 +48,19 @@ export async function GET(request: Request) {
          order by sort_order asc nulls last, created_at asc`,
         [id],
       );
+      await ensureVariantLinksTable();
+      const linkedRows = await query<{ slug: string }>(
+        `select p2.slug
+         from product_variant_links pvl
+         join products p2 on p2.id = pvl.variant_product_id
+         where pvl.product_id = $1
+         order by p2.title asc`,
+        [id],
+      );
       return Response.json({
         ...product.rows[0],
         gallery_images: galleryRows.rows.map((r) => r.image_url).filter(Boolean),
+        variant_slugs: linkedRows.rows.map((r) => r.slug).filter(Boolean),
       });
     }
 
@@ -54,6 +76,9 @@ export async function PUT(request: Request) {
     const body = await request.json();
     const id = typeof body?.id === "string" ? body.id : "";
     const images = Array.isArray(body?.images) ? body.images : [];
+    const variantSlugs = Array.isArray(body?.variantSlugs)
+      ? body.variantSlugs
+      : [];
     const categorySlug = typeof body?.categorySlug === "string" ? body.categorySlug.trim() : "";
     const cleaned = Array.from(
       new Set(images.map((value: unknown) => (typeof value === "string" ? value.trim() : "")).filter(Boolean)),
@@ -105,6 +130,31 @@ export async function PUT(request: Request) {
            values ($1, $2)
            on conflict do nothing`,
           [id, categoryId],
+        );
+      }
+    }
+
+    await ensureVariantLinksTable();
+    await query("delete from product_variant_links where product_id = $1 or variant_product_id = $1", [id]);
+    const cleanedVariantSlugs = Array.from(
+      new Set(
+        variantSlugs
+          .map((value: unknown) => (typeof value === "string" ? value.trim() : ""))
+          .filter((value: string) => Boolean(value)),
+      ),
+    );
+    if (cleanedVariantSlugs.length > 0) {
+      const variantProducts = await query<{ id: string; slug: string }>(
+        `select id, slug from products where slug = any($1::text[])`,
+        [cleanedVariantSlugs],
+      );
+      for (const variantProduct of variantProducts.rows) {
+        if (variantProduct.id === id) continue;
+        await query(
+          `insert into product_variant_links (product_id, variant_product_id)
+           values ($1, $2), ($2, $1)
+           on conflict do nothing`,
+          [id, variantProduct.id],
         );
       }
     }

@@ -68,6 +68,7 @@ export async function getCatalogProduct(slug: string): Promise<Product | null> {
       const row = rows.find((r) => r.slug === slug);
       if (row) {
         const base = rowToProduct(row);
+        let variantOptions: Product["variantOptions"] = [];
         if (row.id) {
           const galleryRows = await query<{ image_url: string }>(
             `select image_url
@@ -77,11 +78,62 @@ export async function getCatalogProduct(slug: string): Promise<Product | null> {
             [row.id],
           );
           const gallery = galleryRows.rows.map((r) => r.image_url).filter(Boolean);
-          if (gallery.length > 0) {
-            return { ...base, image: gallery[0], gallery };
+
+          const variantRows = await query<{
+            sku: string | null;
+            title: string | null;
+            size: string | null;
+            sale_price: string | null;
+            mrp: string | null;
+          }>(
+            `select
+               pv.sku,
+               pv.title,
+               pv.attributes->>'size' as size,
+               pv.sale_price::text,
+               pv.mrp::text
+             from product_variants pv
+             where pv.product_id = $1
+             order by
+               case when coalesce(pv.attributes->>'size', '') <> '' then 0 else 1 end,
+               pv.created_at asc`,
+            [row.id],
+          );
+
+          variantOptions = variantRows.rows.map((variant) => {
+            const price = Number(variant.sale_price || variant.mrp || 0);
+            const mrp = Number(variant.mrp || variant.sale_price || 0);
+            const label = (variant.size || variant.title || variant.sku || "Variant").trim();
+            return {
+              sku: variant.sku || undefined,
+              label,
+              price,
+              mrp,
+              size: variant.size || undefined,
+            };
+          });
+
+          let linkedVariantSlugs: string[] = [];
+          try {
+            const linkedRows = await query<{ slug: string }>(
+              `select p2.slug
+               from product_variant_links pvl
+               join products p2 on p2.id = pvl.variant_product_id
+               where pvl.product_id = $1
+               order by p2.title asc`,
+              [row.id],
+            );
+            linkedVariantSlugs = linkedRows.rows.map((entry) => entry.slug).filter(Boolean);
+          } catch {
+            linkedVariantSlugs = [];
           }
+
+          if (gallery.length > 0) {
+            return { ...base, image: gallery[0], gallery, variantOptions, linkedVariantSlugs };
+          }
+          return { ...base, variantOptions, linkedVariantSlugs };
         }
-        return base;
+        return { ...base, variantOptions };
       }
     } catch {
       // Fall through

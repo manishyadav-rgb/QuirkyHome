@@ -10,6 +10,7 @@ type CartItemRow = {
   product_title: string;
   product_image: string | null;
   unit_price: string;
+  mrp: string | null;
   quantity: number;
 };
 
@@ -88,6 +89,13 @@ function computeDiscount(subtotal: number, coupon: CouponRow) {
   return Math.min(value, subtotal);
 }
 
+async function ensureUserProfileColumns() {
+  await query("alter table users add column if not exists shipping_address text");
+  await query("alter table users add column if not exists shipping_city varchar(100)");
+  await query("alter table users add column if not exists shipping_state varchar(100)");
+  await query("alter table users add column if not exists shipping_pincode varchar(10)");
+}
+
 export async function POST(req: Request) {
   try {
     const auth = await getAuthFromCookies();
@@ -102,6 +110,20 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Complete shipping details are required." }, { status: 400 });
     }
 
+    await ensureUserProfileColumns();
+    await query(
+      `update users
+       set full_name = coalesce(nullif($1, ''), full_name),
+           email = coalesce(nullif($2, ''), email),
+           shipping_address = coalesce(nullif($3, ''), shipping_address),
+           shipping_city = coalesce(nullif($4, ''), shipping_city),
+           shipping_state = coalesce(nullif($5, ''), shipping_state),
+           shipping_pincode = coalesce(nullif($6, ''), shipping_pincode),
+           updated_at = now()
+       where id = $7`,
+      [String(customerName || "").trim(), String(customerEmail || "").trim(), String(address || "").trim(), String(city || "").trim(), String(state || "").trim(), String(pincode || "").trim(), auth.sub],
+    );
+
     const cartResult = await query<{ id: string }>(
       "select id from customer_carts where user_id = $1 limit 1",
       [auth.sub],
@@ -112,7 +134,7 @@ export async function POST(req: Request) {
     }
 
     const cartItems = await query<CartItemRow>(
-      `select product_slug, product_title, product_image, unit_price::text, quantity
+      `select product_slug, product_title, product_image, unit_price::text, mrp::text, quantity
        from customer_cart_items
        where cart_id = $1`,
       [cartResult.rows[0].id],

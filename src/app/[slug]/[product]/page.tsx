@@ -109,7 +109,13 @@ export default async function CategoryProductPage({ params }: PageProps) {
     ? relatedProducts.filter((item) => item.collection === product.collection)
     : [];
 
-  const displayCollection = product.collection
+  const linkedSlugs = Array.isArray(product.linkedVariantSlugs) ? product.linkedVariantSlugs : [];
+  const linkedVariants = linkedSlugs.length > 0
+    ? products.filter((item) => linkedSlugs.includes(item.slug))
+    : [];
+  const displayCollection = linkedVariants.length > 0
+    ? [product, ...linkedVariants.filter((item) => item.slug !== product.slug)]
+    : product.collection
     ? products.filter((item) => item.collection === product.collection)
     : [];
 

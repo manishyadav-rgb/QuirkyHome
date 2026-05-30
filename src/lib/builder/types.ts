@@ -72,7 +72,8 @@ export type SectionType =
   | "SeoArticle"
   | "CustomHTML"
   | "Divider"
-  | "ReelImage";
+  | "ReelImage"
+  | "RecentlyViewedProducts";
 
 /** Single section in a page */
 export interface Section {

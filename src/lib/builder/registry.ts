@@ -216,6 +216,23 @@ export const sectionRegistry: SectionDefinition[] = [
     },
   },
   {
+    type: "RecentlyViewedProducts",
+    label: "Recently Viewed Products",
+    icon: "History",
+    category: "product",
+    description: "Shows products recently viewed by the current visitor.",
+    fields: [
+      { key: "eyebrow", label: "Eyebrow", type: "text", defaultValue: "Recently Viewed Products" },
+      { key: "heading", label: "Heading", type: "text", defaultValue: "Continue Where You Left Off" },
+      { key: "subheading", label: "Subheading", type: "text", defaultValue: "Pick up from the products you viewed recently." },
+    ],
+    defaultSettings: {
+      eyebrow: "Recently Viewed Products",
+      heading: "Continue Where You Left Off",
+      subheading: "Pick up from the products you viewed recently.",
+    },
+  },
+  {
     type: "SeoArticle",
     label: "SEO Article",
     icon: "FileText",

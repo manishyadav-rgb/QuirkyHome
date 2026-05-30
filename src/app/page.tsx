@@ -18,5 +18,32 @@ export default async function HomePage() {
   const theme = builderSchema?.themeSettings;
 
   if (!homePage || !theme) return null;
-  return <RenderSections sections={homePage.sections || []} theme={theme} />;
+
+  const sections = homePage.sections || [];
+  const hasProductSection = sections.some((section) =>
+    section.visible && (section.type === "ProductGrid" || section.type === "ProductGrid2")
+  );
+
+  const safeSections = hasProductSection
+    ? sections
+    : [
+        ...sections,
+        {
+          id: "auto-fallback-product-grid",
+          type: "ProductGrid",
+          visible: true,
+          settings: {
+            eyebrow: "Featured",
+            heading: "Our Products",
+            subheading: "Shop latest home decor picks.",
+            productSource: "latest",
+            columns: "4",
+            mobileColumns: "2",
+            rows: "2",
+            gap: "20",
+          },
+        },
+      ];
+
+  return <RenderSections sections={safeSections as any} theme={theme} />;
 }

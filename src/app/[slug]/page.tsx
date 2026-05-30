@@ -14,6 +14,22 @@ export const dynamic = "force-dynamic";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
+  searchParams?: Promise<{ page?: string }>;
+}
+
+function normalizeCategoryValue(value: string) {
+  return value.toLowerCase().trim().replace(/[\s_]+/g, "-");
+}
+
+function categoryMatches(productCategory: string, slug: string) {
+  const normalizedProductCategory = normalizeCategoryValue(productCategory);
+  const normalizedSlug = normalizeCategoryValue(slug);
+  if (normalizedProductCategory === normalizedSlug) return true;
+
+  // Keep bedding pages compatible with legacy "bedsheet" category data.
+  if (normalizedSlug === "bedding" && normalizedProductCategory === "bedsheet") return true;
+
+  return false;
 }
 
 function htmlToPlainText(input: string) {
@@ -25,8 +41,23 @@ function htmlToPlainText(input: string) {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  
-  // 1. Try Builder Page
+
+  // 1. Try Category first so category pages are never overridden by builder pages.
+  const category = categories.find((item) => item.slug === slug);
+  if (category) {
+    return {
+      title: `Buy ${category.name} Online`,
+      description: category.description,
+      alternates: { canonical: `/${category.slug}` },
+      openGraph: {
+        title: `Buy ${category.name} Online`,
+        description: category.description,
+        images: [{ url: category.image, alt: category.name }],
+      },
+    };
+  }
+
+  // 2. Try Builder Page
   const builderSchema = await getBuilderSchema("quirkyhome");
   const page = Object.values(builderSchema?.pages || {}).find((p) => p.slug === slug);
   if (page) {
@@ -43,21 +74,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         title: page.name,
         description,
         type: "website",
-      },
-    };
-  }
-
-  // 2. Try Category
-  const category = categories.find((item) => item.slug === slug);
-  if (category) {
-    return {
-      title: `Buy ${category.name} Online`,
-      description: category.description,
-      alternates: { canonical: `/${category.slug}` },
-      openGraph: {
-        title: `Buy ${category.name} Online`,
-        description: category.description,
-        images: [{ url: category.image, alt: category.name }],
       },
     };
   }
@@ -91,39 +107,89 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return { title: "Page Not Found" };
 }
 
-export default async function DynamicPage({ params }: PageProps) {
+export default async function DynamicPage({ params, searchParams }: PageProps) {
   const { slug } = await params;
-
-  // 1. Check Builder Schema
+  const resolvedSearchParams = searchParams ? await searchParams : {};
   const builderSchema = await getBuilderSchema("quirkyhome");
-  const page = Object.values(builderSchema?.pages || {}).find((p) => p.slug === slug);
+  const builderPage = Object.values(builderSchema?.pages || {}).find((p) => p.slug === slug);
 
-  if (page && page.sections && page.sections.length > 0) {
-    return (
-      <div className="qh-page-container">
-        <RenderSections sections={page.sections} theme={builderSchema!.themeSettings} />
-      </div>
-    );
-  }
-
-  // 2. Check Category
+  // 1. Check Category first so category product listing always works.
   const category = categories.find((item) => item.slug === slug);
   if (category) {
     const products = await getCatalogProducts();
-    const categoryProducts = products.filter((p) => p.category === slug);
+    const categoryProducts = products.filter((p) => categoryMatches(p.category || "", slug));
+    const pageNumberRaw = Number.parseInt(String(resolvedSearchParams.page || "1"), 10);
+    const pageNumber = Number.isFinite(pageNumberRaw) && pageNumberRaw > 0 ? pageNumberRaw : 1;
+    const productsPerPage = 12;
+    const totalPages = Math.max(1, Math.ceil(categoryProducts.length / productsPerPage));
+    const currentPage = Math.min(pageNumber, totalPages);
+    const pageStart = (currentPage - 1) * productsPerPage;
+    const paginatedProducts = categoryProducts.slice(pageStart, pageStart + productsPerPage);
+
+    const pageWindowStart = Math.max(1, currentPage - 2);
+    const pageWindowEnd = Math.min(totalPages, pageWindowStart + 4);
+    const pageNumbers = Array.from(
+      { length: Math.max(0, pageWindowEnd - pageWindowStart + 1) },
+      (_, idx) => pageWindowStart + idx
+    );
+
     return (
-      <section className="qh-container qh-section-pad">
-        <SectionHeader eyebrow="Category" title={category.name} description={category.description} />
-        {categoryProducts.length ? <ProductGrid products={categoryProducts} /> : (
-          <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-5">
-            {categories.slice(0, 5).map((item) => <CategoryCard key={item.slug} category={item} />)}
+      <>
+        <section className="qh-container qh-section-pad">
+          <SectionHeader eyebrow="Category" title={category.name} description={category.description} />
+          {categoryProducts.length ? (
+            <>
+              <ProductGrid products={paginatedProducts} />
+              {totalPages > 1 ? (
+                <nav className="mt-8 flex flex-wrap items-center justify-center gap-2" aria-label="Category product pagination">
+                  {currentPage > 1 ? (
+                    <a href={`/${slug}?page=${currentPage - 1}`} className="rounded-md border border-border px-3 py-1.5 text-sm font-semibold text-text-main hover:border-brand-primary hover:text-brand-primary">
+                      Prev
+                    </a>
+                  ) : null}
+                  {pageNumbers.map((page) => (
+                    <a
+                      key={page}
+                      href={`/${slug}?page=${page}`}
+                      aria-current={page === currentPage ? "page" : undefined}
+                      className={`rounded-md border px-3 py-1.5 text-sm font-semibold ${
+                        page === currentPage
+                          ? "border-brand-primary bg-brand-primary text-text-inverse"
+                          : "border-border text-text-main hover:border-brand-primary hover:text-brand-primary"
+                      }`}
+                    >
+                      {page}
+                    </a>
+                  ))}
+                  {currentPage < totalPages ? (
+                    <a href={`/${slug}?page=${currentPage + 1}`} className="rounded-md border border-border px-3 py-1.5 text-sm font-semibold text-text-main hover:border-brand-primary hover:text-brand-primary">
+                      Next
+                    </a>
+                  ) : null}
+                </nav>
+              ) : null}
+            </>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-5">
+              {categories.slice(0, 5).map((item) => <CategoryCard key={item.slug} category={item} />)}
+            </div>
+          )}
+        </section>
+        {builderPage && builderPage.sections && builderPage.sections.length > 0 && builderSchema?.themeSettings ? (
+          <div className="qh-page-container">
+            <RenderSections sections={builderPage.sections} theme={builderSchema.themeSettings} />
           </div>
-        )}
-        <article className="qh-seo-copy mt-10 rounded-lg border border-border bg-background-elevated p-6">
-          <h2>Buy {category.name} Products Online</h2>
-          <p>{category.description} QuirkyHome keeps browsing simple with mobile-friendly product cards, clear prices, wishlist saving and quick cart actions.</p>
-        </article>
-      </section>
+        ) : null}
+      </>
+    );
+  }
+
+  // 2. Check Builder Schema
+  if (builderPage && builderPage.sections && builderPage.sections.length > 0) {
+    return (
+      <div className="qh-page-container">
+        <RenderSections sections={builderPage.sections} theme={builderSchema!.themeSettings} />
+      </div>
     );
   }
 

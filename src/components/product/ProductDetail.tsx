@@ -8,7 +8,8 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { useShop } from "@/components/shop/ShopProvider";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { addRecentlyViewedProduct } from "@/lib/recently-viewed";
 
 type DescriptionSections = {
   highlights?: string;
@@ -124,6 +125,10 @@ export function ProductDetail({
   const extraCount = Math.max(0, images.length - 3);
 
   const descSections = useMemo(() => parseDescriptionSections(product), [product]);
+
+  useEffect(() => {
+    addRecentlyViewedProduct(product);
+  }, [product]);
 
   function showPrevImage() {
     if (images.length <= 1) return;
@@ -263,7 +268,7 @@ export function ProductDetail({
             <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-text-main md:text-xs">Variants</p>
             <div className="flex flex-wrap gap-2">
               {collectionProducts.map((p) => (
-                <Link key={p.slug} href={`/${p.slug}`} className={`relative h-14 w-14 overflow-hidden rounded-md border-2 transition-all ${p.slug === product.slug ? "border-brand-primary ring-2 ring-brand-primary/20" : "border-border hover:border-text-soft"}`}>
+                <Link key={p.slug} href={`/${p.category || "bedsheet"}/${p.slug}`} className={`relative h-14 w-14 overflow-hidden rounded-md border-2 transition-all ${p.slug === product.slug ? "border-brand-primary ring-2 ring-brand-primary/20" : "border-border hover:border-text-soft"}`}>
                   <Image src={(p.gallery && p.gallery[0]) || p.image} alt={p.title} fill sizes="3.5rem" className="object-cover" />
                 </Link>
               ))}
@@ -274,8 +279,8 @@ export function ProductDetail({
         {product.size && (
           <div className="mt-6">
             <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-text-main md:text-xs">Size</p>
-            <div className="inline-flex items-center justify-center rounded-lg border-2 border-brand-primary bg-brand-primary/5 px-4 py-2 text-sm font-semibold text-brand-primary">
-              {product.size}
+            <div className="inline-flex items-center justify-center rounded-full border border-brand-primary/40 bg-brand-primary/10 px-4 py-1.5 text-[12px] font-bold tracking-wide text-brand-primary md:text-[13px]">
+              {String(product.size).toUpperCase()}
             </div>
           </div>
         )}

@@ -185,7 +185,6 @@ export function StorefrontNewArrival({ settings }: { settings: Record<string, an
                   className="rounded-[13px] border px-2 py-3 text-center"
                   style={{ backgroundColor: c.itemCardBg, borderColor: c.itemCardBorder }}
                 >
-                  <span className="mb-1 block text-[1.85rem]">{item.icon}</span>
                   <span className="block text-[0.73rem] font-medium" style={{ color: c.itemText }}>{item.label}</span>
                 </div>
               ))}

@@ -28,6 +28,7 @@ type CheckoutSessionRow = {
     product_title: string;
     product_image: string | null;
     unit_price: string;
+    mrp?: string | null;
     quantity: number;
   }>;
 };
@@ -78,19 +79,29 @@ async function finalizeOrderIfPaid(orderId: string) {
 
   const orderNumber = generateOrderNumber();
   const fallbackSubtotal = session.cart_snapshot.reduce((sum, item) => sum + (parseFloat(item.unit_price) * item.quantity), 0);
+  const totalMrp = session.cart_snapshot.reduce((sum, item) => {
+    const unitPrice = Number(item.unit_price || 0);
+    const mrp = Number(item.mrp || 0);
+    return sum + Math.max(unitPrice, mrp || unitPrice) * item.quantity;
+  }, 0);
+  const productDiscount = Math.max(0, totalMrp - fallbackSubtotal);
   const subtotal = session.subtotal ? Number(session.subtotal) : fallbackSubtotal;
   const shippingTotal = session.shipping_total ? Number(session.shipping_total) : (subtotal >= 499 ? 0 : 49);
   const discountAmount = session.discount_amount ? Number(session.discount_amount) : 0;
   const grandTotal = session.order_amount ? Number(session.order_amount) : Math.max(0, subtotal + shippingTotal - discountAmount);
 
   const orderResult = await query<{ id: string }>(
-    `insert into customer_orders (order_number, user_id, status, payment_status, subtotal, shipping_total, grand_total,
+    `insert into customer_orders (order_number, user_id, status, payment_status, total_mrp, product_discount, coupon_code, discount_amount, subtotal, shipping_total, grand_total,
       shipping_name, shipping_phone, shipping_address, shipping_city, shipping_state, shipping_pincode, notes, placed_at)
-     values ($1,$2,'pending','paid',$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,now())
+     values ($1,$2,'pending','paid',$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,now())
      returning id`,
     [
       orderNumber,
       session.user_id,
+      totalMrp,
+      productDiscount,
+      session.coupon_code,
+      discountAmount,
       subtotal,
       shippingTotal,
       grandTotal,
