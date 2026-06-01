@@ -73,6 +73,7 @@ export type SectionType =
   | "CustomHTML"
   | "Divider"
   | "ReelImage"
+  | "BlogGrid"
   | "RecentlyViewedProducts";
 
 /** Single section in a page */

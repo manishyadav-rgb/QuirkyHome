@@ -28,6 +28,7 @@ import { ShieldCheck, Sparkles, Truck, Undo2, WalletCards, ChevronLeft, ChevronR
 import { ProductCard } from "@/components/product/ProductCard";
 import { ProductGrid2Card } from "@/components/product/ProductGrid2Card";
 import { RecentlyViewedSection } from "@/components/home/RecentlyViewedSection";
+import { query } from "@/lib/db";
 
 function toNumberOr(value: unknown, fallback: number) {
   const num = typeof value === "number" ? value : Number(value);
@@ -372,6 +373,59 @@ function StorefrontRecentlyViewedProducts({ settings }: { settings: Record<strin
       heading={settings.heading || ""}
       subheading={settings.subheading || ""}
     />
+  );
+}
+
+type BlogRow = {
+  slug: string;
+  title: string;
+  excerpt: string | null;
+  cover_image: string | null;
+  image_alt: string | null;
+  created_at: string;
+};
+
+async function StorefrontBlogGrid({ settings }: { settings: Record<string, any> }) {
+  const slugs = String(settings.blogSlugs || "")
+    .split(",")
+    .map((x) => x.trim())
+    .filter(Boolean);
+
+  if (!slugs.length) return null;
+
+  const rows = await query<BlogRow>(
+    `select slug, title, excerpt, cover_image, image_alt, created_at
+     from blog_posts
+     where slug = any($1::text[]) and published = true
+     order by created_at desc`,
+    [slugs],
+  );
+  const bySlug = new Map(rows.rows.map((r) => [r.slug, r]));
+  const posts = slugs.map((slug) => bySlug.get(slug)).filter(Boolean) as BlogRow[];
+
+  if (!posts.length) return null;
+
+  return (
+    <section className="qh-container qh-section-pad">
+      <div className="mb-5">
+        {settings.eyebrow ? <p className="mb-2 text-xs font-bold uppercase tracking-wide text-brand-primary">{settings.eyebrow}</p> : null}
+        <h2 className="font-display text-[22px] font-black leading-tight text-text-main">{settings.heading || "Read our latest stories"}</h2>
+        {settings.subheading ? <p className="mt-2 text-sm text-text-muted md:text-base">{settings.subheading}</p> : null}
+      </div>
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-5">
+        {posts.map((post) => (
+          <Link key={post.slug} href={`/posts/${post.slug}`} className="overflow-hidden rounded-xl border border-border bg-background-elevated transition-shadow hover:shadow-md">
+            <div className="h-28 bg-background-soft md:h-36">
+              {post.cover_image ? <img src={post.cover_image} alt={post.image_alt || post.title} className="h-full w-full object-cover" /> : null}
+            </div>
+            <div className="p-3">
+              <h3 className="line-clamp-2 text-sm font-bold text-text-main">{post.title}</h3>
+              {settings.showExcerpt !== false && post.excerpt ? <p className="mt-1 line-clamp-2 text-xs text-text-muted">{post.excerpt}</p> : null}
+            </div>
+          </Link>
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -872,6 +926,7 @@ const storefrontComponentMap: Record<string, React.FC<{ settings: Record<string,
   SlideBanner: StorefrontSlideBanner,
   SaleBanner: StorefrontSaleBanner,
   NewArrival: StorefrontNewArrival,
+  BlogGrid: StorefrontBlogGrid as unknown as React.FC<any>,
   Slideshow: StorefrontSlideshow,
   Multicolumn: StorefrontMulticolumn,
   CollapsibleContent: StorefrontCollapsibleContent,

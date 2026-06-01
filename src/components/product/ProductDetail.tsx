@@ -1,104 +1,16 @@
 "use client";
 
 import Image from "next/image";
-import { Heart, ShoppingBag, Truck, ShieldCheck, RotateCcw, Share2, ChevronLeft, ChevronRight, Star, ChevronDown, MapPin, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Heart, ShoppingBag, Truck, ShieldCheck, RotateCcw, Share2, ChevronLeft, ChevronRight, Star, MapPin, AlertCircle, CheckCircle2 } from "lucide-react";
 import type { Product } from "@/data/products";
 import { discountFor, formatPrice } from "@/data/products";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { useShop } from "@/components/shop/ShopProvider";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { addRecentlyViewedProduct } from "@/lib/recently-viewed";
 
-type DescriptionSections = {
-  highlights?: string;
-  details?: string;
-  care?: string;
-};
-
-function parseDescriptionSections(product: Product): DescriptionSections | null {
-  const raw = (product as any).long_description || (product as any).longDescription;
-  if (!raw) return null;
-  try {
-    const parsed = JSON.parse(raw);
-    if (parsed && typeof parsed === "object" && (parsed.highlights || parsed.details || parsed.care)) {
-      return parsed;
-    }
-  } catch {
-    // Not JSON; return as highlights
-    if (typeof raw === "string" && raw.trim()) {
-      return { highlights: raw };
-    }
-  }
-  return null;
-}
-
-function DescriptionAccordion({
-  title,
-  content,
-  icon,
-  defaultOpen = false,
-}: {
-  title: string;
-  content: any;
-  icon?: string;
-  defaultOpen?: boolean;
-}) {
-  const [open, setOpen] = useState(defaultOpen);
-
-  const hasContent = Array.isArray(content)
-    ? content.length > 0 && content.some(r => r.value?.trim())
-    : typeof content === "string" && content.trim();
-
-  if (!hasContent) return null;
-
-  return (
-    <div className="border-b border-border last:border-0">
-      <button
-        onClick={() => setOpen(!open)}
-        className="flex w-full items-center justify-between px-0 py-4 text-left"
-      >
-        <span className="flex items-center gap-2.5 text-sm font-bold text-text-main md:text-[15px]">
-          {icon && <span className="text-base">{icon}</span>}
-          {title}
-        </span>
-        <ChevronDown
-          className={`h-4 w-4 text-text-soft transition-transform duration-200 ${open ? "rotate-180" : ""}`}
-        />
-      </button>
-      <div
-        className={`overflow-hidden transition-all duration-300 ease-in-out ${
-          open ? "max-h-[1000px] pb-5 opacity-100" : "max-h-0 opacity-0"
-        }`}
-      >
-        <div className="text-sm leading-relaxed text-text-muted md:text-[14px]">
-          {Array.isArray(content) ? (
-            <div className="grid grid-cols-2 gap-x-6 gap-y-4 py-2">
-              {content.map((row: any, idx: number) => {
-                if (!row.value?.trim()) return null;
-                return (
-                  <div key={idx} className="border-b border-border/40 pb-2.5">
-                    <span className="block text-[10px] font-bold uppercase tracking-wider text-text-soft">
-                      {row.label || "Detail"}
-                    </span>
-                    <span className="mt-1 block text-sm font-bold text-text-main">
-                      {row.value}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="whitespace-pre-line">
-              {content}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export function ProductDetail({
   product,
@@ -120,15 +32,57 @@ export function ProductDetail({
   const [pincodeStatus, setPincodeStatus] = useState<"idle" | "ok" | "error">("idle");
   const [pincodeMessage, setPincodeMessage] = useState("");
   const [buying, setBuying] = useState(false);
+  const [activeTab, setActiveTab] = useState<"desc" | "specs" | "reviews">("desc");
+  const [reviewLoading, setReviewLoading] = useState(false);
+  const [reviewList, setReviewList] = useState<Array<{ id: string; rating: number; title: string | null; comment: string | null; user_name: string | null; created_at: string }>>([]);
+  const [reviewStats, setReviewStats] = useState<{ average: number; count: number }>({
+    average: product.rating || 0,
+    count: product.reviews || 0,
+  });
+  const fetchedReviewsForSlugRef = useRef<string>("");
   const activeIndex = Math.max(0, images.indexOf(activeImage));
   const previewThumbs = images.slice(0, 3);
   const extraCount = Math.max(0, images.length - 3);
 
-  const descSections = useMemo(() => parseDescriptionSections(product), [product]);
-
   useEffect(() => {
     addRecentlyViewedProduct(product);
   }, [product]);
+
+  useEffect(() => {
+    if (activeTab !== "reviews") return;
+    if (!product.slug) return;
+    if (fetchedReviewsForSlugRef.current === product.slug) return;
+
+    let cancelled = false;
+    const controller = new AbortController();
+    setReviewLoading(true);
+
+    fetch(`/api/reviews?product_slug=${encodeURIComponent(product.slug)}`, {
+      cache: "no-store",
+      signal: controller.signal,
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        if (cancelled) return;
+        setReviewList(Array.isArray(data.reviews) ? data.reviews : []);
+        if (data.stats) {
+          setReviewStats({
+            average: Number(data.stats.average || 0),
+            count: Number(data.stats.count || 0),
+          });
+        }
+        fetchedReviewsForSlugRef.current = product.slug;
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setReviewLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [activeTab, product.slug]);
 
   function showPrevImage() {
     if (images.length <= 1) return;
@@ -182,9 +136,10 @@ export function ProductDetail({
   };
 
   return (
-    <section className="qh-container qh-section-pad grid gap-8 overflow-hidden lg:grid-cols-2 lg:items-start">
-      <div className="grid w-full gap-4 overflow-hidden md:gap-5 qh-detail-gallery-grid">
-        <div className="order-2 flex snap-x snap-mandatory gap-2 overflow-x-auto pb-1 md:order-1 md:grid md:grid-cols-1 md:content-start md:gap-3 md:overflow-visible">
+    <section className="qh-container qh-section-pad grid gap-8 overflow-hidden">
+      <div className="grid gap-8 lg:grid-cols-2 lg:items-stretch">
+      <div className="grid h-full w-full gap-4 overflow-hidden rounded-[24px] bg-transparent p-0 md:gap-5 qh-detail-gallery-grid">
+        <div className="order-2 flex snap-x snap-mandatory gap-2 overflow-x-auto rounded-2xl bg-background-elevated p-2 pb-1 md:order-1 md:grid md:grid-cols-1 md:content-start md:gap-3 md:overflow-visible">
           {previewThumbs.map((image, idx) => {
             const isActive = image === activeImage;
             return (
@@ -215,8 +170,12 @@ export function ProductDetail({
             </button>
           )}
         </div>
-        <div className="qh-image-shell relative order-1 aspect-square w-full overflow-hidden rounded-2xl md:order-2 qh-product-detail-image">
+        <div className="qh-image-shell relative order-1 aspect-square w-full overflow-hidden rounded-[20px] md:order-2 qh-product-detail-image">
           <Image src={activeImage} alt={product.title} fill priority sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover" />
+          <div className="absolute left-3 top-3 flex flex-wrap gap-1.5">
+            <Badge variant="sale">{discount}% Off</Badge>
+            <Badge variant="secondary">{product.badge}</Badge>
+          </div>
           {images.length > 1 && (
             <>
               <button
@@ -245,11 +204,7 @@ export function ProductDetail({
         </div>
       </div>
 
-      <div className="qh-card w-full overflow-hidden p-5 lg:p-8">
-        <div className="mb-4 flex flex-wrap gap-2">
-          <Badge variant="sale">{discount}% Off</Badge>
-          <Badge variant="secondary">{product.badge}</Badge>
-        </div>
+      <div className="qh-card flex h-full w-full flex-col overflow-hidden rounded-[24px] border-0 bg-background-main p-5 shadow-none lg:p-8">
         <div className="flex items-start justify-between gap-4">
           <h1 className="font-display text-[17px] font-semibold leading-tight text-balance text-text-main break-words md:text-[19px] lg:text-[21px]">{product.title}</h1>
           <div className="flex shrink-0 gap-2">
@@ -261,8 +216,6 @@ export function ProductDetail({
             </button>
           </div>
         </div>
-        {product.description && <p className="mt-2.5 text-[12px] leading-relaxed text-text-muted md:text-[13px]">{product.description}</p>}
-
         {collectionProducts.length > 0 && (
           <div className="mt-6">
             <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-text-main md:text-xs">Variants</p>
@@ -285,10 +238,13 @@ export function ProductDetail({
           </div>
         )}
 
-        <div className="mt-5 flex flex-wrap items-baseline gap-2.5">
-          <span className="text-xl font-bold text-text-main md:text-2xl">{formatPrice(product.price)}</span>
-          <span className="text-sm text-text-soft line-through md:text-base">{formatPrice(product.mrp)}</span>
-          <span className="text-[11px] font-semibold text-accent-discount md:text-xs">Inclusive of all taxes</span>
+        <div className="mt-5 rounded-2xl border border-border bg-gradient-to-br from-background-soft to-background-elevated p-4">
+          <div className="flex flex-wrap items-baseline gap-2.5">
+            <span className="text-2xl font-black text-brand-primary md:text-3xl">{formatPrice(product.price)}</span>
+            <span className="text-sm text-text-soft line-through md:text-base">{formatPrice(product.mrp)}</span>
+            <span className="rounded-full bg-accent-discount/10 px-2 py-0.5 text-[11px] font-bold text-accent-discount">{discount}% OFF</span>
+          </div>
+          <span className="mt-1.5 block text-[11px] font-semibold text-text-muted md:text-xs">Inclusive of all taxes</span>
         </div>
         <div className="mt-4 rounded-xl border border-border bg-gradient-to-br from-background-soft to-background-elevated p-3.5">
           <div className="mb-2 flex items-center gap-2">
@@ -343,45 +299,112 @@ export function ProductDetail({
           </Button>
         </div>
 
-        {/* -- Description Sections (Myntra/Amazon style accordions) -- */}
-        {descSections && (descSections.highlights || descSections.details || descSections.care) && (
-          <div className="mt-8 border-t border-border pt-2">
-            <DescriptionAccordion
-              title="Highlights"
-              content={descSections.highlights || ""}
-              defaultOpen={true}
-            />
-            <DescriptionAccordion
-              title="Details & Specifications"
-              content={descSections.details || ""}
-            />
-            <DescriptionAccordion
-              title="Care Instructions"
-              content={descSections.care || ""}
-            />
+      </div>
+      </div>
+
+      <div className="mx-auto grid w-full max-w-3xl grid-cols-3 gap-3">
+        <div className="rounded-2xl border border-border bg-background-elevated p-3 text-center shadow-soft">
+          <div className="mx-auto mb-1.5 flex h-9 w-9 items-center justify-center rounded-full bg-background-soft text-brand-primary">
+            <Truck className="h-4.5 w-4.5" />
+          </div>
+          <span className="text-[10px] font-bold uppercase tracking-tight text-text-muted md:text-xs">Fast shipping</span>
+        </div>
+        <div className="rounded-2xl border border-border bg-background-elevated p-3 text-center shadow-soft">
+          <div className="mx-auto mb-1.5 flex h-9 w-9 items-center justify-center rounded-full bg-background-soft text-brand-primary">
+            <RotateCcw className="h-4.5 w-4.5" />
+          </div>
+          <span className="text-[10px] font-bold uppercase tracking-tight text-text-muted md:text-xs">Easy returns</span>
+        </div>
+        <div className="rounded-2xl border border-border bg-background-elevated p-3 text-center shadow-soft">
+          <div className="mx-auto mb-1.5 flex h-9 w-9 items-center justify-center rounded-full bg-background-soft text-brand-primary">
+            <ShieldCheck className="h-4.5 w-4.5" />
+          </div>
+          <span className="text-[10px] font-bold uppercase tracking-tight text-text-muted md:text-xs">Secure checkout</span>
+        </div>
+      </div>
+
+      <div className="rounded-[24px] border border-border bg-background-elevated p-4 shadow-soft md:p-6">
+        <div className="mb-5 flex gap-2 border-b border-border">
+          <button onClick={() => setActiveTab("desc")} className={`border-b-2 px-3 py-2 text-sm font-semibold ${activeTab === "desc" ? "border-brand-primary text-brand-primary" : "border-transparent text-text-muted"}`}>Description</button>
+          <button onClick={() => setActiveTab("specs")} className={`border-b-2 px-3 py-2 text-sm font-semibold ${activeTab === "specs" ? "border-brand-primary text-brand-primary" : "border-transparent text-text-muted"}`}>Specifications</button>
+          <button onClick={() => setActiveTab("reviews")} className={`border-b-2 px-3 py-2 text-sm font-semibold ${activeTab === "reviews" ? "border-brand-primary text-brand-primary" : "border-transparent text-text-muted"}`}>Reviews ({reviewStats.count || 0})</button>
+        </div>
+
+        {activeTab === "desc" && (
+          <div className="grid gap-4 md:grid-cols-[1.5fr_1fr]">
+            <div className="rounded-xl border border-border bg-background-main p-4">
+              <h3 className="mb-2 text-base font-bold text-text-main">About this product</h3>
+              <p className="whitespace-pre-line text-sm leading-relaxed text-text-muted">
+                {product.description || "Premium quality product curated for modern homes with comfort, durability, and beautiful finish."}
+              </p>
+            </div>
+            <div className="rounded-xl border border-border bg-background-main p-4">
+              <h4 className="mb-3 text-sm font-bold uppercase tracking-wide text-text-main">Quick Highlights</h4>
+              <ul className="space-y-1 text-sm text-text-muted">
+                <li>KING BEDSHEET : 108X108 INCHES</li>
+                <li>2 PILLOW COVER : 20X30 INCHES</li>
+                <li>GSM : 125</li>
+              </ul>
+            </div>
           </div>
         )}
 
-        <div className="mt-8 grid grid-cols-3 gap-2 border-t border-border pt-6">
-          <div className="flex flex-col items-center text-center">
-            <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-background-soft text-brand-primary">
-              <Truck className="h-5 w-5" />
-            </div>
-            <span className="text-[10px] font-bold uppercase tracking-tight text-text-muted md:text-xs">Fast shipping</span>
+        {activeTab === "specs" && (
+          <div className="overflow-hidden rounded-xl border border-border bg-background-main">
+            <table className="w-full text-sm">
+              <tbody>
+                <tr className="border-b border-border"><td className="bg-background-soft px-4 py-3 font-semibold text-text-main">Product</td><td className="px-4 py-3 text-text-muted">{product.title}</td></tr>
+                <tr className="border-b border-border"><td className="bg-background-soft px-4 py-3 font-semibold text-text-main">Category</td><td className="px-4 py-3 text-text-muted">{product.category || "Home"}</td></tr>
+                <tr className="border-b border-border"><td className="bg-background-soft px-4 py-3 font-semibold text-text-main">Collection</td><td className="px-4 py-3 text-text-muted">{product.collection || "-"}</td></tr>
+                <tr className="border-b border-border"><td className="bg-background-soft px-4 py-3 font-semibold text-text-main">Size</td><td className="px-4 py-3 text-text-muted">{product.size || "-"}</td></tr>
+                <tr><td className="bg-background-soft px-4 py-3 font-semibold text-text-main">SKU</td><td className="px-4 py-3 text-text-muted">{product.slug}</td></tr>
+              </tbody>
+            </table>
           </div>
-          <div className="flex flex-col items-center text-center">
-            <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-background-soft text-brand-primary">
-              <RotateCcw className="h-5 w-5" />
+        )}
+
+        {activeTab === "reviews" && (
+          <div className="grid gap-4 md:grid-cols-[280px_1fr]">
+            <div className="rounded-xl border border-border bg-background-main p-4 text-center">
+              <p className="text-4xl font-black text-brand-primary">{(reviewStats.average || 0).toFixed(1)}</p>
+              <p className="mt-1 text-sm text-text-muted">Based on {reviewStats.count || 0} reviews</p>
             </div>
-            <span className="text-[10px] font-bold uppercase tracking-tight text-text-muted md:text-xs">Easy returns</span>
-          </div>
-          <div className="flex flex-col items-center text-center">
-            <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-background-soft text-brand-primary">
-              <ShieldCheck className="h-5 w-5" />
+            <div className="space-y-3">
+              {reviewLoading ? (
+                <div className="rounded-xl border border-border bg-background-main p-4 text-sm text-text-muted">Loading reviews...</div>
+              ) : reviewList.length === 0 ? (
+                <div className="rounded-xl border border-border bg-background-main p-4 text-sm text-text-muted">
+                  No customer reviews yet. Be the first to review this product from your account orders.
+                </div>
+              ) : (
+                reviewList.slice(0, 8).map((review) => (
+                  <div key={review.id} className="rounded-xl border border-border bg-background-main p-4">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2.5">
+                        <span className="inline-flex h-9 w-9 min-w-[2.25rem] items-center justify-center rounded-full border border-brand-primary/35 bg-white text-[12px] font-extrabold leading-none text-brand-primary shadow-sm">
+                          {String(review.user_name || "VC")
+                            .split(" ")
+                            .filter(Boolean)
+                            .slice(0, 2)
+                            .map((part) => part[0]?.toUpperCase() || "")
+                            .join("")}
+                        </span>
+                        <p className="text-sm font-semibold text-text-main">{review.user_name || "Verified Customer"}</p>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        {[1, 2, 3, 4, 5].map((n) => (
+                          <Star key={n} className={`h-3.5 w-3.5 ${n <= review.rating ? "fill-yellow-400 text-yellow-400" : "text-text-soft"}`} />
+                        ))}
+                      </div>
+                    </div>
+                    {review.title ? <p className="mt-1 text-sm font-semibold text-text-main">{review.title}</p> : null}
+                    {review.comment ? <p className="mt-1 text-sm text-text-muted">{review.comment}</p> : null}
+                  </div>
+                ))
+              )}
             </div>
-            <span className="text-[10px] font-bold uppercase tracking-tight text-text-muted md:text-xs">Secure checkout</span>
           </div>
-        </div>
+        )}
       </div>
     </section>
   );

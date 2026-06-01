@@ -19,7 +19,7 @@ type Order = {
   shipping_state?: string | null;
   shipping_pincode?: string | null;
   created_at: string;
-  items: Array<{ product_title: string; quantity: number }>;
+  items: Array<{ product_slug: string; product_title: string; quantity: number }>;
 };
 
 export default function OrdersPage() {
@@ -104,7 +104,17 @@ export default function OrdersPage() {
               <p className="mt-2 text-sm font-semibold text-text-main">Total: INR {Number(ord.grand_total || 0).toLocaleString("en-IN")}</p>
               <div className="mt-3 space-y-1">
                 {ord.items?.map((item, idx) => (
-                  <p key={`${ord.id}-${idx}`} className="text-xs text-text-muted">{item.product_title} x {item.quantity}</p>
+                  <div key={`${ord.id}-${idx}`} className="flex items-center justify-between gap-2 text-xs text-text-muted">
+                    <p>{item.product_title} x {item.quantity}</p>
+                    {item.product_slug ? (
+                      <Link
+                        href={`/account/reviews?product=${encodeURIComponent(item.product_slug)}&title=${encodeURIComponent(item.product_title)}`}
+                        className="rounded-full border border-border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-text-main hover:border-brand-primary hover:text-brand-primary"
+                      >
+                        Write review
+                      </Link>
+                    ) : null}
+                  </div>
                 ))}
               </div>
               {["accepted", "shipped", "delivered"].includes(String(ord.status || "").toLowerCase()) ? (

@@ -837,6 +837,31 @@ export function NewArrivalPreview({ settings }: { settings: Section["settings"] 
     </section>
   );
 }
+
+export function BlogGridPreview({ settings }: { settings: Section["settings"] }) {
+  const cards = [1, 2, 3, 4];
+  return (
+    <section className="qh-container qh-section-pad">
+      <div className="mb-5">
+        {settings.eyebrow ? <p className="mb-2 text-xs font-bold uppercase tracking-wide text-brand-primary">{settings.eyebrow}</p> : null}
+        <h2 className="font-display text-[22px] font-black leading-tight text-text-main">{settings.heading || "Read our latest stories"}</h2>
+        {settings.subheading ? <p className="mt-2 text-sm text-text-muted md:text-base">{settings.subheading}</p> : null}
+      </div>
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-5">
+        {cards.map((n) => (
+          <div key={n} className="overflow-hidden rounded-xl border border-border bg-background-elevated">
+            <div className="h-28 bg-background-soft md:h-36" />
+            <div className="p-3">
+              <div className="mb-2 h-3 w-2/3 rounded bg-gray-200" />
+              <div className="h-3 w-full rounded bg-gray-100" />
+              <div className="mt-1 h-3 w-5/6 rounded bg-gray-100" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
 export function ReelImagePreview({ settings }: { settings: Section["settings"] }) {
   const cardH = settings.cardHeight ?? 400;
   const gap = settings.gap ?? 16;
@@ -998,6 +1023,7 @@ export const sectionComponentMap: Record<string, React.FC<{ settings: Section["s
   SlideBanner: SlideBannerPreview,
   SaleBanner: SaleBannerPreview,
   NewArrival: NewArrivalPreview,
+  BlogGrid: BlogGridPreview,
   ReelImage: ReelImagePreview,
 };
 

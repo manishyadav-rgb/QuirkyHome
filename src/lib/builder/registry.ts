@@ -233,6 +233,27 @@ export const sectionRegistry: SectionDefinition[] = [
     },
   },
   {
+    type: "BlogGrid",
+    label: "Blog Grid",
+    icon: "Newspaper",
+    category: "content",
+    description: "Show selected blogs in a responsive grid (4 desktop, 2 mobile)",
+    fields: [
+      { key: "eyebrow", label: "Eyebrow Text", type: "text", defaultValue: "From our blog" },
+      { key: "heading", label: "Heading", type: "text", defaultValue: "Read our latest stories" },
+      { key: "subheading", label: "Subheading", type: "text", defaultValue: "Decor ideas, styling tips and product guides." },
+      { key: "blogSlugs", label: "Blog Slugs (comma separated)", type: "textarea", defaultValue: "" },
+      { key: "showExcerpt", label: "Show Excerpt", type: "toggle", defaultValue: true },
+    ],
+    defaultSettings: {
+      eyebrow: "From our blog",
+      heading: "Read our latest stories",
+      subheading: "Decor ideas, styling tips and product guides.",
+      blogSlugs: "",
+      showExcerpt: true,
+    },
+  },
+  {
     type: "SeoArticle",
     label: "SEO Article",
     icon: "FileText",
