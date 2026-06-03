@@ -19,7 +19,7 @@ export function ProductGrid2Card({
 
   return (
     <article
-      className="rounded-xl border border-[#E6E7E8] bg-white p-2 transition-all duration-300 hover:-translate-y-1 hover:shadow-md"
+      className="bg-white p-2 shadow-[0_2px_12px_rgba(0,0,0,0.03)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)]"
       style={{ borderRadius: `${Math.max(radius - 2, 8)}px` }}
     >
       <Link href={productHref} className="block">
