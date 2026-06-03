@@ -86,8 +86,8 @@ async function StorefrontProductGridWrapper({ settings }: { settings: Record<str
   const cols = Math.max(1, Math.floor(toNumberOr(settings.columns, 4)));
   const mobileCols = Math.max(1, Math.floor(toNumberOr(settings.mobileColumns, 2)));
   const rows = Math.max(1, Math.floor(toNumberOr(settings.rows, 2)));
-  const gap = Math.max(0, Math.floor(toNumberOr(settings.gap, 24)));
-  const mobileGap = Math.min(gap, 12);
+  const gap = Math.max(0, Math.floor(toNumberOr(settings.gap, 8)));
+  const mobileGap = Math.min(gap, 6);
   const limit = cols * rows;
   const limitedProducts = products.slice(0, limit);
 
@@ -131,7 +131,7 @@ async function StorefrontProductGridWrapper({ settings }: { settings: Record<str
 async function StorefrontProductGrid2({ settings, sectionId }: { settings: Record<string, any>; sectionId: string }) {
   const desktopCols = Math.min(6, Math.max(2, Math.floor(toNumberOr(settings.desktopColumns, 6))));
   const mobileCols = Math.min(2, Math.max(1, Math.floor(toNumberOr(settings.mobileColumns, 2))));
-  const gap = Math.min(32, Math.max(8, toNumberOr(settings.gap, 16)));
+  const gap = Math.min(32, Math.max(8, toNumberOr(settings.gap, 8)));
   const radius = Math.min(28, Math.max(4, toNumberOr(settings.cardRadius, 14)));
   const buttonText = settings.buttonText || "Add To Cart";
   const source = settings.productSource || "manual";
