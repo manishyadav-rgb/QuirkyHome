@@ -36,6 +36,7 @@ const config: Config = {
         },
       },
       fontFamily: {
+        sans: ["var(--font-primary)", "sans-serif"],
         primary: ["var(--font-primary)", "serif"],
         display: ["var(--font-display)", "serif"],
       },
