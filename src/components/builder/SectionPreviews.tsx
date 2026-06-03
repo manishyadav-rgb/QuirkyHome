@@ -756,22 +756,22 @@ export function NewArrivalPreview({ settings }: { settings: Section["settings"] 
   const active = data[Math.min(tab, Math.max(0, data.length - 1))] || { tab: "", items: [] as Item[] };
 
   const c = {
-    sectionBg: "#f8f1e4",
+    sectionBg: "var(--color-bg-soft)",
     cardBg: "#ffffff",
-    title: "#2d2417",
-    subtitle: "#7c6540",
-    accent: "#D4B483",
+    title: "var(--color-text-main)",
+    subtitle: "var(--color-text-muted)",
+    accent: "var(--color-brand-primary)",
     badgeText: "#ffffff",
-    tabText: "#9f8254",
-    tabActiveText: "#8a6636",
-    tabUnderline: "#D4B483",
-    tabBorder: "#eadcc3",
-    itemCardBg: "#fdf8ef",
-    itemCardBorder: "#ecdcbf",
-    itemText: "#6d552f",
+    tabText: "var(--color-text-soft)",
+    tabActiveText: "var(--color-brand-primary)",
+    tabUnderline: "var(--color-brand-secondary)",
+    tabBorder: "var(--color-border)",
+    itemCardBg: "var(--color-bg-main)",
+    itemCardBorder: "var(--color-border)",
+    itemText: "var(--color-text-main)",
     arrowBg: "transparent",
-    arrowBorder: "#dfcaa6",
-    arrowText: "#7c6540",
+    arrowBorder: "var(--color-brand-primary)",
+    arrowText: "var(--color-brand-primary)",
   };
 
   return (

@@ -35,19 +35,37 @@ export function AnnouncementBar() {
   const bannerText = settings?.text || "Free shipping on prepaid orders above INR 999";
   if (!enabled) return null;
 
+  const isLegacyColor = (color?: string) => {
+    if (!color) return true;
+    const c = color.toLowerCase().trim();
+    return c === "#008060" || c === "#9b7643" || c === "#8a6636";
+  };
+
   const content = (
     <div
-      className="hidden w-full px-3 py-2 text-center text-[12px] font-bold leading-tight md:block md:text-[14px]"
+      className="relative flex w-full items-center justify-center gap-1.5 px-8 py-2.5 text-center text-[11px] font-bold leading-tight select-none transition-all md:text-[13px]"
       style={{
-        backgroundColor: !settings?.bgColor || settings.bgColor === "#008060"
-          ? "#FBBF24"
-          : settings.bgColor,
+        backgroundColor: isLegacyColor(settings?.bgColor)
+          ? "var(--color-brand-secondary)"
+          : settings?.bgColor,
         color: !settings?.textColor || settings.textColor === "#ffffff"
-          ? "var(--color-text-main)"
+          ? "#ffffff"
           : settings.textColor,
       }}
     >
-      {bannerText}
+      <span>{bannerText}</span>
+      <button
+        type="button"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setEnabled(false);
+        }}
+        className="absolute right-3.5 top-1/2 flex h-4 w-4 -translate-y-1/2 items-center justify-center rounded-full bg-white/15 text-[10px] font-extrabold text-white/90 transition-all hover:bg-white/25 hover:text-white focus:outline-none"
+        aria-label="Dismiss Announcement"
+      >
+        x
+      </button>
     </div>
   );
 
@@ -61,4 +79,3 @@ export function AnnouncementBar() {
 
   return content;
 }
-

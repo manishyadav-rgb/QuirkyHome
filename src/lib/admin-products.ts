@@ -20,6 +20,40 @@ export type AdminProductRow = {
   created_at: string;
 };
 
+function slugify(value: string) {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+async function resolveUniqueProductSlug(baseSlug: string, currentProductId?: string) {
+  const normalizedBaseSlug = slugify(baseSlug);
+  if (!normalizedBaseSlug) return "";
+
+  let candidate = normalizedBaseSlug;
+  let suffix = 2;
+
+  while (true) {
+    const existing = await query<{ id: string }>(
+      `select id
+       from products
+       where slug = $1
+       limit 1`,
+      [candidate],
+    );
+    const existingId = existing.rows[0]?.id;
+
+    if (!existingId || existingId === currentProductId) {
+      return candidate;
+    }
+
+    candidate = `${normalizedBaseSlug}-${suffix}`;
+    suffix += 1;
+  }
+}
+
 export async function listAdminProducts() {
   const result = await query<AdminProductRow>(
     `select
@@ -101,9 +135,18 @@ export async function importInventoryItem(item: DynamoInventoryItem) {
     throw new Error("Invalid product title received from DynamoDB row. Product was not imported.");
   }
 
-  const skuSlug = item.sku.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-  const productSlug = skuSlug || item.slug;
-  const collectionSlug = item.collection.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  const existingProductResult = await query<{ id: string }>(
+    `select p.id
+     from product_variants pv
+     join products p on p.id = pv.product_id
+     where upper(pv.sku) = upper($1)
+     limit 1`,
+    [item.sku],
+  );
+  const existingProductId = existingProductResult.rows[0]?.id;
+  const baseProductSlug = slugify(item.title) || slugify(item.slug) || slugify(item.sku);
+  const productSlug = await resolveUniqueProductSlug(baseProductSlug, existingProductId);
+  const collectionSlug = slugify(item.collection || "");
   const categorySlug = item.category && item.category !== "uncategorized" ? item.category : collectionSlug || "general";
   const categoryResult = await query<{ id: string }>(
     `insert into categories (name, slug)
@@ -114,19 +157,26 @@ export async function importInventoryItem(item: DynamoInventoryItem) {
   );
   const categoryId = categoryResult.rows[0].id;
 
-  const productResult = await query<{ id: string }>(
-    `insert into products (title, slug, short_description, long_description, is_active, is_searchable)
-     values ($1, $2, $3, $4, true, true)
-     on conflict (slug) do update
-     set title = excluded.title,
-         short_description = excluded.short_description,
-         long_description = excluded.long_description,
-         is_active = true,
-         is_searchable = true,
-         updated_at = now()
-     returning id`,
-    [item.title, productSlug, item.description, item.description],
-  );
+  const productResult = existingProductId
+    ? await query<{ id: string }>(
+        `update products
+         set title = $1,
+             slug = $2,
+             short_description = $3,
+             long_description = $4,
+             is_active = true,
+             is_searchable = true,
+             updated_at = now()
+         where id = $5
+         returning id`,
+        [item.title, productSlug, item.description, item.description, existingProductId],
+      )
+    : await query<{ id: string }>(
+        `insert into products (title, slug, short_description, long_description, is_active, is_searchable)
+         values ($1, $2, $3, $4, true, true)
+         returning id`,
+        [item.title, productSlug, item.description, item.description],
+      );
   const productId = productResult.rows[0].id;
 
   await query(

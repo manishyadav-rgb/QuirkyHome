@@ -9,33 +9,33 @@
    ========================================================= */
 :root,
 [data-theme="vibrant-sunshine"] {
-  --color-brand-primary: #F59E0B;
-  --color-brand-secondary: #D97706;
-  --color-brand-accent: #FBBF24;
-  --color-brand-ink: #1C1917;
+  --color-brand-primary: #432F83;
+  --color-brand-secondary: #5A31DD;
+  --color-brand-accent: #FF9900;
+  --color-brand-ink: #231F20;
 
-  --color-bg-main: #FFFBF0;
-  --color-bg-soft: #FEF3C7;
-  --color-bg-muted: #FDE68A;
+  --color-bg-main: #FFFFFF;
+  --color-bg-soft: #F7F5FD;
+  --color-bg-muted: #F9FAFC;
   --color-bg-elevated: #FFFFFF;
-  --color-bg-inverse: #1C1917;
+  --color-bg-inverse: #231F20;
 
-  --color-text-main: #1C1917;
-  --color-text-muted: #57534E;
-  --color-text-soft: #A8A29E;
+  --color-text-main: #231F20;
+  --color-text-muted: #575757;
+  --color-text-soft: #7D7E7F;
   --color-text-inverse: #FFFFFF;
 
-  --color-border: #E7E5E4;
-  --color-border-strong: #1C1917;
+  --color-border: #E6E7E8;
+  --color-border-strong: #432F83;
   --color-sale: #DC2626;
-  --color-discount: #059669;
-  --color-rating: #F59E0B;
-  --color-focus: #D97706;
+  --color-discount: #129C80;
+  --color-rating: #FBBF24;
+  --color-focus: #432F83;
 
-  --shadow-card: 0 4px 24px rgba(245, 158, 11, 0.10), 0 1px 4px rgba(0,0,0,0.04);
+  --shadow-card: 0 4px 24px rgba(67, 47, 131, 0.06), 0 1px 4px rgba(0,0,0,0.04);
   --shadow-dropdown: 0 16px 48px rgba(0, 0, 0, 0.14);
-  --shadow-soft: 0 2px 12px rgba(245, 158, 11, 0.08);
-  --shadow-glow: 0 0 32px rgba(245, 158, 11, 0.35), 0 0 8px rgba(251, 191, 36, 0.25);
+  --shadow-soft: 0 2px 12px rgba(67, 47, 131, 0.04);
+  --shadow-glow: 0 0 32px rgba(67, 47, 131, 0.15), 0 0 8px rgba(90, 49, 221, 0.1);
 }
 
 /* =========================================================
@@ -222,7 +222,7 @@
 
   --container-max: 1440px;
   --container-narrow: 920px;
-  --header-height: 4.75rem;
+  --header-height: 3.85rem;
   --product-card-image-height: 18rem;
   --product-card-mobile-image-height: 13rem;
   --button-height-sm: 2.35rem;

@@ -24,7 +24,7 @@ export function Header() {
         className="sticky inset-x-0 top-0 z-[120] border-b border-border qh-header-surface backdrop-blur"
       >
 
-        <div className="qh-mobile-header md:hidden flex items-center gap-2 px-3 py-2 bg-background-elevated">
+        <div className="qh-mobile-header md:hidden flex items-center gap-2 px-3 py-1.5 bg-background-elevated">
           <MobileMenuTrigger onOpen={() => setMenuOpen(true)} />
           <div className="min-w-0 flex-1">
             <SearchBar compact className="w-full" />
@@ -44,7 +44,7 @@ export function Header() {
             <img
               src="https://res.cloudinary.com/dd4hmahlm/image/upload/v1774697521/rw9xm5nnegmsigzcke5q.png"
               alt="QuirkyHome Logo"
-              className="h-14 w-auto object-contain mix-blend-multiply"
+              className="h-[40px] w-auto object-contain mix-blend-multiply"
             />
           </Link>
           <SearchBar className="qh-header-search hidden md:block" />
@@ -65,19 +65,19 @@ export function Header() {
                           <p className="text-sm text-text-muted">Manage your profile and orders</p>
                         </div>
                         <div className="flex flex-col py-2">
-                          <Link href="/account/orders" className="flex items-center gap-3 px-5 py-2.5 text-sm text-text-main hover:text-[#8a6636]">
+                          <Link href="/account/orders" className="flex items-center gap-3 px-5 py-2.5 text-sm text-text-main hover:text-brand-primary">
                             <Package className="h-4 w-4" /> Orders
                           </Link>
-                          <Link href="/wishlist" className="flex items-center gap-3 px-5 py-2.5 text-sm text-text-main hover:text-[#8a6636]">
+                          <Link href="/wishlist" className="flex items-center gap-3 px-5 py-2.5 text-sm text-text-main hover:text-brand-primary">
                             <Heart className="h-4 w-4" /> Wishlist
                           </Link>
-                          <Link href="/account/coupons" className="flex items-center gap-3 px-5 py-2.5 text-sm text-text-main hover:text-[#8a6636]">
+                          <Link href="/account/coupons" className="flex items-center gap-3 px-5 py-2.5 text-sm text-text-main hover:text-brand-primary">
                             <Ticket className="h-4 w-4" /> Coupons
                           </Link>
-                          <Link href="/account/reviews" className="flex items-center gap-3 px-5 py-2.5 text-sm text-text-main hover:text-[#8a6636]">
+                          <Link href="/account/reviews" className="flex items-center gap-3 px-5 py-2.5 text-sm text-text-main hover:text-brand-primary">
                             <Star className="h-4 w-4" /> My Reviews
                           </Link>
-                          <Link href="/account/help" className="flex items-center gap-3 border-t border-border mt-1 pt-3 px-5 pb-2 text-sm text-text-main hover:text-[#8a6636]">
+                          <Link href="/account/help" className="flex items-center gap-3 border-t border-border mt-1 pt-3 px-5 pb-2 text-sm text-text-main hover:text-brand-primary">
                             <Headset className="h-4 w-4" /> Help Center
                           </Link>
                         </div>

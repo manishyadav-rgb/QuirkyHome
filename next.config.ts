@@ -1,10 +1,16 @@
+import { dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 import type { NextConfig } from "next";
 
 const backendBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "https://qhbackend.onrender.com";
+const projectRoot = dirname(fileURLToPath(import.meta.url));
 
 const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ["lucide-react"],
+  },
+  turbopack: {
+    root: projectRoot,
   },
   images: {
     unoptimized: true,

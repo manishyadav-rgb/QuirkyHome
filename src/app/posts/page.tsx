@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { query } from "@/lib/db";
+import { BASE_URL } from "@/lib/sitemaps";
+import type { Metadata } from "next";
 
 type BlogRow = {
   slug: string;
@@ -7,6 +9,12 @@ type BlogRow = {
   excerpt: string | null;
   cover_image: string | null;
   image_alt: string | null;
+};
+
+export const metadata: Metadata = {
+  title: "Posts",
+  description: "Read latest posts and updates from QuirkyHome.",
+  alternates: { canonical: "/posts" },
 };
 
 export default async function PostsPage() {
@@ -19,7 +27,27 @@ export default async function PostsPage() {
 
   return (
     <section className="qh-container qh-section-pad">
-      <h1 className="mb-5 font-display text-3xl font-black text-text-main">Blog</h1>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "CollectionPage",
+            name: "QuirkyHome Posts",
+            url: `${BASE_URL}/posts`,
+            mainEntity: {
+              "@type": "ItemList",
+              itemListElement: rows.rows.map((post, index) => ({
+                "@type": "ListItem",
+                position: index + 1,
+                url: `${BASE_URL}/posts/${post.slug}`,
+                name: post.title,
+              })),
+            },
+          }),
+        }}
+      />
+      <h1 className="mb-5 font-display text-3xl font-black text-text-main">Posts</h1>
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-5">
         {rows.rows.map((post) => (
           <Link key={post.slug} href={`/posts/${post.slug}`} className="overflow-hidden rounded-xl border border-border bg-background-elevated">

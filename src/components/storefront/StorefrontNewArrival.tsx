@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useMemo, useState } from "react";
 
@@ -59,23 +59,23 @@ export function StorefrontNewArrival({ settings }: { settings: Record<string, an
   const active = data[safeTabIndex] || { tab: "", items: [] as Item[] };
 
   const c = {
-    sectionBg: "#f8f1e4",
+    sectionBg: "#F7F5FD",
     cardBg: "#ffffff",
-    title: "#2d2417",
-    subtitle: "#7c6540",
-    accent: "#D4B483",
+    title: "#231F20",
+    subtitle: "#575757",
+    accent: "#432F83",
     badgeText: "#ffffff",
-    badgeShadow: "#a6844f",
-    tabText: "#9f8254",
-    tabActiveText: "#8a6636",
-    tabUnderline: "#D4B483",
-    tabBorder: "#eadcc3",
-    itemCardBg: "#fdf8ef",
-    itemCardBorder: "#ecdcbf",
-    itemText: "#6d552f",
+    badgeShadow: "#5A31DD",
+    tabText: "#7D7E7F",
+    tabActiveText: "#432F83",
+    tabUnderline: "#5A31DD",
+    tabBorder: "#E6E7E8",
+    itemCardBg: "#ffffff",
+    itemCardBorder: "#E6E7E8",
+    itemText: "#231F20",
     arrowBg: "transparent",
-    arrowBorder: "#dfcaa6",
-    arrowText: "#7c6540"
+    arrowBorder: "#432F83",
+    arrowText: "#432F83"
   };
 
   return (

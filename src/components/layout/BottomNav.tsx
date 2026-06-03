@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { Home, Search, Heart, ShoppingBag, UserRound } from "lucide-react";
 import { useShop } from "@/components/shop/ShopProvider";
 import { cn } from "@/lib/utils";
@@ -15,14 +15,22 @@ const navItems = [
 ];
 
 export function BottomNav() {
-  const pathname = usePathname();
+  const [pathname, setPathname] = useState("");
   const { cartCount, wishlistCount } = useShop();
+
+  useEffect(() => {
+    setPathname(window.location.pathname);
+  }, []);
 
   const badges: Record<string, number> = { cartCount, wishlistCount };
 
-  // Hide on admin/builder pages
   const isAdmin = pathname.startsWith("/admin") || pathname.startsWith("/qh-admin");
-  if (isAdmin) return null;
+  const pathParts = pathname.split("/").filter(Boolean);
+  const isProductPage =
+    pathParts.length === 2 &&
+    !["search", "wishlist", "cart", "account", "all-product", "blog"].includes(pathParts[0]);
+
+  if (isAdmin || isProductPage) return null;
 
   return (
     <nav

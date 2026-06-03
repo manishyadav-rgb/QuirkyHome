@@ -13,6 +13,17 @@ declare global {
 function getConnectionString() {
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) throw new Error("DATABASE_URL is not configured");
+
+  // Make pg's SSL behavior explicit so modern versions don't warn about
+  // legacy sslmode aliases in connection strings copied from hosted DBs.
+  if (
+    /sslmode=(prefer|require|verify-ca)\b/i.test(databaseUrl) &&
+    !/uselibpqcompat=/i.test(databaseUrl)
+  ) {
+    const separator = databaseUrl.includes("?") ? "&" : "?";
+    return `${databaseUrl}${separator}uselibpqcompat=true`;
+  }
+
   return databaseUrl;
 }
 

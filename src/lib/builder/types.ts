@@ -90,6 +90,9 @@ export interface PageConfig {
   name: string;
   slug: string;
   sections: Section[];
+  puckData?: any;
+  lastPublishedBuilder?: "legacy" | "advanced";
+  lastPublishedAt?: string;
 }
 
 /** Root schema persisted to the DB */

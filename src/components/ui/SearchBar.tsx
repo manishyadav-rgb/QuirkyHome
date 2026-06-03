@@ -177,8 +177,8 @@ export function SearchBar({
           onFocus={() => setFocused(true)}
           placeholder={`Search ${currentText}`}
           className={cn(
-            "qh-focus w-full rounded-full border border-border bg-background-elevated pl-12 text-text-main shadow-soft transition-all duration-base placeholder:text-text-soft focus:border-brand-primary",
-            compact ? "h-button-sm" : "h-button",
+            "qh-focus w-full rounded-md border border-border bg-background-elevated pl-12 text-text-main shadow-soft transition-all duration-base placeholder:text-text-soft focus:border-brand-primary",
+            compact ? "h-[34px] text-xs" : "h-[38px] text-sm",
             withCamera ? "pr-16" : "pr-4",
           )}
         />

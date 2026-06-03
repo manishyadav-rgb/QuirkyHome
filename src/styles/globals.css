@@ -41,8 +41,12 @@
   }
 
   ::selection {
-    background: var(--color-brand-accent);
-    color: var(--color-text-main);
+    background: #432F83 !important;
+    color: #ffffff !important;
+  }
+
+  input, textarea, [contenteditable="true"] {
+    caret-color: #432F83 !important;
   }
 }
 

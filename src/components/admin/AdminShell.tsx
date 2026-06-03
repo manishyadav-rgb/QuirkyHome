@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   BarChart3,
@@ -289,10 +288,14 @@ function SidebarContent({ pathname, onClose, onLogout }: { pathname: string; onC
 }
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
+  const [pathname, setPathname] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
   const [isAuthed, setIsAuthed] = useState(false);
+
+  useEffect(() => {
+    setPathname(window.location.pathname);
+  }, []);
 
   const isLoginPage = pathname === "/qh-admin/login";
   const isBuilderPage = pathname === "/qh-admin/builder";
@@ -310,7 +313,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       })
       .catch(() => { window.location.href = "/qh-admin/login"; })
       .finally(() => setAuthChecked(true));
-  }, [isLoginPage]);
+  }, [isBuilderPage, isLoginPage]);
 
   function handleLogout() {
     fetch("/api/auth/logout", { method: "POST" }).then(() => {

@@ -1,9 +1,13 @@
-﻿"use client";
+"use client";
 
 import { load } from "@cashfreepayments/cashfree-js";
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import { useShop } from "@/components/shop/ShopProvider";
+import { 
+  Check, MapPin, Truck, Percent, Tag, ShieldCheck, 
+  Lock, Info, ArrowRight, Trash2, Sparkles, ChevronRight, X,
+  ShoppingBag
+} from "lucide-react";
 
 type CouponState = {
   code: string;
@@ -16,7 +20,6 @@ type CouponState = {
 };
 
 export default function CheckoutPage() {
-  const router = useRouter();
   const { cart, subtotal, updateCartQuantity, removeFromCart } = useShop();
   const [loading, setLoading] = useState(false);
   const [placingTestOrder, setPlacingTestOrder] = useState(false);
@@ -24,6 +27,7 @@ export default function CheckoutPage() {
   const [coupon, setCoupon] = useState<CouponState>({ code: "", discountAmount: 0, error: "", applying: false, applied: false });
   const [availableCoupons, setAvailableCoupons] = useState<any[]>([]);
   const [showCouponModal, setShowCouponModal] = useState(false);
+  const [autoFilled, setAutoFilled] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -64,6 +68,7 @@ export default function CheckoutPage() {
     fetchCoupons();
   }, []);
 
+  // Autofill address info if user is authenticated
   useEffect(() => {
     fetch("/api/auth/me")
       .then((r) => r.json())
@@ -80,9 +85,36 @@ export default function CheckoutPage() {
           state: prev.state || u.shippingState || "",
           pincode: prev.pincode || u.shippingPincode || "",
         }));
+        if (u.shippingAddress || u.shippingCity || u.shippingPincode) {
+          setAutoFilled(true);
+        }
       })
       .catch(() => {});
   }, []);
+
+  // Pincode look-up API integration
+  useEffect(() => {
+    const pin = formData.pincode.trim();
+    if (pin.length === 6 && /^\d+$/.test(pin)) {
+      fetch(`https://api.postalpincode.in/pincode/${pin}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data && data[0]?.Status === "Success") {
+            const postOffice = data[0].PostOffice[0];
+            const city = postOffice.District || postOffice.Block || "";
+            const state = postOffice.State || "";
+            setFormData((prev) => ({
+              ...prev,
+              city: prev.city || city,
+              state: prev.state || state,
+            }));
+          }
+        })
+        .catch((err) => {
+          console.error("Pincode API error:", err);
+        });
+    }
+  }, [formData.pincode]);
 
   async function applyCoupon(codeToApply?: string) {
     const targetCode = (codeToApply || couponCode).trim().toUpperCase();
@@ -222,8 +254,7 @@ export default function CheckoutPage() {
         return;
       }
       alert(`Test order placed: ${data.order?.orderNumber || "Order Created"}`);
-      router.push("/account/orders");
-      router.refresh();
+      window.location.assign("/account/orders");
     } catch (error) {
       console.error("Test order error:", error);
       alert("An error occurred while placing the test order.");
@@ -233,126 +264,102 @@ export default function CheckoutPage() {
   };
 
   return (
-    <div className="checkout-page">
-      <style jsx>{`
-        .checkout-page { background: #f4f3f8; min-height: 100vh; color: #1a1830; }
-        .checkout-steps { display: flex; align-items: center; justify-content: center; max-width: 460px; margin: 0 auto; padding: 22px 20px 20px; }
-        .step-item { position: relative; display: flex; flex: 1; flex-direction: column; align-items: center; gap: 5px; }
-        .step-item::after { content: ""; position: absolute; top: 16px; left: calc(50% + 18px); right: calc(-50% + 18px); height: 2px; background: #e8e6f0; z-index: 0; }
-        .step-item:last-child::after { display: none; }
-        .step-item.done::after { background: #18a84a; }
-        .step-circle { z-index: 1; height: 34px; width: 34px; border-radius: 50%; background: #e8e6f0; color: #7a7890; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
-        .step-item.done .step-circle { background: #18a84a; color: #fff; }
-        .step-item.active .step-circle { background: #4b2ecc; color: #fff; box-shadow: 0 0 0 4px #eee9ff; }
-        .step-label { font-size: 11px; font-weight: 600; color: #7a7890; }
-        .step-item.done .step-label { color: #18a84a; }
-        .step-item.active .step-label { color: #4b2ecc; }
-        .checkout-wrap { max-width: 1020px; margin: 0 auto; padding: 0 14px 88px; display: grid; grid-template-columns: 1fr 332px; gap: 14px; align-items: start; }
-        .card { background: #fff; border-radius: 14px; border: 1px solid #e8e6f0; box-shadow: 0 2px 12px rgba(75, 46, 204, 0.06); overflow: hidden; margin-bottom: 12px; }
-        .card-head { padding: 12px 14px 11px; border-bottom: 1px solid #e8e6f0; display: flex; align-items: center; gap: 6px; }
-        .card-head h2 { font-size: 13px; font-weight: 700; flex: 1; }
-        .card-body { padding: 14px; }
-        .sidebar { position: sticky; top: 16px; }
-        .cart-item { display: flex; gap: 10px; margin-bottom: 12px; }
-        .cart-item:last-child { margin-bottom: 0; }
-        .item-img { width: 74px; height: 74px; object-fit: cover; border-radius: 10px; border: 1px solid #e8e6f0; flex-shrink: 0; }
-        .item-title { font-size: 12px; font-weight: 600; line-height: 1.35; margin-bottom: 6px; }
-        .item-pricing { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; }
-        .price-now { font-size: 15px; font-weight: 800; }
-        .price-mrp { font-size: 11px; color: #7a7890; text-decoration: line-through; }
-        .badge-off { background: #e8faf0; color: #18a84a; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 20px; }
-        .delivery-row { margin-top: 5px; font-size: 11px; color: #7a7890; }
-        .qty-row { margin-top: 8px; display: flex; align-items: center; gap: 8px; }
-        .qty-box { display: inline-flex; align-items: center; border: 1px solid #e8e6f0; border-radius: 8px; overflow: hidden; }
-        .qty-btn { width: 26px; height: 26px; border: 0; background: #fff; color: #4b2ecc; font-size: 15px; cursor: pointer; }
-        .qty-val { width: 30px; text-align: center; font-size: 12px; font-weight: 700; border-left: 1px solid #e8e6f0; border-right: 1px solid #e8e6f0; line-height: 26px; }
-        .remove-btn { font-size: 11px; color: #ff6b81; background: transparent; border: 0; cursor: pointer; font-weight: 700; }
-        .coupon-applied { display: flex; align-items: center; gap: 10px; background: #e8faf0; border: 1.5px dashed #18a84a; border-radius: 10px; padding: 10px 13px; margin-bottom: 12px; }
-        .coupon-info { flex: 1; }
-        .coupon-name { font-size: 13px; font-weight: 700; }
-        .coupon-exp { font-size: 11px; color: #7a7890; margin-top: 1px; }
-        .remove-coupon { font-size: 12px; font-weight: 700; color: #ff6b81; cursor: pointer; background: none; border: none; }
-        .muted { color: #7a7890; font-size: 12px; }
-        .form-grid { display: grid; gap: 12px; }
-        .field label { margin-bottom: 6px; display: block; font-size: 12px; font-weight: 600; color: #7a7890; }
-        .field input { width: 100%; border: 1px solid #e8e6f0; border-radius: 10px; background: #fff; padding: 10px 12px; font-size: 14px; color: #1a1830; outline: none; }
-        .field input:focus { border-color: #4b2ecc; box-shadow: 0 0 0 3px #eee9ff; }
-        .three-cols { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-        .coupon-box { border: 1px solid #e8e6f0; background: #faf9ff; border-radius: 12px; padding: 12px; }
-        .coupon-row { display: flex; gap: 8px; }
-        .coupon-input { flex: 1; height: 38px; border: 1px solid #e8e6f0; border-radius: 9px; padding: 0 10px; font-size: 13px; }
-        .coupon-btn { height: 38px; border: none; border-radius: 9px; padding: 0 14px; background: #4b2ecc; color: #fff; font-weight: 700; cursor: pointer; }
-        .coupon-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-        .avail-coupons { margin-top: 10px; display: grid; gap: 8px; max-height: 170px; overflow: auto; }
-        .avail-coupon { border: 1px dashed #d9d3f4; border-radius: 10px; padding: 9px; text-align: left; background: #fff; cursor: pointer; }
-        .avail-coupon.applied { border-color: #18a84a; background: #f1fff7; }
-        .coupon-teaser { border: 1px dashed #d9d3f4; border-radius: 10px; background: #fff; padding: 10px; margin-top: 10px; }
-        .coupon-teaser-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-        .view-all-offers { border: 0; background: transparent; color: #4b2ecc; font-weight: 700; font-size: 12px; cursor: pointer; }
-        .coupon-modal-overlay { position: fixed; inset: 0; background: rgba(18, 16, 40, 0.45); z-index: 130; display: flex; align-items: center; justify-content: center; padding: 16px; }
-        .coupon-modal { width: min(560px, 100%); max-height: 86vh; overflow: hidden; background: #fff; border-radius: 14px; border: 1px solid #e8e6f0; box-shadow: 0 14px 36px rgba(30, 24, 90, 0.25); display: flex; flex-direction: column; }
-        .coupon-modal-head { padding: 14px 16px; border-bottom: 1px solid #eceaf6; display: flex; align-items: center; justify-content: space-between; }
-        .coupon-modal-list { padding: 12px; overflow: auto; display: grid; gap: 9px; }
-        .coupon-modal-close { border: 0; background: transparent; font-size: 20px; line-height: 1; color: #7a7890; cursor: pointer; }
-        .price-rows .row { display: flex; justify-content: space-between; align-items: center; padding: 9px 14px; border-bottom: 1px solid #e8e6f0; font-size: 12px; }
-        .price-rows .row.total { font-size: 15px; font-weight: 800; }
-        .green { color: #18a84a; font-weight: 700; }
-        .savings-pill { margin: 0 14px 12px; background: #e8faf0; border-radius: 8px; padding: 8px 10px; font-size: 11px; color: #18a84a; font-weight: 700; }
-        .cta-wrap { padding: 0 14px 14px; }
-        .checkout-btn { width: 100%; border: none; padding: 12px; border-radius: 10px; color: #fff; font-size: 14px; font-weight: 700; background: linear-gradient(115deg, #4b2ecc 0%, #7b52ff 100%); box-shadow: 0 8px 20px rgba(75, 46, 204, 0.28); cursor: pointer; }
-        .checkout-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-        .test-order-btn { width: 100%; margin-top: 10px; border: 1px solid #d7d3ea; padding: 11px; border-radius: 10px; color: #2e2556; font-size: 13px; font-weight: 700; background: #f8f7ff; cursor: pointer; }
-        .test-order-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-        .secure-txt { text-align: center; margin-top: 10px; font-size: 11px; color: #7a7890; }
-        .mob-bar { display: none; }
-        @media (max-width: 640px) {
-          .checkout-wrap { grid-template-columns: 1fr; gap: 0; padding: 0 10px 170px; }
-          .sidebar { position: static; }
-          .item-img { width: 68px; height: 68px; }
-          .price-now { font-size: 14px; }
-          .three-cols { grid-template-columns: 1fr; }
-          .cta-wrap, .secure-txt { display: none; }
-          .mob-bar { display: flex; position: fixed; left: 10px; right: 10px; bottom: calc(68px + env(safe-area-inset-bottom, 0px)); background: #fff; border: 1px solid #e8e6f0; border-radius: 12px; z-index: 110; padding: 10px 12px; align-items: center; justify-content: space-between; box-shadow: 0 -2px 18px rgba(75, 46, 204, 0.12); }
-          .mob-total small { display: block; font-size: 11px; color: #7a7890; }
-          .mob-total strong { font-size: 15px; font-weight: 800; }
-          .mob-cta { border: none; border-radius: 9px; background: linear-gradient(115deg, #4b2ecc 0%, #7b52ff 100%); color: #fff; font-size: 12px; font-weight: 700; padding: 10px 14px; }
-        }
-      `}</style>
+    <section className="qh-container pb-20 pt-8 font-sans">
+      {/* Checkout Progress Stepper */}
+      <div className="mx-auto mb-8 max-w-xl px-4">
+        <div className="flex items-center justify-between relative">
+          {/* Progress Connecting Line */}
+          <div className="absolute left-0 right-0 top-[18px] h-[3px] bg-border z-0">
+            <div className="h-[3px] bg-[#432F83] transition-all duration-500 w-[50%]" />
+          </div>
 
-      <div className="checkout-steps">
-        <div className="step-item done"><div className="step-circle">1</div><div className="step-label">Cart</div></div>
-        <div className="step-item active"><div className="step-circle">2</div><div className="step-label">Review</div></div>
-        <div className="step-item"><div className="step-circle">3</div><div className="step-label">Payment</div></div>
+          {/* Step 1: Cart */}
+          <div className="flex flex-col items-center z-10">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#129C80] text-sm font-bold text-white shadow-[0_0_12px_rgba(18,156,128,0.2)]">
+              <Check className="h-4 w-4" />
+            </div>
+            <span className="mt-2 text-xs font-semibold text-[#129C80]">Shopping Cart</span>
+          </div>
+
+          {/* Step 2: Address */}
+          <div className="flex flex-col items-center z-10">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#432F83] text-sm font-bold text-white shadow-[0_0_12px_rgba(67,47,131,0.3)]">
+              2
+            </div>
+            <span className="mt-2 text-xs font-bold text-[#432F83]">Delivery Details</span>
+          </div>
+
+          {/* Step 3: Payment */}
+          <div className="flex flex-col items-center z-10">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-border bg-white text-sm font-bold text-text-soft">
+              3
+            </div>
+            <span className="mt-2 text-xs font-semibold text-text-soft">Secure Payment</span>
+          </div>
+        </div>
       </div>
 
       <div className="checkout-wrap">
         {cart.length === 0 ? (
-          <div className="card card-body">Your cart is empty.</div>
+          <div className="bg-white rounded-2xl border border-border p-8 text-center max-w-md mx-auto shadow-sm">
+            <ShoppingBag className="h-12 w-12 text-text-soft mx-auto mb-4" />
+            <h2 className="text-lg font-bold text-text-main">Your checkout is empty</h2>
+            <p className="text-xs text-text-soft mt-1.5 mb-5">Looks like you haven't added anything to your shopping cart yet.</p>
+            <a href="/" className="inline-block bg-[#432F83] text-white px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all hover:bg-[#5A31DD]">
+              Browse Products
+            </a>
+          </div>
         ) : (
-          <>
-            <div className="left-col">
-              <div className="card">
-                <div className="card-head"><span>Cart</span><h2>Your Cart</h2><span className="muted">{cartCount} Item{cartCount > 1 ? "s" : ""}</span></div>
-                <div className="card-body">
-                  {cart.map((item) => {
+          <div className="grid gap-6 lg:grid-cols-[1fr_360px] items-start max-w-5xl mx-auto">
+            {/* Left Column: Cart items & shipping address */}
+            <div className="space-y-6">
+              
+              {/* Cart review list card */}
+              <div className="bg-white rounded-2xl border border-border p-5 shadow-sm">
+                <div className="flex items-center justify-between border-b border-border/60 pb-3 mb-4">
+                  <div className="flex items-center gap-2">
+                    <ShoppingBag className="h-4.5 w-4.5 text-[#432F83]" />
+                    <h2 className="text-sm font-black text-[#231F20] uppercase tracking-wider">Review Items ({cartCount})</h2>
+                  </div>
+                  <span className="text-xs font-bold text-text-soft">Free Shipping Included</span>
+                </div>
+
+                <div className="space-y-4 divide-y divide-border/40">
+                  {cart.map((item, idx) => {
                     const itemMrp = item.product.mrp || item.product.price;
                     const off = Math.max(0, Math.round(((itemMrp - item.product.price) / itemMrp) * 100));
                     return (
-                      <div className="cart-item" key={item.product.slug}>
-                        <img className="item-img" src={(item.product.gallery && item.product.gallery[0]) || item.product.image} alt={item.product.title} />
-                        <div>
-                          <div className="item-title">{item.product.title}</div>
-                          <div className="item-pricing">
-                            <span className="price-now">INR {item.product.price}</span>
-                            {itemMrp > item.product.price ? <span className="price-mrp">INR {itemMrp}</span> : null}
-                            {off > 0 ? <span className="badge-off">{off}% OFF</span> : null}
+                      <div className={`flex gap-4 ${idx > 0 ? "pt-4" : ""}`} key={item.product.slug}>
+                        <img 
+                          className="h-20 w-20 rounded-xl border border-border object-cover flex-shrink-0"
+                          src={(item.product.gallery && item.product.gallery[0]) || item.product.image} 
+                          alt={item.product.title} 
+                        />
+                        <div className="flex-1 flex flex-col justify-between">
+                          <div>
+                            <h3 className="text-sm font-semibold text-text-main line-clamp-1">{item.product.title}</h3>
+                            {item.product.size && (
+                              <span className="mt-1 inline-block text-[10px] font-bold uppercase tracking-wider text-brand-primary bg-brand-primary/5 px-2 py-0.5 rounded">
+                                Size: {item.product.size}
+                              </span>
+                            )}
+                            <div className="mt-1 flex items-baseline gap-2">
+                              <span className="text-sm font-black text-text-main">INR {item.product.price}</span>
+                              {itemMrp > item.product.price && (
+                                <>
+                                  <span className="text-xs text-text-soft line-through">INR {itemMrp}</span>
+                                  <span className="text-[10px] font-black text-[#129C80] bg-[#E8FAF0] px-1.5 py-0.5 rounded-full">{off}% OFF</span>
+                                </>
+                              )}
+                            </div>
                           </div>
-                          <div className="delivery-row">Free Delivery</div>
-                          <div className="qty-row">
-                            <div className="qty-box">
+                          
+                          {/* Quantity Controls & Remove */}
+                          <div className="flex items-center justify-between mt-2.5">
+                            <div className="flex items-center rounded-lg border border-border overflow-hidden bg-background-muted">
                               <button
                                 type="button"
-                                className="qty-btn"
+                                className="px-2 py-1 text-brand-primary hover:bg-border/10 font-bold transition-all text-xs"
                                 onClick={() => {
                                   const next = item.quantity - 1;
                                   if (next <= 0) removeFromCart(item.product.slug);
@@ -361,16 +368,24 @@ export default function CheckoutPage() {
                               >
                                 -
                               </button>
-                              <span className="qty-val">{item.quantity}</span>
+                              <span className="px-2 text-xs font-bold text-text-main">{item.quantity}</span>
                               <button
                                 type="button"
-                                className="qty-btn"
+                                className="px-2 py-1 text-brand-primary hover:bg-border/10 font-bold transition-all text-xs"
                                 onClick={() => updateCartQuantity(item.product.slug, item.quantity + 1)}
                               >
                                 +
                               </button>
                             </div>
-                            <button type="button" className="remove-btn" onClick={() => removeFromCart(item.product.slug)}>Remove</button>
+                            
+                            <button 
+                              type="button" 
+                              className="text-xs font-bold text-red-500 hover:text-red-600 transition-colors flex items-center gap-1"
+                              onClick={() => removeFromCart(item.product.slug)}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                              <span>Remove</span>
+                            </button>
                           </div>
                         </div>
                       </div>
@@ -379,111 +394,324 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
-              <div className="card">
-                <div className="card-head"><span>Step 1</span><h2>Shipping Address</h2></div>
-                <div className="card-body">
-                  <form id="checkout-form" onSubmit={handlePayment} className="form-grid">
-                    <div className="field"><label>Full Name</label><input type="text" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} /></div>
-                    <div className="field"><label>Email</label><input type="email" required value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} /></div>
-                    <div className="field"><label>Phone Number</label><input type="tel" required pattern="[0-9]{10}" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, "").slice(0, 10) })} /></div>
-                    <div className="field"><label>Address</label><input type="text" required value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} /></div>
-                    <div className="three-cols">
-                      <div className="field"><input type="text" required placeholder="City" value={formData.city} onChange={(e) => setFormData({ ...formData, city: e.target.value })} /></div>
-                      <div className="field"><input type="text" required placeholder="State" value={formData.state} onChange={(e) => setFormData({ ...formData, state: e.target.value })} /></div>
-                      <div className="field"><input type="text" required placeholder="Pincode" value={formData.pincode} onChange={(e) => setFormData({ ...formData, pincode: e.target.value.replace(/\D/g, "").slice(0, 6) })} /></div>
-                    </div>
-                  </form>
+              {/* Shipping Address form card */}
+              <div className="bg-white rounded-2xl border border-border p-6 shadow-sm">
+                <div className="flex items-center justify-between border-b border-border/60 pb-3 mb-5">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4.5 w-4.5 text-[#432F83]" />
+                    <h2 className="text-sm font-black text-[#231F20] uppercase tracking-wider">Shipping Details</h2>
+                  </div>
+                  {autoFilled && (
+                    <span className="text-[10px] font-bold text-[#129C80] bg-[#E8FAF0] px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm">
+                      ✓ Profile Auto-filled
+                    </span>
+                  )}
                 </div>
+
+                <form id="checkout-form" onSubmit={handlePayment} className="space-y-4">
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="flex flex-col">
+                      <label className="mb-1 text-xs font-bold uppercase tracking-wider text-text-muted">Full Name *</label>
+                      <input
+                        type="text"
+                        required
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        placeholder="Your full name"
+                        className="w-full rounded-xl border border-border bg-white px-4 py-2.5 text-sm text-text-main placeholder-text-soft/60 outline-none transition-all focus:border-brand-primary focus:shadow-[0_0_0_3px_rgba(67,47,131,0.15)]"
+                      />
+                    </div>
+                    <div className="flex flex-col">
+                      <label className="mb-1 text-xs font-bold uppercase tracking-wider text-text-muted">Phone Number *</label>
+                      <input
+                        type="tel"
+                        required
+                        pattern="[0-9]{10}"
+                        value={formData.phone}
+                        onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, "").slice(0, 10) })}
+                        placeholder="10-digit mobile number"
+                        className="w-full rounded-xl border border-border bg-white px-4 py-2.5 text-sm text-text-main placeholder-text-soft/60 outline-none transition-all focus:border-brand-primary focus:shadow-[0_0_0_3px_rgba(67,47,131,0.15)]"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col">
+                    <label className="mb-1 text-xs font-bold uppercase tracking-wider text-text-muted">Email Address *</label>
+                    <input
+                      type="email"
+                      required
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      placeholder="Email for order confirmation"
+                      className="w-full rounded-xl border border-border bg-white px-4 py-2.5 text-sm text-text-main placeholder-text-soft/60 outline-none transition-all focus:border-brand-primary focus:shadow-[0_0_0_3px_rgba(67,47,131,0.15)]"
+                    />
+                  </div>
+
+                  <div className="flex flex-col">
+                    <label className="mb-1 text-xs font-bold uppercase tracking-wider text-text-muted">Detailed Delivery Address *</label>
+                    <input
+                      type="text"
+                      required
+                      value={formData.address}
+                      onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                      placeholder="Flat/House no, building, street, area details"
+                      className="w-full rounded-xl border border-border bg-white px-4 py-2.5 text-sm text-text-main placeholder-text-soft/60 outline-none transition-all focus:border-brand-primary focus:shadow-[0_0_0_3px_rgba(67,47,131,0.15)]"
+                    />
+                  </div>
+
+                  <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
+                    <div className="flex flex-col">
+                      <label className="mb-1 text-xs font-bold uppercase tracking-wider text-text-muted">Pincode *</label>
+                      <input
+                        type="text"
+                        required
+                        pattern="[0-9]{6}"
+                        value={formData.pincode}
+                        onChange={(e) => setFormData({ ...formData, pincode: e.target.value.replace(/\D/g, "").slice(0, 6) })}
+                        placeholder="6-digit pincode"
+                        className="w-full rounded-xl border border-border bg-white px-4 py-2.5 text-sm text-text-main placeholder-text-soft/60 outline-none transition-all focus:border-brand-primary focus:shadow-[0_0_0_3px_rgba(67,47,131,0.15)]"
+                      />
+                    </div>
+                    <div className="flex flex-col">
+                      <label className="mb-1 text-xs font-bold uppercase tracking-wider text-text-muted">City *</label>
+                      <input
+                        type="text"
+                        required
+                        value={formData.city}
+                        onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                        placeholder="City"
+                        className="w-full rounded-xl border border-border bg-white px-4 py-2.5 text-sm text-text-main placeholder-text-soft/60 outline-none transition-all focus:border-brand-primary focus:shadow-[0_0_0_3px_rgba(67,47,131,0.15)]"
+                      />
+                    </div>
+                    <div className="flex flex-col">
+                      <label className="mb-1 text-xs font-bold uppercase tracking-wider text-text-muted">State *</label>
+                      <input
+                        type="text"
+                        required
+                        value={formData.state}
+                        onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+                        placeholder="State"
+                        className="w-full rounded-xl border border-border bg-white px-4 py-2.5 text-sm text-text-main placeholder-text-soft/60 outline-none transition-all focus:border-brand-primary focus:shadow-[0_0_0_3px_rgba(67,47,131,0.15)]"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col">
+                    <label className="mb-1 text-xs font-bold uppercase tracking-wider text-text-muted">Delivery Notes (Optional)</label>
+                    <input
+                      type="text"
+                      value={formData.notes}
+                      onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                      placeholder="e.g. Ring the bell, deliver to security, landmark"
+                      className="w-full rounded-xl border border-border bg-white px-4 py-2.5 text-sm text-text-main placeholder-text-soft/60 outline-none transition-all focus:border-brand-primary focus:shadow-[0_0_0_3px_rgba(67,47,131,0.15)]"
+                    />
+                  </div>
+                </form>
               </div>
+
             </div>
 
-            <div className="sidebar">
-              <div className="card">
-                <div className="card-head"><span>Offer</span><h2>Coupons & Offers</h2></div>
-                <div className="card-body">
+            {/* Right Column: Sticky coupons and totals panels */}
+            <div className="lg:sticky lg:top-[90px] space-y-6">
+              
+              {/* Coupons and promo card */}
+              <div className="bg-white rounded-2xl border border-border p-5 shadow-sm">
+                <div className="flex items-center gap-2 border-b border-border/60 pb-3 mb-4">
+                  <Percent className="h-4.5 w-4.5 text-[#432F83]" />
+                  <h2 className="text-sm font-black text-[#231F20] uppercase tracking-wider">Coupons & Offers</h2>
+                </div>
+
+                <div className="bg-[#F7F5FD]/60 border border-brand-primary/10 rounded-2xl p-4">
                   {coupon.applied ? (
-                    <div className="coupon-applied">
-                      <span>Code</span>
-                      <div className="coupon-info">
-                        <div className="coupon-name">{coupon.code} OFFER APPLIED</div>
-                        <div className="coupon-exp">Discount saved: INR {coupon.discountAmount}</div>
+                    <div className="flex items-center justify-between bg-[#E8FAF0] border border-dashed border-[#18A84A] rounded-xl p-3.5 mb-4">
+                      <div className="flex items-start gap-2.5">
+                        <div className="mt-0.5 bg-[#18A84A] text-white p-1 rounded-full">
+                          <Check className="h-3 w-3" />
+                        </div>
+                        <div>
+                          <h4 className="text-xs font-black text-[#129C80] uppercase tracking-wider">{coupon.code} APPLIED</h4>
+                          <p className="text-[10px] text-text-muted mt-0.5">Saved: INR {coupon.discountAmount}</p>
+                        </div>
                       </div>
-                      <button type="button" onClick={clearCoupon} className="remove-coupon">Remove</button>
+                      <button 
+                        type="button" 
+                        onClick={clearCoupon} 
+                        className="text-xs font-bold text-red-500 hover:underline"
+                      >
+                        Remove
+                      </button>
                     </div>
                   ) : null}
-                  <div className="coupon-box">
-                    <div className="coupon-row">
-                      <input className="coupon-input" value={couponCode} onChange={(e) => setCouponCode(e.target.value.toUpperCase())} placeholder="Enter coupon code" />
-                      <button type="button" onClick={() => applyCoupon()} disabled={coupon.applying} className="coupon-btn">{coupon.applying ? "Applying" : "Apply"}</button>
+
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <Tag className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-soft" />
+                      <input
+                        type="text"
+                        value={couponCode}
+                        onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                        placeholder="ENTER PROMO CODE"
+                        className="w-full pl-9 pr-3 py-2 text-xs font-bold uppercase tracking-wider border border-border rounded-xl bg-white outline-none focus:border-brand-primary placeholder:text-text-soft/50"
+                      />
                     </div>
-                    {coupon.error ? <p style={{ marginTop: 8, color: "#d32f2f", fontSize: 12 }}>{coupon.error}</p> : null}
-                    {featuredCoupon ? (
-                      <div className="coupon-teaser">
-                        <div className="coupon-teaser-head">
-                          <div style={{ fontSize: 12, fontWeight: 800, color: "#4b2ecc" }}>{featuredCoupon.code}</div>
-                          <button type="button" className="view-all-offers" onClick={() => setShowCouponModal(true)}>
-                            View all offers
-                          </button>
-                        </div>
-                        <div style={{ marginTop: 3, fontSize: 12, fontWeight: 700 }}>
-                          {featuredCoupon.discount_type === "percent"
-                            ? `${Number(featuredCoupon.discount_value)}% OFF`
-                            : `Flat INR ${Number(featuredCoupon.discount_value)} OFF`}
-                        </div>
-                        {featuredCoupon.min_order_amount ? (
-                          <div style={{ marginTop: 2, fontSize: 10, color: "#7a7890" }}>
-                            Min order INR {featuredCoupon.min_order_amount}
-                          </div>
-                        ) : null}
+                    <button
+                      type="button"
+                      onClick={() => applyCoupon()}
+                      disabled={coupon.applying || !couponCode.trim()}
+                      className="bg-[#432F83] text-white hover:bg-[#5A31DD] px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {coupon.applying ? "Applying" : "Apply"}
+                    </button>
+                  </div>
+
+                  {coupon.error && (
+                    <p className="mt-2 text-xs font-semibold text-red-500 flex items-center gap-1">
+                      <Info className="h-3 w-3 shrink-0" />
+                      <span>{coupon.error}</span>
+                    </p>
+                  )}
+
+                  {featuredCoupon && (
+                    <div className="mt-4 border border-dashed border-[#D9D3F4] rounded-xl bg-white p-3 shadow-sm">
+                      <div className="flex items-center justify-between">
+                        <span className="bg-[#F3EDFE] text-[#432F83] font-black text-[10px] px-2 py-0.5 rounded tracking-wide uppercase">
+                          {featuredCoupon.code}
+                        </span>
+                        <button 
+                          type="button" 
+                          onClick={() => setShowCouponModal(true)} 
+                          className="text-xs font-bold text-[#432F83] hover:text-[#5A31DD] flex items-center"
+                        >
+                          <span>All offers</span>
+                          <ChevronRight className="h-3.5 w-3.5" />
+                        </button>
                       </div>
-                    ) : null}
+                      <p className="mt-2 text-xs font-black text-text-main">
+                        {featuredCoupon.discount_type === "percent"
+                          ? `${Number(featuredCoupon.discount_value)}% OFF`
+                          : `Flat INR ${Number(featuredCoupon.discount_value)} OFF`}
+                      </p>
+                      {featuredCoupon.min_order_amount && (
+                        <p className="text-[10px] text-text-soft mt-1">
+                          Valid on orders above INR {featuredCoupon.min_order_amount}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Order total values card */}
+              <div className="bg-white rounded-2xl border border-border shadow-sm p-5 space-y-4">
+                <div className="flex items-center gap-2 border-b border-border/60 pb-3">
+                  <ShieldCheck className="h-4.5 w-4.5 text-[#432F83]" />
+                  <h2 className="text-sm font-black text-[#231F20] uppercase tracking-wider">Order Summary</h2>
+                </div>
+                
+                <div className="divide-y divide-border/60 text-xs">
+                  <div className="flex justify-between py-2.5 text-text-muted">
+                    <span>Total MRP</span>
+                    <span>INR {totalMrp}</span>
+                  </div>
+                  {mrpDiscount > 0 && (
+                    <div className="flex justify-between py-2.5 text-text-muted">
+                      <span>Product Discount ({savingsPercentage}%)</span>
+                      <span className="text-[#129C80] font-semibold">- INR {mrpDiscount}</span>
+                    </div>
+                  )}
+                  {coupon.applied && (
+                    <div className="flex justify-between py-2.5 text-text-muted">
+                      <span>Coupon Discount ({coupon.code})</span>
+                      <span className="text-[#129C80] font-semibold">- INR {coupon.discountAmount}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between py-2.5 text-text-muted">
+                    <span>Shipping Fee</span>
+                    <span className="text-[#129C80] font-semibold uppercase">FREE</span>
+                  </div>
+                  <div className="flex justify-between py-3.5 text-base font-black text-text-main border-t-2 border-dashed border-border">
+                    <span>Total Amount</span>
+                    <span className="text-brand-primary">INR {payableTotal}</span>
+                  </div>
+                </div>
+
+                <div className="bg-[#E8FAF0] text-[#129C80] rounded-xl p-3 text-xs font-bold flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 shrink-0 text-[#129C80]" />
+                  <span>Yay! You saved INR {totalSavings} on this order.</span>
+                </div>
+
+                <div className="space-y-3 pt-2">
+                  <button 
+                    type="submit" 
+                    form="checkout-form" 
+                    disabled={loading}
+                    className="w-full bg-[#432F83] text-white hover:bg-[#5A31DD] py-3.5 rounded-xl font-bold transition-all shadow-[0_8px_20px_rgba(67,47,131,0.2)] text-center text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    <Lock className="h-4 w-4" />
+                    <span>{loading ? "Processing..." : `Proceed to Pay INR ${payableTotal}`}</span>
+                  </button>
+
+                  <button 
+                    type="button" 
+                    onClick={handlePlaceTestOrder} 
+                    disabled={placingTestOrder || loading}
+                    className="w-full border border-border bg-[#F9FAFC] hover:bg-border/30 text-text-main py-3 rounded-xl font-bold transition-all text-xs disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+                  >
+                    <Truck className="h-4 w-4 text-text-soft" />
+                    <span>{placingTestOrder ? "Placing Test Order..." : "Place Test Order (No Payment)"}</span>
+                  </button>
+
+                  <div className="flex items-center justify-center gap-1.5 text-[10px] font-semibold text-text-soft uppercase tracking-wider text-center pt-1">
+                    <ShieldCheck className="h-4 w-4 text-[#129C80]" />
+                    <span>100% Secure & SSL Encrypted Checkout</span>
                   </div>
                 </div>
               </div>
 
-              <div className="card">
-                <div className="card-head"><h2>Order Summary</h2><span className="muted">{cartCount} Item{cartCount > 1 ? "s" : ""}</span></div>
-                <div className="price-rows">
-                  <div className="row"><span className="muted">Total MRP</span><span>INR {totalMrp}</span></div>
-                  {mrpDiscount > 0 ? <div className="row"><span className="muted">Product Discount ({savingsPercentage}%)</span><span className="green">- INR {mrpDiscount}</span></div> : null}
-                  {coupon.applied ? <div className="row"><span className="muted">Coupon ({coupon.code})</span><span className="green">- INR {coupon.discountAmount}</span></div> : null}
-                  <div className="row"><span className="muted">Shipping Fee</span><span className="green">FREE</span></div>
-                  <div className="row total"><span>To Pay</span><span>INR {payableTotal}</span></div>
-                </div>
-                <div className="savings-pill">Yay! You saved INR {totalSavings} on this order.</div>
-                <div className="cta-wrap">
-                  <button type="submit" form="checkout-form" disabled={loading} className="checkout-btn">{loading ? "Processing..." : `Proceed to Pay INR ${payableTotal}`}</button>
-                  <button type="button" onClick={handlePlaceTestOrder} disabled={placingTestOrder || loading} className="test-order-btn">
-                    {placingTestOrder ? "Placing Test Order..." : "Place Test Order (No Payment API)"}
-                  </button>
-                  <div className="secure-txt">100% Secure and SSL Encrypted</div>
-                </div>
-              </div>
             </div>
-          </>
+          </div>
         )}
       </div>
 
+      {/* Floating bottom action bar on mobile */}
       {cart.length > 0 ? (
-        <div className="mob-bar">
-          <div className="mob-total"><small>To Pay</small><strong>INR {payableTotal}</strong></div>
-          <button type="submit" form="checkout-form" disabled={loading} className="mob-cta">{loading ? "Processing..." : "Checkout ->"}</button>
+        <div className="sm:hidden fixed bottom-[60px] left-0 right-0 bg-white border-t border-border z-40 px-4 py-3 flex items-center justify-between shadow-[0_-4px_16px_rgba(67,47,131,0.08)]">
+          <div className="flex flex-col">
+            <span className="text-[10px] text-text-soft uppercase tracking-wider font-bold">To Pay</span>
+            <span className="text-base font-black text-brand-primary">INR {payableTotal}</span>
+          </div>
+          <button 
+            type="submit" 
+            form="checkout-form" 
+            disabled={loading} 
+            className="bg-[#432F83] text-white px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider shadow-sm transition-all hover:bg-[#5A31DD] disabled:opacity-50 flex items-center gap-1.5"
+          >
+            <Lock className="h-3.5 w-3.5" />
+            <span>{loading ? "Processing..." : "Pay Now"}</span>
+          </button>
         </div>
       ) : null}
 
+      {/* Available Coupons Modal */}
       {showCouponModal ? (
-        <div className="coupon-modal-overlay" onClick={() => setShowCouponModal(false)}>
-          <div className="coupon-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="coupon-modal-head">
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl border border-border overflow-hidden flex flex-col max-h-[80vh] animate-in fade-in zoom-in duration-200">
+            <div className="p-4 border-b border-border flex items-center justify-between">
               <div>
-                <div style={{ fontSize: 15, fontWeight: 800 }}>Available Offers</div>
-                <div style={{ fontSize: 12, color: "#7a7890" }}>Tap any coupon to apply instantly</div>
+                <h3 className="font-bold text-text-main text-base">Available Coupons</h3>
+                <p className="text-xs text-text-soft">Select a coupon to apply instantly</p>
               </div>
-              <button type="button" className="coupon-modal-close" onClick={() => setShowCouponModal(false)}>×</button>
+              <button 
+                type="button" 
+                className="p-1.5 hover:bg-[#F7F5FD] text-text-soft hover:text-text-main rounded-full transition-all"
+                onClick={() => setShowCouponModal(false)}
+              >
+                <X className="h-5 w-5" />
+              </button>
             </div>
-            <div className="coupon-modal-list">
+            <div className="p-4 overflow-y-auto space-y-3">
               {availableCoupons.length === 0 ? (
-                <div className="muted">No active offers right now.</div>
+                <div className="text-center py-6 text-text-soft">No active coupons available.</div>
               ) : (
                 availableCoupons.map((c) => {
                   const isThisApplied = coupon.applied && coupon.code === c.code;
@@ -498,18 +726,31 @@ export default function CheckoutPage() {
                         else applyCoupon(c.code);
                         setShowCouponModal(false);
                       }}
-                      className={`avail-coupon ${isThisApplied ? "applied" : ""}`}
+                      className={`w-full text-left p-4 rounded-xl border transition-all ${
+                        isThisApplied 
+                          ? "border-[#18A84A] bg-[#E8FAF0]/30" 
+                          : !hasSufficientSubtotal 
+                          ? "border-border/60 opacity-50 cursor-not-allowed bg-background-muted/40"
+                          : "border-border hover:border-brand-primary bg-white shadow-sm hover:shadow"
+                      }`}
                     >
-                      <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
-                        <div style={{ fontSize: 11, fontWeight: 800, color: "#4b2ecc" }}>{c.code}</div>
-                        <div style={{ fontSize: 11, color: isThisApplied ? "#18a84a" : "#7a7890", fontWeight: 700 }}>
-                          {isThisApplied ? "Applied" : hasSufficientSubtotal ? "Apply" : "Not eligible"}
-                        </div>
+                      <div className="flex justify-between items-center">
+                        <span className="bg-[#F3EDFE] text-[#432F83] font-black text-xs px-2.5 py-1 rounded tracking-wide uppercase border border-brand-primary/10">
+                          {c.code}
+                        </span>
+                        <span className={`text-xs font-bold uppercase tracking-wider ${isThisApplied ? "text-[#18A84A]" : hasSufficientSubtotal ? "text-brand-primary hover:underline" : "text-text-soft"}`}>
+                          {isThisApplied ? "Applied ✓" : hasSufficientSubtotal ? "Apply Code" : "Not eligible"}
+                        </span>
                       </div>
-                      <div style={{ fontSize: 12, fontWeight: 700, marginTop: 3 }}>
+                      <h4 className="font-bold text-sm text-text-main mt-3">
                         {c.discount_type === "percent" ? `${Number(c.discount_value)}% Off` : `Flat INR ${Number(c.discount_value)} Off`}
-                      </div>
-                      {c.min_order_amount ? <div style={{ fontSize: 10, color: "#7a7890", marginTop: 2 }}>Min order INR {c.min_order_amount}</div> : null}
+                      </h4>
+                      {c.min_order_amount && (
+                        <p className="text-[10px] text-text-soft mt-1 flex items-center gap-1">
+                          <Info className="h-3 w-3 shrink-0" />
+                          <span>Valid on orders above INR {c.min_order_amount}</span>
+                        </p>
+                      )}
                     </button>
                   );
                 })
@@ -518,6 +759,6 @@ export default function CheckoutPage() {
           </div>
         </div>
       ) : null}
-    </div>
+    </section>
   );
 }

@@ -18,82 +18,108 @@ export function ProductCard({ product }: { product: Product }) {
   const productHref = `/${product.category || "bedsheet"}/${product.slug}`;
 
   return (
-    <article className="group overflow-hidden rounded-2xl border border-[rgba(212,180,131,0.32)] bg-[rgba(255,255,255,0.96)] shadow-[0_2px_10px_rgba(212,180,131,0.18)] transition-all duration-300 hover:-translate-y-1.5 hover:scale-[1.02] hover:shadow-[0_18px_40px_rgba(212,180,131,0.34),0_4px_12px_rgba(0,0,0,0.08)]">
-      <div className="relative overflow-hidden bg-[rgba(212,180,131,0.16)]">
-        <div className="relative w-full pt-[105%]">
-        <Link href={productHref} aria-label={product.title}>
+    <article className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-[#E6E7E8] bg-white transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
+      {/* Image & Badges Block */}
+      <div className="relative overflow-hidden bg-[#F9FAFC] aspect-square w-full">
+        <Link href={productHref} aria-label={product.title} className="absolute inset-0 block">
           <Image
             src={primaryImage}
             alt={product.title}
             fill
             sizes="(min-width: 1200px) 20vw, (min-width: 768px) 33vw, 50vw"
-            className="object-cover transition-transform duration-500 group-hover:scale-110"
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
           />
         </Link>
-        </div>
 
-        <div className="absolute left-3 top-3 rounded-md border border-[rgba(212,180,131,0.55)] bg-[rgba(212,180,131,0.26)] px-2 py-1 text-[10px] font-bold text-[#76562a]">
-          {discount}% OFF
-        </div>
+        {/* Discount Badge */}
+        {discount > 0 && (
+          <div className="absolute left-2.5 top-2.5 rounded bg-emerald-50 border border-emerald-100 px-2 py-0.5 text-[9px] font-bold text-emerald-800 tracking-wide">
+            {discount}% OFF
+          </div>
+        )}
 
+        {/* Wishlist Button */}
         <button
           onClick={() => toggleWishlist(product)}
-          className={`qh-focus absolute right-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-full border backdrop-blur-sm transition-all duration-200 ${
+          className={`absolute right-2.5 top-2.5 inline-flex h-8 w-8 items-center justify-center rounded-full border transition-all duration-200 shadow-tiny z-10 ${
             wishlisted
-              ? "scale-105 border-[#D4B483] bg-[#D4B483] text-white"
-              : "border-[rgba(212,180,131,0.45)] bg-white/90 text-[#9b7643] hover:scale-105"
+              ? "border-[#432F83]/25 bg-[#F3EDFE] text-[#432F83] shadow-[0_4px_12px_rgba(67,47,131,0.16)]"
+              : "bg-white/95 border-[#E7E0FC] text-[#7A6AAE] hover:scale-105 hover:border-[#432F83]/35 hover:bg-[#F8F4FF] hover:text-[#432F83]"
           }`}
-          aria-label={`${wishlisted ? "Remove" : "Add"} ${product.title} ${wishlisted ? "from" : "to"} wishlist`}
+          aria-label={`${wishlisted ? "Remove" : "Add"} ${product.title} to wishlist`}
         >
-          <Heart className="h-4 w-4" fill={wishlisted ? "currentColor" : "none"} />
+          <Heart className={`h-4 w-4 ${wishlisted ? "fill-current" : ""}`} />
         </button>
 
-        <div className="absolute bottom-3 right-3 rounded-full bg-black/55 px-2 py-1 text-[10px] font-medium text-white backdrop-blur-sm">
-          <span className="inline-flex items-center gap-1">
-            <Star className="h-3 w-3 fill-current" />
-            {product.rating}
-          </span>
-        </div>
-
-        {extraImages > 0 ? (
-          <div className="absolute bottom-3 left-3 rounded-full bg-black/55 px-2 py-1 text-[10px] font-medium text-white backdrop-blur-sm">
-            +{extraImages}
+        {/* Extra Images Count */}
+        {extraImages > 0 && (
+          <div className="absolute bottom-2.5 left-2.5 rounded bg-black/50 px-1.5 py-0.5 text-[8.5px] font-bold text-white backdrop-blur-xs">
+            +{extraImages} Photos
           </div>
-        ) : null}
+        )}
       </div>
 
-      <div className="flex flex-col gap-1.5 p-3 sm:p-3.5">
-        <Link href={productHref} className="block">
-          <h3 className="line-clamp-2 text-[11px] font-semibold leading-snug text-[#2d2417] transition-colors duration-200 group-hover:text-[#9b7643] sm:text-[12px]">
-            {product.title}
-          </h3>
-        </Link>
+      {/* Details Block */}
+      <div className="flex flex-col gap-1.5 p-3 flex-1 justify-between">
+        <div className="flex flex-col gap-1">
+          {/* Rating Summary */}
+          <div className="flex items-center gap-1 text-[9.5px] font-semibold text-gray-500">
+            <span className="flex items-center gap-0.5 text-gray-900 bg-amber-50 border border-amber-100 px-1 rounded">
+              <span className="font-extrabold text-[10px]">{product.rating}</span>
+              <Star className="h-2.5 w-2.5 fill-[#FBBF24] text-[#FBBF24]" />
+            </span>
+            <span>({pseudoReviews} reviews)</span>
+          </div>
 
-        <div className="flex items-center gap-1 text-[10px] text-[rgba(77,58,31,0.78)]">
-          <span className="inline-flex items-center gap-1 text-[#9b7643]">
-            <Star className="h-3 w-3 fill-current" />
-            {product.rating}
-          </span>
-          <span>({pseudoReviews} reviews)</span>
+          {/* Title */}
+          <Link href={productHref} className="block mt-0.5">
+            <h3 className="line-clamp-2 text-[11px] md:text-xs font-bold leading-snug text-gray-800 transition-colors duration-200 group-hover:text-[#432F83]">
+              {product.title}
+            </h3>
+          </Link>
         </div>
 
-        <div className="flex items-baseline gap-2">
-          <span className="text-[16px] font-bold leading-none text-[#2d2417] sm:text-[17px]">{formatPrice(product.price)}</span>
-          <span className="text-[11px] text-[rgba(155,118,67,0.78)] line-through">{formatPrice(product.mrp)}</span>
-        </div>
+        <div className="flex flex-col gap-2 mt-1">
+          {/* Pricing */}
+          <div className="flex flex-wrap items-baseline gap-1.5">
+            <span className="text-[13px] md:text-sm font-extrabold text-[#432F83]">
+              {formatPrice(product.price)}
+            </span>
+            {product.mrp > product.price && (
+              <>
+                <span className="text-[9.5px] md:text-[10px] text-gray-400 line-through font-medium">
+                  {formatPrice(product.mrp)}
+                </span>
+                <span className="text-[9.5px] md:text-[10px] font-bold text-[#129C80]">
+                  ({discount}% off)
+                </span>
+              </>
+            )}
+          </div>
 
-        <button
-          type="button"
-          onClick={() => toggleCartItem(product)}
-          className={`mt-1.5 inline-flex h-10 w-full items-center justify-center gap-2 rounded-[10px] border text-[12px] font-semibold tracking-[0.03em] transition-all duration-200 sm:h-10.5 sm:text-[12.5px] ${
-            inCart
-              ? "border-[#16a34a] bg-[#f0fdf4] text-[#16a34a]"
-              : "border-[#D4B483] bg-transparent text-[#9b7643] hover:bg-[#D4B483] hover:text-white"
-          }`}
-        >
-          {inCart ? <Check className="h-4 w-4" /> : <ShoppingBag className="h-4 w-4" />}
-          <span>{inCart ? "Added to Cart" : "Add to Cart"}</span>
-        </button>
+          {/* Action Button */}
+          <button
+            type="button"
+            onClick={() => toggleCartItem(product)}
+            className={`w-full flex items-center justify-center gap-1 h-9 rounded-lg text-[11px] font-bold transition-all ${
+              inCart
+                ? "bg-[#E8F8F5] border border-[#129C80] text-[#129C80]"
+                : "bg-white border border-[#432F83] text-[#432F83] hover:bg-[#F3EDFE]"
+            }`}
+          >
+            {inCart ? (
+              <>
+                <Check className="h-3.5 w-3.5 stroke-[3]" />
+                <span>Added</span>
+              </>
+            ) : (
+              <>
+                <ShoppingBag className="h-3.5 w-3.5" />
+                <span>Add to Cart</span>
+              </>
+            )}
+          </button>
+        </div>
       </div>
     </article>
   );

@@ -113,13 +113,13 @@ export default async function CollectionPage({ params }: PageProps) {
       )}
 
       {/* Product List Section */}
-      <section className="qh-container qh-section-pad">
-        <div className="mb-6 flex items-center justify-between border-b border-border pb-4">
-          <h2 className="text-lg font-black text-text-main">
-            Items ({products.length})
-          </h2>
-          <span className="text-xs font-medium text-text-soft">
-            Showing curated finds
+      <section className={`qh-container pb-8 md:pb-12 ${collection.image_url ? "pt-6 md:pt-8" : "pt-2 md:pt-3"}`}>
+        <div className="mb-6 flex items-center justify-between border-b border-border pb-3">
+          <span className="text-xs font-bold uppercase tracking-wider text-text-muted">
+            Curated Collection
+          </span>
+          <span className="text-sm font-semibold text-text-muted">
+            {products.length} {products.length === 1 ? "design" : "designs"}
           </span>
         </div>
 

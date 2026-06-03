@@ -63,19 +63,19 @@ export function StorefrontSlideBanner({ settings }: { settings: Settings }) {
           <>
             <button
               type="button"
-              className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full border border-white/70 bg-transparent p-1.5 text-white"
+              className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-black/20 hover:bg-black/45 h-8 w-8 flex items-center justify-center text-white border border-white/20 shadow-md backdrop-blur-md transition-all duration-300 hover:scale-110 z-10"
               onClick={() => setIndex((prev) => (prev - 1 + activeSlides.length) % activeSlides.length)}
               aria-label="Previous slide"
             >
-              <ChevronLeft className="h-5 w-5" />
+              <ChevronLeft className="h-4 w-4" />
             </button>
             <button
               type="button"
-              className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full border border-white/70 bg-transparent p-1.5 text-white"
+              className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-black/20 hover:bg-black/45 h-8 w-8 flex items-center justify-center text-white border border-white/20 shadow-md backdrop-blur-md transition-all duration-300 hover:scale-110 z-10"
               onClick={() => setIndex((prev) => (prev + 1) % activeSlides.length)}
               aria-label="Next slide"
             >
-              <ChevronRight className="h-5 w-5" />
+              <ChevronRight className="h-4 w-4" />
             </button>
           </>
         )}

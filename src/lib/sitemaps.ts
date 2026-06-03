@@ -176,25 +176,49 @@ export async function getPageItems(): Promise<SitemapItem[]> {
 
 export async function getPostItems(): Promise<SitemapItem[]> {
   const now = new Date().toISOString();
-  const candidates = [
-    "select slug, coalesce(updated_at, created_at) as changed_at from posts where slug is not null",
-    "select slug, coalesce(updated_at, created_at) as changed_at from blog_posts where slug is not null",
-  ];
+  const out: SitemapItem[] = [];
+  const seen = new Set<string>();
 
-  for (const sql of candidates) {
-    try {
-      const rows = await query<{ slug: string; changed_at: string | null }>(sql);
-      if (rows.rows.length > 0) {
-        return rows.rows.map((p) => ({
-          loc: `${BASE_URL}/posts/${p.slug}`,
-          lastmod: p.changed_at ? new Date(p.changed_at).toISOString() : now,
-          changefreq: "weekly",
-          priority: 0.6,
-        }));
-      }
-    } catch {}
-  }
+  try {
+    const rows = await query<{ slug: string; changed_at: string | null }>(
+      `select slug, coalesce(updated_at, created_at) as changed_at
+       from blog_posts
+       where slug is not null and coalesce(published, true) = true`,
+    );
+    for (const p of rows.rows) {
+      const slug = String(p.slug || "").trim().replace(/^\/+/, "");
+      if (!slug || seen.has(slug)) continue;
+      seen.add(slug);
+      out.push({
+        loc: `${BASE_URL}/posts/${slug}`,
+        lastmod: p.changed_at ? new Date(p.changed_at).toISOString() : now,
+        changefreq: "weekly",
+        priority: 0.7,
+      });
+    }
+  } catch {}
 
-  return [];
+  try {
+    const rows = await query<{ schema_json: any }>(
+      "select schema_json from builder_pages where id = 'main' and site_id = $1 limit 1",
+      ["quirkyhome"],
+    );
+    const pages = rows.rows[0]?.schema_json?.pages || {};
+    for (const page of Object.values(pages) as Array<any>) {
+      const slug = String(page?.slug || "").trim().replace(/^\/+/, "");
+      if (!slug || slug === "home") continue;
+      if (String(page?.pageType || "") !== "post") continue;
+      if (seen.has(slug)) continue;
+      seen.add(slug);
+      out.push({
+        loc: `${BASE_URL}/posts/${slug}`,
+        lastmod: page?.lastPublishedAt ? new Date(page.lastPublishedAt).toISOString() : now,
+        changefreq: "weekly",
+        priority: 0.7,
+      });
+    }
+  } catch {}
+
+  return out;
 }
 

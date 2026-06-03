@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { getBuilderSchema } from "@/lib/builder/fetch-schema";
 import { RenderSections } from "@/components/storefront/SectionRenderer";
+import { PuckContentRenderer } from "@/components/storefront/PuckContentRenderer";
 
 import { categories } from "@/data/categories";
 import { ProductGrid } from "@/components/product/ProductGrid";
@@ -177,7 +178,11 @@ export default async function DynamicPage({ params, searchParams }: PageProps) {
         </section>
         {builderPage && builderPage.sections && builderPage.sections.length > 0 && builderSchema?.themeSettings ? (
           <div className="qh-page-container">
-            <RenderSections sections={builderPage.sections} theme={builderSchema.themeSettings} />
+            {builderPage?.lastPublishedBuilder === "advanced" && builderPage?.puckData ? (
+              <PuckContentRenderer data={builderPage.puckData} />
+            ) : (
+              <RenderSections sections={builderPage.sections} theme={builderSchema.themeSettings} />
+            )}
           </div>
         ) : null}
       </>
@@ -188,7 +193,11 @@ export default async function DynamicPage({ params, searchParams }: PageProps) {
   if (builderPage && builderPage.sections && builderPage.sections.length > 0) {
     return (
       <div className="qh-page-container">
-        <RenderSections sections={builderPage.sections} theme={builderSchema!.themeSettings} />
+        {builderPage?.lastPublishedBuilder === "advanced" && builderPage?.puckData ? (
+          <PuckContentRenderer data={builderPage.puckData} />
+        ) : (
+          <RenderSections sections={builderPage.sections} theme={builderSchema!.themeSettings} />
+        )}
       </div>
     );
   }

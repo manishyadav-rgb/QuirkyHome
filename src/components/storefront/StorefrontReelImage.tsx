@@ -77,10 +77,10 @@ export function StorefrontReelImage({ settings }: { settings: Record<string, any
         {canScrollLeft && (
           <button
             onClick={() => scroll("left")}
-            className="absolute left-4 top-1/2 -translate-y-1/2 z-20 hidden md:flex h-12 w-12 items-center justify-center rounded-full bg-background-elevated text-text-main shadow-[0_4px_20px_rgba(0,0,0,0.15)] transition-all hover:scale-105 border border-border/50"
+            className="absolute left-4 top-1/2 -translate-y-1/2 z-20 hidden md:flex h-8 w-8 items-center justify-center rounded-full bg-black/20 hover:bg-black/45 text-white border border-white/20 shadow-md backdrop-blur-md transition-all hover:scale-110"
             aria-label="Previous slide"
           >
-            <ChevronLeft className="h-6 w-6 stroke-[2]" />
+            <ChevronLeft className="h-4 w-4 stroke-[2]" />
           </button>
         )}
 
@@ -88,10 +88,10 @@ export function StorefrontReelImage({ settings }: { settings: Record<string, any
         {canScrollRight && (
           <button
             onClick={() => scroll("right")}
-            className="absolute right-4 top-1/2 -translate-y-1/2 z-20 hidden md:flex h-12 w-12 items-center justify-center rounded-full bg-background-elevated text-text-main shadow-[0_4px_20px_rgba(0,0,0,0.15)] transition-all hover:scale-105 border border-border/50"
+            className="absolute right-4 top-1/2 -translate-y-1/2 z-20 hidden md:flex h-8 w-8 items-center justify-center rounded-full bg-black/20 hover:bg-black/45 text-white border border-white/20 shadow-md backdrop-blur-md transition-all hover:scale-110"
             aria-label="Next slide"
           >
-            <ChevronRight className="h-6 w-6 stroke-[2]" />
+            <ChevronRight className="h-4 w-4 stroke-[2]" />
           </button>
         )}
 

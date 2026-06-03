@@ -15,6 +15,7 @@ import { StorefrontReelImage } from "./StorefrontReelImage";
 import { StorefrontSlideBanner } from "./StorefrontSlideBanner";
 import { StorefrontSaleBanner } from "./StorefrontSaleBanner";
 import { StorefrontNewArrival } from "./StorefrontNewArrival";
+import { StorefrontCollapsibleContentClient } from "./StorefrontCollapsibleContentClient";
 
 /* --- Import actual beautiful components ----------------------- */
 import { HeroSection } from "@/components/home/HeroSection";
@@ -177,7 +178,7 @@ async function StorefrontProductGrid2({ settings, sectionId }: { settings: Recor
       </div>
       {hasMore && (
         <div className="mt-5 flex justify-center">
-          <Link href={viewAllLink} className="inline-flex rounded-[10px] border border-black/70 bg-white px-5 py-2 text-sm font-semibold text-black">
+          <Link href={viewAllLink} className="inline-flex rounded-[10px] border border-[#432F83] bg-white px-5 py-2 text-sm font-bold text-[#432F83] hover:bg-[#F3EDFE] transition-colors">
             {viewAllText}
           </Link>
         </div>
@@ -357,6 +358,7 @@ function StorefrontImageWithText({ settings }: { settings: Record<string, any> }
 
 /* --- FeaturedCollection ---------------------------------- */
 
+// Keep original structure for featured collection
 function StorefrontFeaturedCollection({ settings }: { settings: Record<string, any> }) {
   return (
     <section className="qh-container qh-section-pad">
@@ -781,25 +783,16 @@ function StorefrontMulticolumn({ settings }: { settings: Record<string, any> }) 
 
 /* --- CollapsibleContent ------------------------------------ */
 function StorefrontCollapsibleContent({ settings }: { settings: Record<string, any> }) {
+  const faqs = [1, 2, 3, 4, 5]
+    .map((i) => ({
+      q: settings[`q${i}`],
+      a: settings[`a${i}`],
+    }))
+    .filter((faq) => faq.q && faq.a);
+
   return (
-    <section className="qh-container qh-section-pad max-w-3xl mx-auto">
-      <h2 className="text-3xl font-bold mb-8 text-center text-text-main">{settings.heading}</h2>
-      <div className="grid gap-4">
-        {[1,2,3,4,5].map(i => {
-          const q = settings[`q${i}`];
-          const a = settings[`a${i}`];
-          if(!q || !a) return null;
-          return (
-            <details key={i} className="group border border-border bg-background-elevated rounded-lg p-4 cursor-pointer">
-              <summary className="font-semibold text-text-main flex justify-between items-center outline-none">
-                {q}
-                <span className="text-text-muted group-open:rotate-180 transition-transform">▼</span>
-              </summary>
-              <div className="mt-4 text-text-muted text-sm leading-relaxed">{a}</div>
-            </details>
-          );
-        })}
-      </div>
+    <section className="qh-container py-8 md:py-10">
+      <StorefrontCollapsibleContentClient heading={settings.heading || "FAQ's"} faqs={faqs} />
     </section>
   );
 }
@@ -808,7 +801,7 @@ function StorefrontCollapsibleContent({ settings }: { settings: Record<string, a
 function StorefrontFeaturedProduct({ settings }: { settings: Record<string, any> }) {
   return (
     <section className="qh-container qh-section-pad text-center">
-      <h2 className="text-3xl font-bold mb-6 text-text-main">{settings.heading}</h2>
+      <h2 className="text-3xl font-bold mb-6 text-[#231F20]">{settings.heading}</h2>
       <p className="text-text-muted">Featured Product Showcase: {settings.productSlug}</p>
     </section>
   );
@@ -818,7 +811,7 @@ function StorefrontFeaturedProduct({ settings }: { settings: Record<string, any>
 function StorefrontVideo({ settings }: { settings: Record<string, any> }) {
   return (
     <section className="qh-container qh-section-pad text-center">
-      <h2 className="text-3xl font-bold mb-8 text-text-main">{settings.heading}</h2>
+      <h2 className="text-3xl font-bold mb-8 text-[#231F20]">{settings.heading}</h2>
       <div className="aspect-video max-w-4xl mx-auto rounded-xl overflow-hidden shadow-lg border border-border">
         {settings.videoUrl ? (
           <iframe src={settings.videoUrl} className="w-full h-full" allowFullScreen />
@@ -988,4 +981,3 @@ export function RenderSections({ sections, theme }: { sections: Section[]; theme
     </div>
   );
 }
-

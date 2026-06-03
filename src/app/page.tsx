@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getBuilderSchema } from "@/lib/builder/fetch-schema";
 import { RenderSections } from "@/components/storefront/SectionRenderer";
+import { PuckContentRenderer } from "@/components/storefront/PuckContentRenderer";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +19,10 @@ export default async function HomePage() {
   const theme = builderSchema?.themeSettings;
 
   if (!homePage || !theme) return null;
+  const showAdvanced = homePage?.lastPublishedBuilder === "advanced" && homePage?.puckData;
+  if (showAdvanced) {
+    return <PuckContentRenderer data={homePage.puckData} />;
+  }
 
   const sections = homePage.sections || [];
   const hasProductSection = sections.some((section) =>
