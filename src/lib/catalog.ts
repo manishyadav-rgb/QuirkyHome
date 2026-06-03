@@ -113,25 +113,106 @@ export async function getCatalogProduct(slug: string): Promise<Product | null> {
             };
           });
 
-          let linkedVariantSlugs: string[] = [];
+          let linkedVariants: NonNullable<Product["linkedVariants"]> = [];
           try {
-            const linkedRows = await query<{ slug: string }>(
-              `select p2.slug
-               from product_variant_links pvl
-               join products p2 on p2.id = pvl.variant_product_id
-               where pvl.product_id = $1
+            const linkedRows = await query<{
+              slug: string;
+              title: string;
+              short_title: string | null;
+              image_url: string | null;
+              sale_price: string | null;
+              mrp: string | null;
+            }>(
+              `with linked_ids as (
+                 select variant_product_id as id
+                 from product_variant_links
+                 where product_id = $1
+                 union
+                 select nullif(pv.attributes->>'linked_product_id', '')::uuid as id
+                 from product_variants pv
+                 where pv.product_id = $1
+                   and nullif(pv.attributes->>'linked_product_id', '') is not null
+               )
+               select
+                 p2.slug,
+                 p2.title,
+                 pv2.attributes->>'variant_short_name' as short_title,
+                 pi2.image_url,
+                 pv2.sale_price::text,
+                 pv2.mrp::text
+               from linked_ids li
+               join products p2 on p2.id = li.id
+               left join product_images pi2 on pi2.product_id = p2.id and pi2.sort_order = 0
+               left join lateral (
+                 select sale_price, mrp, attributes
+                 from product_variants
+                 where product_id = p2.id and is_active = true
+                 order by created_at asc
+                 limit 1
+               ) pv2 on true
+               where p2.is_active = true
                order by p2.title asc`,
               [row.id],
             );
-            linkedVariantSlugs = linkedRows.rows.map((entry) => entry.slug).filter(Boolean);
+            linkedVariants = linkedRows.rows.map((entry) => ({
+              slug: entry.slug,
+              title: entry.title,
+              shortTitle: entry.short_title || entry.title,
+              image: entry.image_url || undefined,
+              price: Number(entry.sale_price || entry.mrp || 0),
+              mrp: Number(entry.mrp || entry.sale_price || 0),
+            }));
           } catch {
-            linkedVariantSlugs = [];
+            try {
+              const legacyRows = await query<{
+                slug: string;
+                title: string;
+                short_title: string | null;
+                image_url: string | null;
+                sale_price: string | null;
+                mrp: string | null;
+              }>(
+                `select
+                   p2.slug,
+                   p2.title,
+                   pv2.attributes->>'variant_short_name' as short_title,
+                   pi2.image_url,
+                   pv2.sale_price::text,
+                   pv2.mrp::text
+                 from product_variants pv
+                 join products p2 on p2.id::text = pv.attributes->>'linked_product_id'
+                 left join product_images pi2 on pi2.product_id = p2.id and pi2.sort_order = 0
+                 left join lateral (
+                   select sale_price, mrp, attributes
+                   from product_variants
+                   where product_id = p2.id and is_active = true
+                   order by created_at asc
+                   limit 1
+                 ) pv2 on true
+                 where pv.product_id = $1
+                   and pv.is_active = true
+                   and p2.is_active = true
+                 order by p2.title asc`,
+                [row.id],
+              );
+              linkedVariants = legacyRows.rows.map((entry) => ({
+                slug: entry.slug,
+                title: entry.title,
+                shortTitle: entry.short_title || entry.title,
+                image: entry.image_url || undefined,
+                price: Number(entry.sale_price || entry.mrp || 0),
+                mrp: Number(entry.mrp || entry.sale_price || 0),
+              }));
+            } catch {
+              linkedVariants = [];
+            }
           }
+          const linkedVariantSlugs = linkedVariants.map((entry) => entry.slug);
 
           if (gallery.length > 0) {
-            return { ...base, image: gallery[0], gallery, variantOptions, linkedVariantSlugs };
+            return { ...base, image: gallery[0], gallery, variantOptions, linkedVariantSlugs, linkedVariants };
           }
-          return { ...base, variantOptions, linkedVariantSlugs };
+          return { ...base, variantOptions, linkedVariantSlugs, linkedVariants };
         }
         return { ...base, variantOptions };
       }

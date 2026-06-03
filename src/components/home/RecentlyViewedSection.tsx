@@ -19,7 +19,7 @@ export function RecentlyViewedSection({
   const [items, setItems] = useState<Product[]>([]);
 
   useEffect(() => {
-    setItems(getRecentlyViewedProducts().slice(0, 4));
+    setItems(getRecentlyViewedProducts().slice(0, 5));
   }, []);
 
   if (items.length === 0) return null;
@@ -35,7 +35,7 @@ export function RecentlyViewedSection({
         {heading ? <h2 className="mt-1 font-display text-[22px] font-black leading-tight text-text-main">{heading}</h2> : null}
         {subheading ? <p className="mt-2 text-sm text-text-muted md:text-base">{subheading}</p> : null}
       </div>
-      <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 lg:gap-5">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         {items.map((product) => (
           <ProductCard key={`recent-${product.slug}`} product={product} />
         ))}

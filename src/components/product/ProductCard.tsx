@@ -18,7 +18,7 @@ export function ProductCard({ product }: { product: Product }) {
   const productHref = `/${product.category || "bedsheet"}/${product.slug}`;
 
   return (
-    <article className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-[#E6E7E8] bg-white transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
+    <article className="group relative flex flex-col justify-between overflow-hidden rounded-xl border border-[#E6E7E8] bg-white transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
       {/* Image & Badges Block */}
       <div className="relative overflow-hidden bg-[#F9FAFC] aspect-square w-full">
         <Link href={productHref} aria-label={product.title} className="absolute inset-0 block">

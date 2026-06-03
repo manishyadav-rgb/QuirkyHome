@@ -10,7 +10,7 @@ export function NewArrivals() {
           New arrivals with main-character energy
         </h2>
       </div>
-      <ProductGrid products={products.slice(1, 5)} />
+      <ProductGrid products={products.slice(1, 6)} />
     </section>
   );
 }

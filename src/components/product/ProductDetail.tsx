@@ -19,6 +19,7 @@ import {
   Sparkles,
   Gift,
   Check,
+  X,
   XCircle
 } from "lucide-react";
 import type { Product } from "@/data/products";
@@ -91,6 +92,7 @@ export function ProductDetail({
   const [activeTab, setActiveTab]                 = useState<"desc" | "specs" | "reviews">("desc");
   const [showStickyBar, setShowStickyBar]         = useState(false);
   const [faqOpen, setFaqOpen]                     = useState<number | null>(null);
+  const [variantModalOpen, setVariantModalOpen]   = useState(false);
 
   // ─── 4. Sticky CTA ───────────────────────────────────────────────────────
   const ctaRef = useRef<HTMLDivElement>(null);
@@ -450,22 +452,22 @@ export function ProductDetail({
             {/* Pincode */}
             <div>
               <p className="text-[10px] font-bold text-[#231F20] mb-1.5">Check Delivery Date</p>
-              <div className="flex gap-1.5 h-10">
+              <div className="flex h-14 gap-2 rounded-xl border border-[#E6E7E8] bg-white p-2 shadow-[0_1px_0_rgba(35,31,32,0.03)]">
                 <input
                   value={pincode}
                   onChange={(e) => setPincode(e.target.value.replace(/\D/g, "").slice(0, 6))}
                   onKeyDown={(e) => { if (e.key === "Enter") checkPincode(); }}
                   placeholder="Enter Pincode"
                   inputMode="numeric"
-                  className="flex-1 min-w-0 rounded-lg border border-[#E6E7E8] px-3 text-xs
+                  className="h-full flex-1 min-w-0 rounded-lg border border-[#EFF0F2] bg-[#F9FAFC] px-3 text-xs
                              text-[#231F20] placeholder-[#909090] focus:outline-none
                              focus:border-[#432F83] focus:ring-2 focus:ring-[#432F83]/15
-                             transition-all h-full"
+                             transition-all"
                 />
                 <button
                   type="button"
                   onClick={checkPincode}
-                  className="h-full rounded-lg bg-[#432F83] px-3 sm:px-4 text-[10px] font-bold
+                  className="h-full rounded-lg bg-[#432F83] px-3 sm:px-4 text-[10px] font-black tracking-wide
                              text-white hover:bg-[#5A31DD] transition-colors active:scale-95 shrink-0"
                 >
                   CHECK
@@ -476,7 +478,73 @@ export function ProductDetail({
             {/* Variant */}
             <div>
               <p className="text-[10px] font-bold text-[#231F20] mb-1.5">Choose Variant</p>
-              {product.variantOptions && product.variantOptions.length > 0 ? (
+              {product.linkedVariants && product.linkedVariants.length > 0 ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setVariantModalOpen(true)}
+                    className="flex h-14 w-full items-center gap-3 rounded-xl border border-[#E6E7E8] bg-white px-2.5 text-left shadow-[0_1px_0_rgba(35,31,32,0.03)] transition-colors hover:border-[#432F83]/45 hover:bg-[#F9FAFC]"
+                  >
+                    <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg border border-[#D9D5EA] bg-[#F9FAFC]">
+                      <Image src={product.image} alt={product.title} fill sizes="58px" className="object-cover" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-[12px] font-extrabold text-[#231F20]">{product.size || product.title}</p>
+                      <p className="text-[10px] font-semibold text-[#8A8A8A]">{product.linkedVariants.length + 1} variants available</p>
+                    </div>
+                    <ChevronDown className="h-4 w-4 shrink-0 text-[#6B6477]" />
+                  </button>
+
+                  {variantModalOpen ? (
+                    <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/40 px-3 pb-3 pt-16 backdrop-blur-[2px] sm:items-center sm:p-4" onClick={() => setVariantModalOpen(false)}>
+                      <div className="w-full max-w-md overflow-hidden rounded-2xl border border-white/80 bg-white shadow-[0_20px_60px_rgba(35,31,32,0.22)]" onClick={(event) => event.stopPropagation()}>
+                        <div className="flex items-center justify-between border-b border-[#EEF0F2] px-4 py-3">
+                          <div>
+                            <h3 className="text-[15px] font-extrabold text-[#231F20]">Choose Variant</h3>
+                            <p className="text-[11px] font-medium text-[#7B7B7B]">Select by image and short title</p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setVariantModalOpen(false)}
+                            className="flex h-8 w-8 items-center justify-center rounded-full border border-[#EEF0F2] bg-[#F9FAFC] text-[#575757] hover:bg-[#F3EDFE] hover:text-[#432F83]"
+                            aria-label="Close variants"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        </div>
+
+                        <div className="grid max-h-[65vh] grid-cols-3 gap-3 overflow-y-auto bg-[#FCFCFD] p-4 sm:grid-cols-4">
+                          <div className="min-w-0">
+                            <div className="relative aspect-square overflow-hidden rounded-xl border-2 border-[#432F83] bg-white shadow-sm">
+                              <Image src={product.image} alt={product.title} fill sizes="90px" className="object-cover" />
+                              <span className="absolute right-1.5 top-1.5 rounded-full bg-[#432F83] px-1.5 py-0.5 text-[8px] font-black text-white">ON</span>
+                            </div>
+                            <p className="mt-1.5 line-clamp-2 text-center text-[10px] font-extrabold leading-tight text-[#432F83]">
+                              {product.size || product.title}
+                            </p>
+                          </div>
+
+                          {product.linkedVariants.map((variant) => (
+                            <Link
+                              key={variant.slug}
+                              href={`/${variant.slug}`}
+                              className="min-w-0"
+                              onClick={() => setVariantModalOpen(false)}
+                            >
+                              <div className="relative aspect-square overflow-hidden rounded-xl border border-[#E2E4E7] bg-white shadow-sm transition-colors hover:border-[#432F83]/50">
+                                {variant.image ? <Image src={variant.image} alt={variant.title} fill sizes="90px" className="object-cover" /> : null}
+                              </div>
+                              <p className="mt-1.5 line-clamp-2 text-center text-[10px] font-semibold leading-tight text-[#4D4D4D]">
+                                {variant.shortTitle || variant.title}
+                              </p>
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  ) : null}
+                </>
+              ) : product.variantOptions && product.variantOptions.length > 0 ? (
                 <div className="relative">
                   <button
                     type="button"

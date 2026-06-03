@@ -4,12 +4,12 @@ import { getBuilderSchema } from "@/lib/builder/fetch-schema";
 import { RenderSections } from "@/components/storefront/SectionRenderer";
 import { PuckContentRenderer } from "@/components/storefront/PuckContentRenderer";
 
-import { categories } from "@/data/categories";
 import { ProductGrid } from "@/components/product/ProductGrid";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { CategoryCard } from "@/components/home/CategoryCard";
 import { getCatalogProducts, getCatalogProduct } from "@/lib/catalog";
 import { ProductDetail } from "@/components/product/ProductDetail";
+import { getStoreCategories } from "@/lib/categories";
 
 export const dynamic = "force-dynamic";
 
@@ -42,6 +42,7 @@ function htmlToPlainText(input: string) {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
+  const categories = await getStoreCategories();
 
   // 1. Try Category first so category pages are never overridden by builder pages.
   const category = categories.find((item) => item.slug === slug);
@@ -110,7 +111,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function DynamicPage({ params, searchParams }: PageProps) {
   const { slug } = await params;
-  const resolvedSearchParams = searchParams ? await searchParams : {};
+  const categories = await getStoreCategories();
   const builderSchema = await getBuilderSchema("quirkyhome");
   const builderPage = Object.values(builderSchema?.pages || {}).find((p) => p.slug === slug);
 
@@ -119,57 +120,13 @@ export default async function DynamicPage({ params, searchParams }: PageProps) {
   if (category) {
     const products = await getCatalogProducts();
     const categoryProducts = products.filter((p) => categoryMatches(p.category || "", slug));
-    const pageNumberRaw = Number.parseInt(String(resolvedSearchParams.page || "1"), 10);
-    const pageNumber = Number.isFinite(pageNumberRaw) && pageNumberRaw > 0 ? pageNumberRaw : 1;
-    const productsPerPage = 12;
-    const totalPages = Math.max(1, Math.ceil(categoryProducts.length / productsPerPage));
-    const currentPage = Math.min(pageNumber, totalPages);
-    const pageStart = (currentPage - 1) * productsPerPage;
-    const paginatedProducts = categoryProducts.slice(pageStart, pageStart + productsPerPage);
-
-    const pageWindowStart = Math.max(1, currentPage - 2);
-    const pageWindowEnd = Math.min(totalPages, pageWindowStart + 4);
-    const pageNumbers = Array.from(
-      { length: Math.max(0, pageWindowEnd - pageWindowStart + 1) },
-      (_, idx) => pageWindowStart + idx
-    );
 
     return (
       <>
         <section className="qh-container qh-section-pad">
           <SectionHeader eyebrow="Category" title={category.name} description={category.description} />
           {categoryProducts.length ? (
-            <>
-              <ProductGrid products={paginatedProducts} />
-              {totalPages > 1 ? (
-                <nav className="mt-8 flex flex-wrap items-center justify-center gap-2" aria-label="Category product pagination">
-                  {currentPage > 1 ? (
-                    <a href={`/${slug}?page=${currentPage - 1}`} className="rounded-md border border-border px-3 py-1.5 text-sm font-semibold text-text-main hover:border-brand-primary hover:text-brand-primary">
-                      Prev
-                    </a>
-                  ) : null}
-                  {pageNumbers.map((page) => (
-                    <a
-                      key={page}
-                      href={`/${slug}?page=${page}`}
-                      aria-current={page === currentPage ? "page" : undefined}
-                      className={`rounded-md border px-3 py-1.5 text-sm font-semibold ${
-                        page === currentPage
-                          ? "border-brand-primary bg-brand-primary text-text-inverse"
-                          : "border-border text-text-main hover:border-brand-primary hover:text-brand-primary"
-                      }`}
-                    >
-                      {page}
-                    </a>
-                  ))}
-                  {currentPage < totalPages ? (
-                    <a href={`/${slug}?page=${currentPage + 1}`} className="rounded-md border border-border px-3 py-1.5 text-sm font-semibold text-text-main hover:border-brand-primary hover:text-brand-primary">
-                      Next
-                    </a>
-                  ) : null}
-                </nav>
-              ) : null}
-            </>
+            <ProductGrid products={categoryProducts} />
           ) : (
             <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-5">
               {categories.slice(0, 5).map((item) => <CategoryCard key={item.slug} category={item} />)}

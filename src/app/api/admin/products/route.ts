@@ -13,6 +13,27 @@ async function ensureVariantLinksTable() {
   );
 }
 
+async function removeProductFromVariantGroups(id: string) {
+  await ensureVariantLinksTable();
+  await query("delete from product_variant_links where product_id = $1 or variant_product_id = $1", [id]);
+  await query(
+    `delete from product_images
+     where variant_id in (
+       select id
+       from product_variants
+       where product_id <> $1
+         and attributes->>'linked_product_id' = $1
+     )`,
+    [id],
+  );
+  await query(
+    `delete from product_variants
+     where product_id <> $1
+       and attributes->>'linked_product_id' = $1`,
+    [id],
+  );
+}
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -173,6 +194,8 @@ export async function DELETE(request: Request) {
     const clearAll = searchParams.get("clearAll") === "1";
 
     if (clearAll) {
+      await ensureVariantLinksTable();
+      await query("delete from product_variant_links");
       await query("delete from products");
       return Response.json({ ok: true, cleared: true });
     }
@@ -181,6 +204,7 @@ export async function DELETE(request: Request) {
       return Response.json({ error: "Product id is required" }, { status: 400 });
     }
 
+    await removeProductFromVariantGroups(id);
     await query("delete from products where id = $1", [id]);
     return Response.json({ ok: true });
   } catch (error) {

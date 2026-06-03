@@ -357,7 +357,7 @@ export default function AccountPage() {
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
         
         {/* Left Column (Flipkart-style Sidebar Menu) */}
-        <div className="md:col-span-4 lg:col-span-3 space-y-4">
+        <div className="order-2 md:order-1 md:col-span-4 lg:col-span-3 space-y-4">
           
           {/* Hello User Welcome Widget */}
           <div className="flex items-center gap-4 bg-white border border-border p-4 rounded-2xl shadow-sm">
@@ -446,15 +446,15 @@ export default function AccountPage() {
         </div>
 
         {/* Right Column (Main Premium Details Panel) */}
-        <div className="md:col-span-8 lg:col-span-9 space-y-6">
+        <div className="order-1 md:order-2 md:col-span-8 lg:col-span-9 space-y-6">
           
           {/* Welcome Banner Card (Now renders beautiful white text!) */}
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-brand-secondary to-brand-primary p-6 sm:p-8 text-white shadow-md border border-brand-primary/20">
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-brand-secondary to-brand-primary p-5 sm:p-8 text-white shadow-md border border-brand-primary/20">
             {/* Ambient decoration blur circles */}
             <div className="absolute right-0 top-0 -mr-16 -mt-16 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none" />
             <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight mb-2">
+                <h2 className="text-xl sm:text-3xl font-extrabold tracking-tight mb-2 leading-tight">
                   Welcome back{user?.name ? `, ${user.name}` : ""}!
                 </h2>
                 <p className="text-xs sm:text-sm text-white/90 max-w-lg leading-relaxed font-semibold">
@@ -468,23 +468,23 @@ export default function AccountPage() {
           </div>
 
           {/* Quick Dashboard Stat Cards */}
-          <div className="grid grid-cols-3 gap-4">
-            <div className="bg-white border border-border p-4 flex flex-col justify-between shadow-sm hover:shadow-md transition-all duration-200 rounded-2xl">
-              <span className="text-[10px] sm:text-[11px] font-bold text-text-soft uppercase tracking-wider">My Orders</span>
+          <div className="grid grid-cols-3 gap-2.5 sm:gap-4">
+            <div className="bg-white border border-border p-3 sm:p-4 min-w-0 flex flex-col justify-between shadow-sm hover:shadow-md transition-all duration-200 rounded-2xl">
+              <span className="text-[9px] sm:text-[11px] font-bold text-text-soft uppercase tracking-wider leading-tight">My Orders</span>
               <div className="flex items-baseline gap-1 mt-2">
                 <span className="text-xl sm:text-2xl font-black text-brand-primary">{orderCount}</span>
                 <span className="text-[9px] text-[#909090] font-bold">Placed</span>
               </div>
             </div>
-            <div className="bg-white border border-border p-4 flex flex-col justify-between shadow-sm hover:shadow-md transition-all duration-200 rounded-2xl">
-              <span className="text-[10px] sm:text-[11px] font-bold text-text-soft uppercase tracking-wider">Wishlist</span>
+            <div className="bg-white border border-border p-3 sm:p-4 min-w-0 flex flex-col justify-between shadow-sm hover:shadow-md transition-all duration-200 rounded-2xl">
+              <span className="text-[9px] sm:text-[11px] font-bold text-text-soft uppercase tracking-wider leading-tight">Wishlist</span>
               <div className="flex items-baseline gap-1 mt-2">
                 <span className="text-xl sm:text-2xl font-black text-brand-primary">{wishlistCount}</span>
                 <span className="text-[9px] text-[#909090] font-bold">Items</span>
               </div>
             </div>
-            <div className="bg-white border border-border p-4 flex flex-col justify-between shadow-sm hover:shadow-md transition-all duration-200 rounded-2xl">
-              <span className="text-[10px] sm:text-[11px] font-bold text-text-soft uppercase tracking-wider">Vouchers</span>
+            <div className="bg-white border border-border p-3 sm:p-4 min-w-0 flex flex-col justify-between shadow-sm hover:shadow-md transition-all duration-200 rounded-2xl">
+              <span className="text-[9px] sm:text-[11px] font-bold text-text-soft uppercase tracking-wider leading-tight">Vouchers</span>
               <div className="flex items-baseline gap-1 mt-2">
                 <span className="text-xl sm:text-2xl font-black text-brand-primary">3</span>
                 <span className="text-[9px] text-[#909090] font-bold">Available</span>

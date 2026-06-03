@@ -85,18 +85,11 @@ export async function GET() {
        cci.product_slug,
        coalesce(p.title, cci.product_title) as product_title,
        coalesce(pi.image_url, cci.product_image) as product_image,
-       coalesce(pv.sale_price, cci.unit_price)::text as unit_price,
-       coalesce(pv.mrp, cci.mrp)::text as mrp,
+       cci.unit_price::text as unit_price,
+       coalesce(cci.mrp, cci.unit_price)::text as mrp,
        cci.quantity
      from customer_cart_items cci
      left join products p on p.slug = cci.product_slug
-     left join lateral (
-       select sale_price, mrp
-       from product_variants
-       where product_id = p.id
-       order by created_at asc
-       limit 1
-     ) pv on true
      left join lateral (
        select image_url
        from product_images
@@ -132,6 +125,7 @@ export async function POST(request: Request) {
      on conflict (cart_id, product_slug) do update
      set quantity = customer_cart_items.quantity + $7,
          unit_price = $5,
+         mrp = $6,
          product_title = $3,
          product_image = $4,
          updated_at = now()`,

@@ -77,7 +77,7 @@ export default function OrdersPage() {
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
         
         {/* Left Column (Flipkart-style Sidebar Menu) */}
-        <div className="md:col-span-4 lg:col-span-3 space-y-4">
+        <div className="order-2 md:order-1 md:col-span-4 lg:col-span-3 space-y-4">
           
           {/* Hello User Welcome Widget */}
           <div className="flex items-center gap-4 bg-white border border-border p-4 rounded-2xl shadow-sm">
@@ -166,7 +166,7 @@ export default function OrdersPage() {
         </div>
 
         {/* Right Column (Orders listing Panel) */}
-        <div className="md:col-span-8 lg:col-span-9 space-y-6">
+        <div className="order-1 md:order-2 md:col-span-8 lg:col-span-9 space-y-6">
           <SectionHeader title="My Orders" description="Track shipment updates, review purchases, and download invoice copies." />
 
           <div className="space-y-4">
@@ -197,11 +197,11 @@ export default function OrdersPage() {
                 const isAccepted = String(ord.status || "").toLowerCase() === "accepted";
 
                 return (
-                  <div key={ord.id} className="rounded-2xl border border-border bg-white p-5 shadow-sm hover:border-brand-primary/10 transition-colors duration-base space-y-4">
+                  <div key={ord.id} className="rounded-2xl border border-border bg-white p-4 sm:p-5 shadow-sm hover:border-brand-primary/10 transition-colors duration-base space-y-4 overflow-hidden">
                     {/* Header info */}
                     <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/50 pb-3">
-                      <div className="flex flex-wrap items-center gap-3">
-                        <span className="bg-brand-primary/10 text-brand-primary text-xs font-bold px-2.5 py-0.5 rounded-lg flex items-center gap-1.5 shadow-tiny">
+                      <div className="min-w-0 flex flex-wrap items-center gap-2 sm:gap-3">
+                        <span className="max-w-full bg-brand-primary/10 text-brand-primary text-[11px] sm:text-xs font-bold px-2.5 py-0.5 rounded-lg inline-flex items-center gap-1.5 shadow-tiny break-all">
                           <Package className="h-3.5 w-3.5" /> Order #{ord.order_number}
                         </span>
                         <span className="text-xs text-text-muted flex items-center gap-1 font-semibold">
@@ -230,24 +230,26 @@ export default function OrdersPage() {
                       {/* Products List */}
                       <div className="space-y-3">
                         {ord.items?.map((item, idx) => (
-                          <div key={`${ord.id}-${idx}`} className="flex items-start gap-3">
+                          <div key={`${ord.id}-${idx}`} className="flex flex-col gap-2 rounded-xl border border-border/50 bg-background-muted/20 p-3 sm:flex-row sm:items-start sm:bg-transparent sm:p-0 sm:border-0">
                             {/* Visual dummy box container icon */}
-                            <div className="h-10 w-10 shrink-0 rounded-lg bg-background-soft/60 border border-border/60 flex items-center justify-center text-brand-primary">
-                              <Package className="h-5 w-5 stroke-[1.5]" />
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <p className="text-xs font-bold text-text-main leading-tight truncate">
-                                {item.product_title}
-                              </p>
-                              <p className="text-[10px] text-text-soft font-semibold mt-0.5">
-                                Quantity: {item.quantity}
-                              </p>
+                            <div className="flex min-w-0 gap-3 sm:flex-1">
+                              <div className="h-10 w-10 shrink-0 rounded-lg bg-background-soft/60 border border-border/60 flex items-center justify-center text-brand-primary">
+                                <Package className="h-5 w-5 stroke-[1.5]" />
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <p className="text-xs font-bold text-text-main leading-snug break-words">
+                                  {item.product_title}
+                                </p>
+                                <p className="text-[10px] text-text-soft font-semibold mt-0.5">
+                                  Quantity: {item.quantity}
+                                </p>
+                              </div>
                             </div>
                             
                             {item.product_slug && (
                               <Link
                                 href={`/account/reviews?product=${encodeURIComponent(item.product_slug)}&title=${encodeURIComponent(item.product_title)}`}
-                                className="rounded-lg border border-border bg-white px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-text-muted hover:border-brand-primary hover:text-brand-primary hover:bg-background-soft/35 transition-colors shrink-0 flex items-center gap-1 shadow-tiny"
+                                className="inline-flex w-full shrink-0 items-center justify-center gap-1 rounded-lg border border-border bg-white px-2.5 py-1.5 text-[9px] font-black uppercase tracking-wider text-text-muted shadow-tiny transition-colors hover:border-brand-primary hover:bg-background-soft/35 hover:text-brand-primary sm:w-auto sm:py-1"
                               >
                                 <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" /> Write review
                               </Link>

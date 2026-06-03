@@ -16,6 +16,14 @@ export type Product = {
   badge: string;
   description: string;
   linkedVariantSlugs?: string[];
+  linkedVariants?: {
+    slug: string;
+    title: string;
+    shortTitle?: string;
+    image?: string;
+    price: number;
+    mrp: number;
+  }[];
   variantOptions?: {
     sku?: string;
     label: string;
