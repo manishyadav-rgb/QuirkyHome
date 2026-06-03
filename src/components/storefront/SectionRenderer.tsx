@@ -86,8 +86,8 @@ async function StorefrontProductGridWrapper({ settings }: { settings: Record<str
   const cols = Math.max(1, Math.floor(toNumberOr(settings.columns, 4)));
   const mobileCols = Math.max(1, Math.floor(toNumberOr(settings.mobileColumns, 2)));
   const rows = Math.max(1, Math.floor(toNumberOr(settings.rows, 2)));
-  const gap = Math.max(0, Math.floor(toNumberOr(settings.gap, 8)));
-  const mobileGap = Math.min(gap, 6);
+  const gap = 8;
+  const mobileGap = 6;
   const limit = cols * rows;
   const limitedProducts = products.slice(0, limit);
 
@@ -151,9 +151,9 @@ async function StorefrontProductGrid2({ settings, sectionId }: { settings: Recor
 
   const uid = getDeterministicId("qh-pg2", settings);
   const css = `
-    .${uid} { display: grid; grid-template-columns: repeat(${mobileCols}, minmax(0, 1fr)); gap: ${Math.min(gap, 12)}px; }
+    .${uid} { display: grid; grid-template-columns: repeat(${mobileCols}, minmax(0, 1fr)); gap: 6px; }
     @media (min-width: 768px) {
-      .${uid} { grid-template-columns: repeat(${desktopCols}, minmax(0, 1fr)); gap: ${gap}px; }
+      .${uid} { grid-template-columns: repeat(${desktopCols}, minmax(0, 1fr)); gap: 8px; }
     }
   `;
 
