@@ -246,7 +246,7 @@ export function ProductDetail({
 
   // ─────────────────────────────────────────────────────────────────────────
   return (
-    <section className="w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 md:py-8 font-sans pb-28 md:pb-12">
+    <section className="w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 md:py-8 font-sans">
 
       {/* ═══════════════════════════════════════════════════════════════════
           TOP GRID: Image Gallery  +  Purchase Details

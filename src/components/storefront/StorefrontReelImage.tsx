@@ -7,7 +7,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 export function StorefrontReelImage({ settings }: { settings: Record<string, any> }) {
   const cardH = settings.cardHeight ?? 400;
   const gap = settings.gap ?? 16;
-  const radius = settings.borderRadius ?? 16;
+  const radius = Math.min(settings.borderRadius ?? 8, 8);
 
   const containerRef = React.useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = React.useState(false);
@@ -106,7 +106,7 @@ export function StorefrontReelImage({ settings }: { settings: Record<string, any
                 className="qh-reel-card relative overflow-hidden group/card bg-gray-100 shadow-sm transition-shadow hover:shadow-lg"
                 style={{
                   height: `${cardH}px`,
-                  aspectRatio: "9/16",
+                  aspectRatio: "3/4",
                   borderRadius: `${radius}px`,
                 }}
               >
