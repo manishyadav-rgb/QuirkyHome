@@ -1,7 +1,7 @@
 import type { Product } from "@/data/products";
 
 export const RECENTLY_VIEWED_KEY = "qh_recently_viewed_products_v1";
-const MAX_RECENTLY_VIEWED = 4;
+const MAX_RECENTLY_VIEWED = 5;
 
 function toStorableProduct(product: Product): Product {
   return {

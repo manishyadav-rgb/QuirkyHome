@@ -121,10 +121,10 @@ export default async function CategoryProductPage({ params }: PageProps) {
 
   const qdrantRecommended = await getRecommendedProducts(product.slug, 8);
   const displayRelated = qdrantRecommended.length > 0
-    ? qdrantRecommended.slice(0, 4)
+    ? qdrantRecommended.slice(0, 5)
     : collectionMatches.length > 0
-    ? collectionMatches.slice(0, 4)
-    : relatedProducts.slice(0, 4);
+    ? collectionMatches.slice(0, 5)
+    : relatedProducts.slice(0, 5);
 
   return (
     <>
