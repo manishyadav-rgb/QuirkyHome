@@ -63,7 +63,7 @@
 }
 
 .qh-header-surface {
-  background: var(--color-bg-main);
+  background: var(--color-bg-elevated);
 }
 
 .qh-scrim {
@@ -125,7 +125,7 @@
   min-height: 3.6rem;
   align-items: center;
   gap: 0.5rem;
-  background: var(--color-bg-main);
+  background: var(--color-bg-elevated);
   padding: 0.3rem 0.55rem;
 }
 
