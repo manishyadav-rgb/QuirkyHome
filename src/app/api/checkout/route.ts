@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { query } from "@/lib/db";
 import { getAuthFromCookies } from "@/lib/auth";
+import { validateCouponForCheckout } from "@/lib/coupons";
 
 export const runtime = "nodejs";
 
@@ -12,17 +13,6 @@ type CartItemRow = {
   unit_price: string;
   mrp: string | null;
   quantity: number;
-};
-
-type CouponRow = {
-  code: string;
-  discount_type: "percent" | "flat";
-  discount_value: string;
-  min_order_amount: string | null;
-  max_discount_amount: string | null;
-  starts_at: string | null;
-  ends_at: string | null;
-  is_active: boolean;
 };
 
 function makeCashfreeOrderId() {
@@ -57,36 +47,6 @@ async function ensureCheckoutTable() {
   await query(`alter table payment_checkout_sessions add column if not exists shipping_total numeric(12,2)`);
   await query(`alter table payment_checkout_sessions add column if not exists coupon_code varchar(60)`);
   await query(`alter table payment_checkout_sessions add column if not exists discount_amount numeric(12,2)`);
-}
-
-async function ensureCouponsTable() {
-  await query(`
-    create table if not exists discount_coupons (
-      id uuid primary key default gen_random_uuid(),
-      site_id varchar(80) not null default 'quirkyhome',
-      code varchar(60) not null,
-      discount_type varchar(20) not null check (discount_type in ('percent', 'flat')),
-      discount_value numeric(12,2) not null,
-      min_order_amount numeric(12,2),
-      max_discount_amount numeric(12,2),
-      starts_at timestamptz,
-      ends_at timestamptz,
-      is_active boolean not null default true,
-      created_at timestamptz not null default now(),
-      updated_at timestamptz not null default now(),
-      unique (site_id, code)
-    )
-  `);
-}
-
-function computeDiscount(subtotal: number, coupon: CouponRow) {
-  const value = Number(coupon.discount_value || 0);
-  if (coupon.discount_type === "percent") {
-    const raw = subtotal * (value / 100);
-    const max = coupon.max_discount_amount ? Number(coupon.max_discount_amount) : null;
-    return max != null ? Math.min(raw, max) : raw;
-  }
-  return Math.min(value, subtotal);
 }
 
 async function ensureUserProfileColumns() {
@@ -150,31 +110,10 @@ export async function POST(req: Request) {
     let normalizedCouponCode: string | null = null;
 
     if (couponCode) {
-      await ensureCouponsTable();
-      const candidate = String(couponCode).trim().toUpperCase();
-      const couponResult = await query<CouponRow>(
-        `select code, discount_type, discount_value::text, min_order_amount::text, max_discount_amount::text,
-                starts_at::text, ends_at::text, is_active
-         from discount_coupons where site_id = 'quirkyhome' and code = $1 limit 1`,
-        [candidate],
-      );
-      const coupon = couponResult.rows[0];
-      if (!coupon || !coupon.is_active) {
-        return NextResponse.json({ error: "Invalid coupon code." }, { status: 400 });
-      }
-      const now = Date.now();
-      if (coupon.starts_at && new Date(coupon.starts_at).getTime() > now) {
-        return NextResponse.json({ error: "Coupon is not active yet." }, { status: 400 });
-      }
-      if (coupon.ends_at && new Date(coupon.ends_at).getTime() < now) {
-        return NextResponse.json({ error: "Coupon has expired." }, { status: 400 });
-      }
-      const minOrder = coupon.min_order_amount ? Number(coupon.min_order_amount) : 0;
-      if (subtotal < minOrder) {
-        return NextResponse.json({ error: `Minimum order amount for this coupon is INR ${minOrder}.` }, { status: 400 });
-      }
-      discountAmount = Number(computeDiscount(subtotal, coupon).toFixed(2));
-      normalizedCouponCode = coupon.code;
+      const validation = await validateCouponForCheckout({ code: couponCode, subtotal, userId: auth.sub });
+      if (!validation.ok) return NextResponse.json({ error: validation.error }, { status: 400 });
+      discountAmount = validation.discountAmount;
+      normalizedCouponCode = validation.coupon.code;
     }
 
     const grandTotal = Number(Math.max(0, subtotal + shippingTotal - discountAmount).toFixed(2));

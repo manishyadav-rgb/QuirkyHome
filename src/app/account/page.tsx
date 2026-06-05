@@ -7,7 +7,17 @@ import { useShop } from "@/components/shop/ShopProvider";
 import Link from "next/link";
 
 type LoginStep = "phone" | "otp" | "name" | "done";
-type UserInfo = { id: string; phone: string; name: string | null; email: string | null; role: string };
+type UserInfo = {
+  id: string;
+  phone: string;
+  name: string | null;
+  email: string | null;
+  role: string;
+  shippingAddress?: string | null;
+  shippingCity?: string | null;
+  shippingState?: string | null;
+  shippingPincode?: string | null;
+};
 type BrandingInfo = { brandName: string; logoText: string; brandColor: string };
 
 export default function AccountPage() {
@@ -24,6 +34,16 @@ export default function AccountPage() {
   const [orderCount, setOrderCount] = useState(0);
   const [branding, setBranding] = useState<BrandingInfo>({ brandName: "QuirkyHome", logoText: "QH", brandColor: "#432F83" });
   const { wishlistCount } = useShop();
+
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editEmail, setEditEmail] = useState("");
+
+  const [isEditingAddress, setIsEditingAddress] = useState(false);
+  const [editAddress, setEditAddress] = useState("");
+  const [editCity, setEditCity] = useState("");
+  const [editState, setEditState] = useState("");
+  const [editPincode, setEditPincode] = useState("");
 
   // Check if already logged in
   useEffect(() => {
@@ -161,6 +181,99 @@ export default function AccountPage() {
     setOtp("");
     setName("");
     setMessage("");
+  }
+
+  const startEditingProfile = () => {
+    setEditName(user?.name || "");
+    setEditEmail(user?.email || "");
+    setIsEditingProfile(true);
+    setMessage("");
+  };
+
+  async function handleUpdateProfile(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setLoading(true);
+    setMessage("");
+    try {
+      const response = await fetch("/api/auth/update-profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: editName, email: editEmail }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error ?? "Could not update profile.");
+      setUser(data.user);
+      setIsEditingProfile(false);
+      setMessage("Profile updated successfully!");
+      setTimeout(() => setMessage(""), 3000);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Could not update profile.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const startEditingAddress = () => {
+    setEditAddress(user?.shippingAddress || "");
+    setEditCity(user?.shippingCity || "");
+    setEditState(user?.shippingState || "");
+    setEditPincode(user?.shippingPincode || "");
+    setIsEditingAddress(true);
+    setMessage("");
+  };
+
+  async function handleUpdateAddress(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setLoading(true);
+    setMessage("");
+    try {
+      const response = await fetch("/api/auth/update-profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          shippingAddress: editAddress,
+          shippingCity: editCity,
+          shippingState: editState,
+          shippingPincode: editPincode,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error ?? "Could not update address.");
+      setUser(data.user);
+      setIsEditingAddress(false);
+      setMessage("Address updated successfully!");
+      setTimeout(() => setMessage(""), 3000);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Could not update address.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleDeleteAddress() {
+    setLoading(true);
+    setMessage("");
+    try {
+      const response = await fetch("/api/auth/update-profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          shippingAddress: " ",
+          shippingCity: " ",
+          shippingState: " ",
+          shippingPincode: " ",
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error ?? "Could not delete address.");
+      setUser(data.user);
+      setMessage("Address deleted successfully!");
+      setTimeout(() => setMessage(""), 3000);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Could not delete address.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   if (checkingAuth) {
@@ -498,75 +611,218 @@ export default function AccountPage() {
               <h3 className="text-base font-bold text-text-main flex items-center gap-2">
                 <UserRound className="h-5 w-5 text-brand-primary" /> Personal Information
               </h3>
-              <span className="text-xs font-bold text-brand-primary hover:underline cursor-pointer">
-                Edit Profile
-              </span>
+              {!isEditingProfile && (
+                <button
+                  onClick={startEditingProfile}
+                  className="text-xs font-bold text-brand-primary hover:underline cursor-pointer bg-transparent border-0"
+                >
+                  Edit Profile
+                </button>
+              )}
             </div>
 
-            <div className="grid gap-6 sm:grid-cols-2">
-              {/* Name Details Field */}
-              <div className="space-y-1">
-                <span className="text-[10px] font-bold text-text-soft uppercase tracking-wider">First Name / Full Name</span>
-                <div className="h-10 flex items-center bg-background-muted px-3.5 rounded-lg border border-border/80 text-xs font-bold text-text-main">
-                  {user?.name || "Not Configured"}
+            {isEditingProfile ? (
+              <form onSubmit={handleUpdateProfile} className="space-y-4">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-text-soft uppercase tracking-wider block">Full Name</label>
+                    <input
+                      type="text"
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                      className="qh-focus h-10 w-full rounded-lg border border-border bg-white px-3 text-xs font-bold text-text-main focus:border-brand-primary"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-text-soft uppercase tracking-wider block">Email Address</label>
+                    <input
+                      type="email"
+                      value={editEmail}
+                      onChange={(e) => setEditEmail(e.target.value)}
+                      className="qh-focus h-10 w-full rounded-lg border border-border bg-white px-3 text-xs font-semibold text-text-main focus:border-brand-primary"
+                      required
+                    />
+                  </div>
                 </div>
-              </div>
+                <div className="flex gap-2 justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setIsEditingProfile(false)}
+                    className="px-4 py-2 border border-border rounded-lg text-xs font-bold text-text-muted hover:bg-background-soft transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="px-4 py-2 bg-[#432F83] text-white rounded-lg text-xs font-bold hover:bg-[#5A31DD] transition-colors"
+                  >
+                    {loading ? "Saving..." : "Save Details"}
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <div className="grid gap-6 sm:grid-cols-2">
+                {/* Name Details Field */}
+                <div className="space-y-1">
+                  <span className="text-[10px] font-bold text-text-soft uppercase tracking-wider">First Name / Full Name</span>
+                  <div className="h-10 flex items-center bg-background-muted px-3.5 rounded-lg border border-border/80 text-xs font-bold text-text-main">
+                    {user?.name || "Not Configured"}
+                  </div>
+                </div>
 
-              {/* Phone Details Field */}
-              <div className="space-y-1">
-                <span className="text-[10px] font-bold text-text-soft uppercase tracking-wider">Mobile Number</span>
-                <div className="h-10 flex items-center bg-background-muted px-3.5 rounded-lg border border-border/80 text-xs font-bold text-[#575757]">
-                  {user?.phone || "Not Registered"}
+                {/* Phone Details Field */}
+                <div className="space-y-1">
+                  <span className="text-[10px] font-bold text-text-soft uppercase tracking-wider">Mobile Number</span>
+                  <div className="h-10 flex items-center bg-background-muted px-3.5 rounded-lg border border-border/80 text-xs font-bold text-[#575757]">
+                    {user?.phone || "Not Registered"}
+                  </div>
                 </div>
-              </div>
 
-              {/* Mock Gender Details Selection */}
-              <div className="space-y-1 sm:col-span-2">
-                <span className="text-[10px] font-bold text-text-soft uppercase tracking-wider block mb-1">Your Gender</span>
-                <div className="flex gap-4">
-                  {["Male", "Female", "Other"].map((g) => {
-                    const isSelected = g === "Male";
-                    return (
-                      <label key={g} className="flex items-center gap-2 cursor-pointer text-xs font-bold text-[#575757]">
-                        <input
-                          type="radio"
-                          name="gender"
-                          checked={isSelected}
-                          readOnly
-                          className="h-3.5 w-3.5 text-brand-primary focus:ring-brand-primary border-border"
-                        />
-                        <span>{g}</span>
-                      </label>
-                    );
-                  })}
+                {/* Mock Gender Details Selection */}
+                <div className="space-y-1 sm:col-span-2">
+                  <span className="text-[10px] font-bold text-text-soft uppercase tracking-wider block mb-1">Your Gender</span>
+                  <div className="flex gap-4">
+                    {["Male", "Female", "Other"].map((g) => {
+                      const isSelected = g === "Male";
+                      return (
+                        <label key={g} className="flex items-center gap-2 cursor-pointer text-xs font-bold text-[#575757]">
+                          <input
+                            type="radio"
+                            name="gender"
+                            checked={isSelected}
+                            readOnly
+                            className="h-3.5 w-3.5 text-brand-primary focus:ring-brand-primary border-border"
+                          />
+                          <span>{g}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
 
-              {/* Mock Email Address Field */}
-              <div className="space-y-1 sm:col-span-2">
-                <span className="text-[10px] font-bold text-text-soft uppercase tracking-wider flex items-center gap-1">
-                  <Mail className="h-3.5 w-3.5" /> Email Address
-                </span>
-                <div className="h-10 flex items-center bg-background-muted px-3.5 rounded-lg border border-border/80 text-xs font-semibold text-text-soft italic">
-                  {user?.name ? `${user.name.toLowerCase().replace(/\s+/g, ".")}@quirkyhome.in` : "add-email@quirkyhome.in"}
+                {/* Email Address Field */}
+                <div className="space-y-1 sm:col-span-2">
+                  <span className="text-[10px] font-bold text-text-soft uppercase tracking-wider flex items-center gap-1">
+                    <Mail className="h-3.5 w-3.5" /> Email Address
+                  </span>
+                  <div className="h-10 flex items-center bg-background-muted px-3.5 rounded-lg border border-border/80 text-xs font-semibold text-text-main">
+                    {user?.email || "Not Configured"}
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
 
-          {/* Flipkart settings address mock directory box */}
+          {/* Flipkart settings address book directory box */}
           <div className="bg-white border border-border rounded-2xl shadow-sm p-6 space-y-4">
             <h3 className="text-base font-bold text-text-main flex items-center gap-2 pb-3 border-b border-border/60">
               <MapPin className="h-5 w-5 text-brand-primary" /> Delivery Addresses
             </h3>
-            
-            <div className="rounded-xl border border-dashed border-border bg-background-muted/40 p-4 text-center">
-              <p className="text-xs font-bold text-text-soft">No saved addresses found.</p>
-              <p className="text-[10px] text-text-soft mt-0.5">Addresses entered during checkout will appear here for 1-click orders.</p>
-              <button className="mt-3 text-xs font-bold text-white bg-brand-primary hover:bg-brand-secondary px-4 py-1.5 rounded-lg transition-colors shadow-sm">
-                + Add New Address
-              </button>
-            </div>
+
+            {isEditingAddress ? (
+              <form onSubmit={handleUpdateAddress} className="space-y-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-text-soft uppercase tracking-wider block">Detailed Address</label>
+                  <textarea
+                    value={editAddress}
+                    onChange={(e) => setEditAddress(e.target.value)}
+                    className="qh-focus w-full rounded-lg border border-border bg-white p-3 text-xs font-bold text-text-main focus:border-brand-primary min-h-[60px]"
+                    required
+                  />
+                </div>
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-text-soft uppercase tracking-wider block">City</label>
+                    <input
+                      type="text"
+                      value={editCity}
+                      onChange={(e) => setEditCity(e.target.value)}
+                      className="qh-focus h-10 w-full rounded-lg border border-border bg-white px-3 text-xs font-bold text-text-main focus:border-brand-primary"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-text-soft uppercase tracking-wider block">State</label>
+                    <input
+                      type="text"
+                      value={editState}
+                      onChange={(e) => setEditState(e.target.value)}
+                      className="qh-focus h-10 w-full rounded-lg border border-border bg-white px-3 text-xs font-bold text-text-main focus:border-brand-primary"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-text-soft uppercase tracking-wider block">Pincode</label>
+                    <input
+                      type="text"
+                      value={editPincode}
+                      onChange={(e) => setEditPincode(e.target.value)}
+                      className="qh-focus h-10 w-full rounded-lg border border-border bg-white px-3 text-xs font-bold text-text-main focus:border-brand-primary"
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="flex gap-2 justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setIsEditingAddress(false)}
+                    className="px-4 py-2 border border-border rounded-lg text-xs font-bold text-text-muted hover:bg-background-soft transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="px-4 py-2 bg-[#432F83] text-white rounded-lg text-xs font-bold hover:bg-[#5A31DD] transition-colors"
+                  >
+                    {loading ? "Saving..." : "Save Address"}
+                  </button>
+                </div>
+              </form>
+            ) : user?.shippingAddress && user.shippingAddress.trim() ? (
+              <div className="rounded-xl border border-border bg-background-soft p-4 space-y-2 relative overflow-hidden">
+                <span className="absolute top-4 right-4 bg-brand-primary/10 text-brand-primary text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
+                  HOME / WORK
+                </span>
+                <p className="text-xs font-bold text-text-main">{user?.name}</p>
+                <p className="text-xs text-text-muted leading-relaxed">
+                  {user?.shippingAddress}
+                  {user?.shippingCity ? `, ${user.shippingCity}` : ""}
+                  {user?.shippingState ? `, ${user.shippingState}` : ""}
+                  {user?.shippingPincode ? ` - ${user.shippingPincode}` : ""}
+                </p>
+                <p className="text-xs text-text-muted mt-1 font-semibold">
+                  📞 Phone: {user?.phone}
+                </p>
+                <div className="flex gap-3 mt-3 pt-3 border-t border-border/60">
+                  <button
+                    onClick={startEditingAddress}
+                    className="text-xs font-bold text-brand-primary hover:underline bg-transparent border-0"
+                  >
+                    Edit Address
+                  </button>
+                  <button
+                    onClick={handleDeleteAddress}
+                    className="text-xs font-bold text-red-600 hover:underline bg-transparent border-0"
+                  >
+                    Delete Address
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-xl border border-dashed border-border bg-background-muted/40 p-4 text-center">
+                <p className="text-xs font-bold text-text-soft">No saved addresses found.</p>
+                <p className="text-[10px] text-text-soft mt-0.5">Addresses entered during checkout will appear here for 1-click orders.</p>
+                <button
+                  onClick={startEditingAddress}
+                  className="mt-3 text-xs font-bold text-white bg-brand-primary hover:bg-brand-secondary px-4 py-1.5 rounded-lg transition-colors shadow-sm"
+                >
+                  + Add New Address
+                </button>
+              </div>
+            )}
           </div>
 
         </div>

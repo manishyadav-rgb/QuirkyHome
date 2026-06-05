@@ -1,12 +1,22 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Package, ChevronRight, Download, Star, FileText, Check, RotateCcw, Truck, Heart, Ticket, Headset, UserRound, LogOut, Calendar } from "lucide-react";
+import { Package, ChevronRight, ChevronDown, Download, Star, FileText, Check, RotateCcw, Truck, Heart, Ticket, Headset, UserRound, LogOut, Calendar } from "lucide-react";
 import Link from "next/link";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { useShop } from "@/components/shop/ShopProvider";
 
-type UserInfo = { id: string; phone: string; name: string | null; email: string | null; role: string };
+type UserInfo = {
+  id: string;
+  phone: string;
+  name: string | null;
+  email: string | null;
+  role: string;
+  shippingAddress?: string | null;
+  shippingCity?: string | null;
+  shippingState?: string | null;
+  shippingPincode?: string | null;
+};
 type Order = {
   id: string;
   order_number: string;
@@ -27,6 +37,7 @@ export default function OrdersPage() {
   const [user, setUser] = useState<UserInfo | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
   const { wishlistCount } = useShop();
 
   useEffect(() => {
@@ -196,6 +207,23 @@ export default function OrdersPage() {
                 const isShipped = String(ord.status || "").toLowerCase() === "shipped";
                 const isAccepted = String(ord.status || "").toLowerCase() === "accepted";
 
+                const isExpanded = expandedOrderId === ord.id;
+
+                const getStatusTimeline = (status: string) => {
+                  const s = status.toLowerCase();
+                  if (s === "delivered") return { step: 4, label: "Delivered" };
+                  if (s === "shipped") return { step: 3, label: "Shipped" };
+                  if (s === "accepted") return { step: 2, label: "Packed" };
+                  return { step: 1, label: "Placed" };
+                };
+
+                const currentStatus = getStatusTimeline(ord.status);
+                const estDeliveryDate = new Date(new Date(ord.created_at).getTime() + 5 * 24 * 60 * 60 * 1000).toLocaleDateString("en-IN", {
+                  day: "numeric",
+                  month: "short",
+                  year: "numeric"
+                });
+
                 return (
                   <div key={ord.id} className="rounded-2xl border border-border bg-white p-4 sm:p-5 shadow-sm hover:border-brand-primary/10 transition-colors duration-base space-y-4 overflow-hidden">
                     {/* Header info */}
@@ -274,18 +302,27 @@ export default function OrdersPage() {
 
                     {/* Action invoice row */}
                     <div className="border-t border-border/50 pt-3 flex flex-wrap items-center justify-between gap-3">
-                      {["accepted", "shipped", "delivered"].includes(String(ord.status || "").toLowerCase()) ? (
-                        <>
+                      <div className="flex flex-wrap items-center gap-2">
+                        {["accepted", "shipped", "delivered"].includes(String(ord.status || "").toLowerCase()) && (
                           <a
                             href={`/invoice/${ord.id}`}
                             className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-white px-3.5 py-1.5 text-[10px] font-black uppercase tracking-wider text-text-main hover:border-brand-primary hover:text-brand-primary hover:bg-background-soft/30 transition-colors shadow-tiny"
                           >
                             <Download className="h-3.5 w-3.5" /> Download Invoice (PDF)
                           </a>
-                          <span className="text-[10px] font-bold text-[#129C80] bg-[#E8F8F5] px-2 py-0.5 rounded flex items-center gap-1">
-                            <Check className="h-3.5 w-3.5 text-[#129C80]" /> Invoice Ready
-                          </span>
-                        </>
+                        )}
+                        <button
+                          onClick={() => setExpandedOrderId(expandedOrderId === ord.id ? null : ord.id)}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-brand-primary/20 bg-brand-primary/5 px-3.5 py-1.5 text-[10px] font-black uppercase tracking-wider text-brand-primary hover:bg-brand-primary/10 transition-colors shadow-tiny"
+                        >
+                          <Truck className="h-3.5 w-3.5" /> {isExpanded ? "Hide Tracking" : "Track Order"}
+                        </button>
+                      </div>
+
+                      {["accepted", "shipped", "delivered"].includes(String(ord.status || "").toLowerCase()) ? (
+                        <span className="text-[10px] font-bold text-[#129C80] bg-[#E8F8F5] px-2 py-0.5 rounded flex items-center gap-1">
+                          <Check className="h-3.5 w-3.5 text-[#129C80]" /> Invoice Ready
+                        </span>
                       ) : (
                         <div className="flex items-center gap-1.5 text-[10px] font-bold text-text-soft">
                           <span className="h-1.5 w-1.5 rounded-full bg-yellow-400 animate-pulse" />
@@ -293,6 +330,145 @@ export default function OrdersPage() {
                         </div>
                       )}
                     </div>
+
+                    {/* Collapsible Order Tracking Stepper */}
+                    {isExpanded && (
+                      <div className="border-t border-border/60 pt-4 mt-4 space-y-6">
+                        <div className="flex items-center justify-between flex-wrap gap-2">
+                          <h4 className="text-xs font-bold uppercase tracking-wider text-text-soft flex items-center gap-1.5">
+                            <Truck className="h-4 w-4 text-brand-primary" /> Delivery Status Tracking
+                          </h4>
+                          <span className="text-xs font-semibold text-text-muted">
+                            {ord.status?.toLowerCase() === "cancelled" ? (
+                              <span className="text-red-600 font-bold">Order Cancelled</span>
+                            ) : ord.status?.toLowerCase() === "delivered" ? (
+                              <span className="text-green-600 font-bold">Delivered</span>
+                            ) : (
+                              <span>Estimated Delivery: {estDeliveryDate}</span>
+                            )}
+                          </span>
+                        </div>
+
+                        {ord.status?.toLowerCase() === "cancelled" ? (
+                          <div className="bg-red-50 border border-red-100 rounded-xl p-4 flex items-center gap-3">
+                            <div className="h-8 w-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center shrink-0 font-bold">
+                              ✕
+                            </div>
+                            <div>
+                              <p className="text-xs font-bold text-red-700">This order has been cancelled.</p>
+                              <p className="text-[10px] text-red-500">Please contact support if you have any queries.</p>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="relative py-4">
+                            {/* Desktop Horizontal Stepper */}
+                            <div className="hidden md:flex items-center justify-between relative">
+                              <div className="absolute left-6 right-6 top-4 h-0.5 bg-border -z-10" />
+                              <div
+                                className="absolute left-6 top-4 h-0.5 bg-brand-primary transition-all duration-500 -z-10"
+                                style={{ width: `${((currentStatus.step - 1) / 3) * 100}%` }}
+                              />
+
+                              {[
+                                { label: "Order Placed", desc: `Placed on ${createdDate}` },
+                                { label: "Packed", desc: currentStatus.step >= 2 ? "Ready for dispatch" : "Pending processing" },
+                                { label: "Shipped", desc: currentStatus.step >= 3 ? "In transit" : "Pending dispatch" },
+                                { label: "Delivered", desc: currentStatus.step >= 4 ? "Delivered successfully" : "Pending delivery" },
+                              ].map((step, idx) => {
+                                const isDone = idx + 1 <= currentStatus.step;
+
+                                return (
+                                  <div key={idx} className="flex flex-col items-center text-center w-32 shrink-0">
+                                    <div
+                                      className={`h-8 w-8 rounded-full flex items-center justify-center border-2 font-bold text-xs transition-all duration-300 ${
+                                        isDone
+                                          ? "bg-brand-primary border-brand-primary text-white shadow-md shadow-brand-primary/20"
+                                          : "bg-white border-border text-text-soft"
+                                      }`}
+                                    >
+                                      {isDone ? "✓" : idx + 1}
+                                    </div>
+                                    <span className={`text-[11px] font-bold mt-2 ${isDone ? "text-brand-primary" : "text-text-muted"}`}>
+                                      {step.label}
+                                    </span>
+                                    <span className="text-[9px] text-text-soft mt-0.5 leading-snug">
+                                      {step.desc}
+                                    </span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+
+                            {/* Mobile Vertical Stepper */}
+                            <div className="flex flex-col gap-4 md:hidden pl-4 relative">
+                              <div className="absolute left-7 top-4 bottom-4 w-0.5 bg-border -z-10" />
+                              <div
+                                className="absolute left-7 top-4 w-0.5 bg-brand-primary transition-all duration-500 -z-10"
+                                style={{ height: `${((currentStatus.step - 1) / 3) * 100}%` }}
+                              />
+
+                              {[
+                                { label: "Order Placed", desc: `Placed on ${createdDate}` },
+                                { label: "Packed", desc: currentStatus.step >= 2 ? "Ready for dispatch" : "Pending processing" },
+                                { label: "Shipped", desc: currentStatus.step >= 3 ? "In transit" : "Pending dispatch" },
+                                { label: "Delivered", desc: currentStatus.step >= 4 ? "Delivered successfully" : "Pending delivery" },
+                              ].map((step, idx) => {
+                                const isDone = idx + 1 <= currentStatus.step;
+
+                                return (
+                                  <div key={idx} className="flex items-start gap-4">
+                                    <div
+                                      className={`h-6 w-6 rounded-full flex items-center justify-center border-2 font-bold text-[10px] shrink-0 transition-all duration-300 ${
+                                        isDone
+                                          ? "bg-brand-primary border-brand-primary text-white shadow-sm"
+                                          : "bg-white border-border text-text-soft"
+                                      }`}
+                                    >
+                                      {isDone ? "✓" : idx + 1}
+                                    </div>
+                                    <div className="flex flex-col">
+                                      <span className={`text-xs font-bold ${isDone ? "text-brand-primary" : "text-text-muted"}`}>
+                                        {step.label}
+                                      </span>
+                                      <span className="text-[10px] text-text-soft leading-snug">
+                                        {step.desc}
+                                      </span>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Shipping Address details inside tracking expanded panel */}
+                        <div className="bg-background-soft border border-border/80 rounded-xl p-4 grid gap-4 md:grid-cols-2">
+                          <div>
+                            <h5 className="text-[10px] font-bold text-text-soft uppercase tracking-wider mb-2">Delivery Address</h5>
+                            <p className="text-xs font-bold text-text-main">{ord.shipping_name || user.name}</p>
+                            <p className="text-xs text-text-muted mt-1 leading-relaxed">
+                              {ord.shipping_address || "No shipping address entered."}
+                              {ord.shipping_city ? `, ${ord.shipping_city}` : ""}
+                              {ord.shipping_state ? `, ${ord.shipping_state}` : ""}
+                              {ord.shipping_pincode ? ` - ${ord.shipping_pincode}` : ""}
+                            </p>
+                            {(ord.shipping_phone || user.phone) && (
+                              <p className="text-xs text-text-muted mt-1 font-semibold flex items-center gap-1">
+                                📞 Phone: {ord.shipping_phone || user.phone}
+                              </p>
+                            )}
+                          </div>
+                          <div className="border-t md:border-t-0 md:border-l border-border/60 pt-3 md:pt-0 md:pl-4">
+                            <h5 className="text-[10px] font-bold text-text-soft uppercase tracking-wider mb-2">Order Options</h5>
+                            <div className="flex flex-col gap-2">
+                              <Link href="/account/help" className="inline-flex items-center justify-center gap-1.5 border border-border bg-white rounded-lg px-3 py-1.5 text-xs font-bold text-text-main hover:bg-background-soft transition-colors w-full sm:w-auto">
+                                <Headset className="h-4 w-4" /> Need Help with Order?
+                              </Link>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
 
                   </div>
                 );

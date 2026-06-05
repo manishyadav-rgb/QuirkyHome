@@ -1,6 +1,7 @@
-import { randomBytes } from "crypto";
+import { randomInt } from "crypto";
 import { NextResponse } from "next/server";
 import { getAuthFromCookies } from "@/lib/auth";
+import { ensureCouponsTable } from "@/lib/coupons";
 import { query } from "@/lib/db";
 
 export const runtime = "nodejs";
@@ -18,8 +19,17 @@ type TransactionRow = {
   type: "earn" | "redeem" | "adjust";
   coins: number;
   note: string | null;
+  coupon_code: string | null;
   order_number: string | null;
   created_at: string;
+};
+
+type RewardCouponRow = {
+  code: string;
+  discount_value: string;
+  ends_at: string | null;
+  used_at: string | null;
+  is_active: boolean;
 };
 
 async function ensureRewardsTable() {
@@ -35,26 +45,9 @@ async function ensureRewardsTable() {
       unique (user_id, order_id, type)
     )
   `);
-}
-
-async function ensureCouponsTable() {
-  await query(`
-    create table if not exists discount_coupons (
-      id uuid primary key default gen_random_uuid(),
-      site_id varchar(80) not null default 'quirkyhome',
-      code varchar(60) not null,
-      discount_type varchar(20) not null check (discount_type in ('percent', 'flat')),
-      discount_value numeric(12,2) not null,
-      min_order_amount numeric(12,2),
-      max_discount_amount numeric(12,2),
-      starts_at timestamptz,
-      ends_at timestamptz,
-      is_active boolean not null default true,
-      created_at timestamptz not null default now(),
-      updated_at timestamptz not null default now(),
-      unique (site_id, code)
-    )
-  `);
+  await query("alter table customer_reward_transactions add column if not exists coupon_code varchar(60)");
+  await query("alter table customer_reward_transactions add column if not exists metadata jsonb not null default '{}'::jsonb");
+  await query("create index if not exists idx_customer_rewards_user_created on customer_reward_transactions(user_id, created_at desc)");
 }
 
 async function syncEarnedCoins(userId: string) {
@@ -62,7 +55,6 @@ async function syncEarnedCoins(userId: string) {
     `select id, order_number, grand_total::text, placed_at::text, created_at::text
      from customer_orders
      where user_id = $1
-       and lower(coalesce(payment_status, '')) in ('paid', 'success', 'completed')
        and lower(coalesce(status, '')) not in ('cancelled', 'canceled', 'refunded')
        and coalesce(grand_total, 0) > 0
      order by created_at desc
@@ -80,6 +72,25 @@ async function syncEarnedCoins(userId: string) {
       [userId, order.id, coins, `Reward coins earned on order ${order.order_number}`],
     );
   }
+}
+
+function randomAlphabetCode(length = 8) {
+  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  let code = "";
+  for (let i = 0; i < length; i += 1) code += alphabet[randomInt(0, alphabet.length)];
+  return code;
+}
+
+async function generateRewardCouponCode() {
+  for (let attempt = 0; attempt < 30; attempt += 1) {
+    const code = `QH${randomAlphabetCode(8)}`;
+    const existing = await query<{ id: string }>(
+      "select id from discount_coupons where site_id = 'quirkyhome' and code = $1 limit 1",
+      [code],
+    );
+    if (!existing.rows[0]) return code;
+  }
+  throw new Error("Could not generate a unique coupon code.");
 }
 
 export async function GET() {
@@ -100,12 +111,25 @@ export async function GET() {
       [auth.sub],
     );
 
+    await ensureCouponsTable();
+
     const transactions = await query<TransactionRow>(
-      `select rt.id, rt.type, rt.coins, rt.note, co.order_number, rt.created_at::text
+      `select rt.id, rt.type, rt.coins, rt.note, rt.coupon_code, co.order_number, rt.created_at::text
        from customer_reward_transactions rt
        left join customer_orders co on co.id = rt.order_id
        where rt.user_id = $1
        order by rt.created_at desc
+       limit 20`,
+      [auth.sub],
+    );
+
+    const coupons = await query<RewardCouponRow>(
+      `select code, discount_value::text, ends_at::text, used_at::text, is_active
+       from discount_coupons
+       where site_id = 'quirkyhome'
+         and user_id = $1
+         and source = 'rewards'
+       order by created_at desc
        limit 20`,
       [auth.sub],
     );
@@ -117,6 +141,10 @@ export async function GET() {
       redeemed: Number(summary.redeemed || 0),
       earnRate: 2,
       transactions: transactions.rows,
+      coupons: coupons.rows.map((coupon) => ({
+        ...coupon,
+        discount_value: Number(coupon.discount_value || 0),
+      })),
     });
   } catch (error) {
     console.error("Rewards GET error:", error);
@@ -144,20 +172,22 @@ export async function POST() {
       return NextResponse.json({ error: "No coins available to convert." }, { status: 400 });
     }
 
-    const code = `QCOINS${randomBytes(3).toString("hex").toUpperCase()}`;
-    await query(
+    const code = await generateRewardCouponCode();
+    const couponResult = await query<{ ends_at: string | null }>(
       `insert into discount_coupons
-       (site_id, code, discount_type, discount_value, min_order_amount, max_discount_amount, starts_at, ends_at, is_active)
-       values ('quirkyhome', $1, 'flat', $2, 0, $2, now(), now() + interval '60 days', true)`,
-      [code, balance],
+       (site_id, code, discount_type, discount_value, min_order_amount, max_discount_amount, starts_at, ends_at,
+        is_active, user_id, source, is_single_use)
+       values ('quirkyhome', $1, 'flat', $2, 0, $2, now(), now() + interval '60 days', true, $3, 'rewards', true)
+       returning ends_at::text`,
+      [code, balance, auth.sub],
     );
     await query(
-      `insert into customer_reward_transactions (user_id, type, coins, note)
-       values ($1, 'redeem', $2, $3)`,
-      [auth.sub, -balance, `Converted ${balance} coins to coupon ${code}`],
+      `insert into customer_reward_transactions (user_id, type, coins, note, coupon_code, metadata)
+       values ($1, 'redeem', $2, $3, $4, $5::jsonb)`,
+      [auth.sub, -balance, `Converted ${balance} coins to coupon ${code}`, code, JSON.stringify({ discountAmount: balance })],
     );
 
-    return NextResponse.json({ ok: true, code, discountAmount: balance, balance: 0 });
+    return NextResponse.json({ ok: true, code, discountAmount: balance, balance: 0, endsAt: couponResult.rows[0]?.ends_at || null });
   } catch (error) {
     console.error("Rewards POST error:", error);
     return NextResponse.json({ error: "Failed to convert coins" }, { status: 500 });

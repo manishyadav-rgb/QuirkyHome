@@ -213,6 +213,78 @@ export function ProductDetail({
     }
   };
 
+  // ─── 7. Description / Specs Parsing ──────────────────────────────────────
+  const parsedLongDescription = useMemo(() => {
+    if (!product.long_description) return null;
+    try {
+      const parsed = JSON.parse(product.long_description);
+      if (parsed && typeof parsed === "object") {
+        return {
+          highlights: Array.isArray(parsed.highlights) ? parsed.highlights : [],
+          details: Array.isArray(parsed.details) ? parsed.details : [],
+          care: Array.isArray(parsed.care) ? parsed.care : [],
+        };
+      }
+    } catch {
+      // Not JSON or legacy string
+    }
+    return null;
+  }, [product.long_description]);
+
+  const highlightsList: string[] = useMemo(() => {
+    if (parsedLongDescription?.highlights && parsedLongDescription.highlights.length > 0) {
+      return parsedLongDescription.highlights.map((item: { label: string; value: string }): string => item.value || item.label);
+    }
+    return [
+      "200 Thread Count Long-Staple Cotton",
+      "360-Degree Premium Elastic Border",
+      "Breathable and Cool Percale Weave",
+      'Deep Pockets fit up to 8" Mattresses',
+    ];
+  }, [parsedLongDescription]);
+
+  const specsList = useMemo(() => {
+    const list = [
+      ["Product Name",   product.title],
+      ["Category",       product.category || "Home Decor"],
+      ...(product.collection ? [["Collection", product.collection]] : []),
+      ["Selected Size",  String(currentSize || "-").toUpperCase()],
+    ];
+
+    const hasCustomDetails = parsedLongDescription?.details && parsedLongDescription.details.length > 0;
+    const hasCustomCare = parsedLongDescription?.care && parsedLongDescription.care.length > 0;
+
+    if (hasCustomDetails) {
+      parsedLongDescription.details.forEach((item: { label: string; value: string }) => {
+        if (item.label && item.value) {
+          const lowerLabel = item.label.toLowerCase();
+          if (!["product name", "category", "collection", "selected size"].includes(lowerLabel)) {
+            list.push([item.label, item.value]);
+          }
+        }
+      });
+    }
+
+    if (hasCustomCare) {
+      parsedLongDescription.care.forEach((item: { label: string; value: string }) => {
+        if (item.label && item.value) {
+          list.push([item.label, item.value]);
+        }
+      });
+    }
+
+    if (!hasCustomDetails && !hasCustomCare) {
+      list.push(
+        ["Thread Count",   "200 TC"],
+        ["Weave Style",    "Percale"],
+        ["Elastic Stitch", "360-Degree Heavy Elastic"]
+      );
+    }
+
+    list.push(["SKU Reference", currentSku || "-"]);
+    return list;
+  }, [product.title, product.category, product.collection, currentSize, parsedLongDescription, currentSku]);
+
   const faqs = [
     {
       q: "Do we need to wash the fitted bedsheets before using them?",
@@ -821,16 +893,41 @@ export function ProductDetail({
                 <h4 className="mb-3 text-xs font-bold text-[#333333] uppercase tracking-wider">
                   About this product
                 </h4>
+                
+                {parsedLongDescription?.details && parsedLongDescription.details.length > 0 ? (
+                  <div className="space-y-1.5 mb-4 border-b border-slate-100 pb-3">
+                    {parsedLongDescription.details.map((item: { label: string; value: string }, idx: number) => (
+                      <p key={idx} className="text-xs font-extrabold text-[#333333] uppercase">
+                        {item.label} : <span className="font-semibold text-slate-500 normal-case">{item.value}</span>
+                      </p>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="space-y-1.5 mb-4 border-b border-slate-100 pb-3">
+                    <p className="text-xs font-extrabold text-[#333333] uppercase">
+                      KING BEDSHEET : <span className="font-semibold text-slate-500 normal-case">108X108 INCHES</span>
+                    </p>
+                    <p className="text-xs font-extrabold text-[#333333] uppercase">
+                      2 PILLOW COVER : <span className="font-semibold text-slate-500 normal-case">20X30 INCHES</span>
+                    </p>
+                    <p className="text-xs font-extrabold text-[#333333] uppercase">
+                      GSM : <span className="font-semibold text-slate-500 normal-case">125</span>
+                    </p>
+                  </div>
+                )}
+
                 <p className="whitespace-pre-line text-sm leading-relaxed text-[#575757]">
                   {product.description ||
                     "Premium quality product curated for modern homes with comfort, durability, and a beautiful finish."}
                 </p>
-                <p className="mt-3 text-sm leading-relaxed text-[#575757]">
-                  Crafted from high-grade cotton yarn, these fitted bedsheets offer a clean percale weave
-                  that remains breathable and crisp night after night. Featuring an elastic band stitched
-                  all along the 360-degree border, it hugs mattresses snugly up to 8 inches in height,
-                  preventing untidy folds or bunching.
-                </p>
+                {!product.description && (
+                  <p className="mt-3 text-sm leading-relaxed text-[#575757]">
+                    Crafted from high-grade cotton yarn, these fitted bedsheets offer a clean percale weave
+                    that remains breathable and crisp night after night. Featuring an elastic band stitched
+                    all along the 360-degree border, it hugs mattresses snugly up to 8 inches in height,
+                    preventing untidy folds or bunching.
+                  </p>
+                )}
               </div>
 
               <div className="rounded-xl border border-[#E6E7E8] bg-[#FDFDFE] p-4 md:p-5">
@@ -838,13 +935,8 @@ export function ProductDetail({
                   Key Highlights
                 </h4>
                 <ul className="space-y-3 text-xs font-semibold text-[#575757]">
-                  {[
-                    "200 Thread Count Long-Staple Cotton",
-                    "360-Degree Premium Elastic Border",
-                    "Breathable and Cool Percale Weave",
-                    'Deep Pockets fit up to 8" Mattresses',
-                  ].map((item) => (
-                    <li key={item} className="flex items-center gap-2">
+                  {highlightsList.map((item: string, idx: number) => (
+                    <li key={idx} className="flex items-center gap-2">
                       <CheckCircle2 className="h-4 w-4 text-[#129C80] shrink-0" />
                       <span>{item}</span>
                     </li>
@@ -859,16 +951,7 @@ export function ProductDetail({
             <div className="overflow-x-auto rounded-xl border border-[#E6E7E8] bg-white shadow-sm">
               <table className="w-full text-xs font-medium min-w-[280px]">
                 <tbody className="divide-y divide-[#E6E7E8]/60">
-                  {[
-                    ["Product Name",   product.title],
-                    ["Category",       product.category || "Home Decor"],
-                    ...(product.collection ? [["Collection", product.collection]] : []),
-                    ["Selected Size",  String(currentSize || "-").toUpperCase()],
-                    ["Thread Count",   "200 TC"],
-                    ["Weave Style",    "Percale"],
-                    ["Elastic Stitch", "360-Degree Heavy Elastic"],
-                    ["SKU Reference",  currentSku],
-                  ].map(([label, value]) => (
+                  {specsList.map(([label, value]) => (
                     <tr key={label} className="hover:bg-[#F9FAFC] transition-colors">
                       <td className="bg-[#F9FAFC] px-4 py-3 font-bold text-[#333333] whitespace-nowrap w-2/5">
                         {label}

@@ -1,7 +1,6 @@
 "use client";
 
 import { Camera, Search, ArrowRight, Sparkles } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { formatPrice } from "@/data/products";
@@ -32,7 +31,6 @@ export function SearchBar({
   const [filtered, setFiltered] = useState<SlimProduct[]>([]);
   const [focused, setFocused] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const router = useRouter();
 
   // -- Dynamic Typing Placeholder Effect --
   const typingWords = categories.slice(0, 8).map(c => c.name.toLowerCase() + "s");
@@ -151,7 +149,7 @@ export function SearchBar({
     event.preventDefault();
     const nextQuery = query.trim();
     setFocused(false);
-    router.push(nextQuery ? `/search?q=${encodeURIComponent(nextQuery)}` : "/search");
+    window.location.assign(nextQuery ? `/search?q=${encodeURIComponent(nextQuery)}` : "/search");
   }
 
   // Calculate unique matching categories to suggest
@@ -282,7 +280,7 @@ export function SearchBar({
             <button
               onClick={() => {
                 setFocused(false);
-                router.push(`/search?q=${encodeURIComponent(query.trim())}`);
+                window.location.assign(`/search?q=${encodeURIComponent(query.trim())}`);
               }}
               className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-brand-primary/10 py-2.5 text-xs font-bold text-brand-primary hover:bg-brand-primary hover:text-text-inverse transition-all"
             >

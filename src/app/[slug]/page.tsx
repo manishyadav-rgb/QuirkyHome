@@ -30,7 +30,24 @@ function categoryMatches(productCategory: string, slug: string) {
   // Keep bedding pages compatible with legacy "bedsheet" category data.
   if (normalizedSlug === "bedding" && normalizedProductCategory === "bedsheet") return true;
 
+  // Map virtual separate bath and gifts routes to the combined bath-gifts category in DB
+  if ((normalizedSlug === "bath" || normalizedSlug === "gifts") && normalizedProductCategory === "bath-gifts") return true;
+
   return false;
+}
+
+function findCategoryBySlug(categories: any[], slug: string) {
+  let category = categories.find((item) => item.slug === slug);
+  if (!category && (slug === "bath" || slug === "gifts")) {
+    const parent = categories.find(c => c.slug === "bath-gifts");
+    category = {
+      name: slug === "bath" ? "Bath" : "Gifts",
+      slug: slug,
+      image: parent?.image || "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=900&q=80",
+      description: slug === "bath" ? "Bath linens, towels, and self-care essentials." : "Thoughtful gifting picks for housewarmings, festivals, and surprises."
+    };
+  }
+  return category;
 }
 
 function htmlToPlainText(input: string) {
@@ -42,10 +59,13 @@ function htmlToPlainText(input: string) {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
+  if (slug === "bedsheet") {
+    redirect("/bedding");
+  }
   const categories = await getStoreCategories();
 
   // 1. Try Category first so category pages are never overridden by builder pages.
-  const category = categories.find((item) => item.slug === slug);
+  const category = findCategoryBySlug(categories, slug);
   if (category) {
     return {
       title: `Buy ${category.name} Online`,
@@ -111,12 +131,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function DynamicPage({ params, searchParams }: PageProps) {
   const { slug } = await params;
+  if (slug === "bedsheet") {
+    redirect("/bedding");
+  }
   const categories = await getStoreCategories();
   const builderSchema = await getBuilderSchema("quirkyhome");
   const builderPage = Object.values(builderSchema?.pages || {}).find((p) => p.slug === slug);
 
   // 1. Check Category first so category product listing always works.
-  const category = categories.find((item) => item.slug === slug);
+  const category = findCategoryBySlug(categories, slug);
   if (category) {
     const products = await getCatalogProducts();
     const categoryProducts = products.filter((p) => categoryMatches(p.category || "", slug));

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { CheckCircle2, XCircle } from "lucide-react";
 import { randomBytes } from "crypto";
 import { query } from "@/lib/db";
+import { markSingleUseCouponUsed } from "@/lib/coupons";
 
 export const dynamic = "force-dynamic";
 
@@ -116,6 +117,7 @@ async function finalizeOrderIfPaid(orderId: string) {
   );
 
   const dbOrderId = orderResult.rows[0].id;
+  await markSingleUseCouponUsed(session.coupon_code, dbOrderId);
 
   for (const item of session.cart_snapshot) {
     const lineTotal = parseFloat(item.unit_price) * item.quantity;

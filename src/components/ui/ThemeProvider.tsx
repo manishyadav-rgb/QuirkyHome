@@ -11,7 +11,7 @@ import type { ThemeConfig } from "@/lib/theme-definitions";
  * This approach bypasses the data-theme CSS attribute entirely
  * and injects colors via JS — so custom overrides always work.
  */
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
+export function ThemeProvider({ children }: { children?: React.ReactNode }) {
   const applyTheme = useCallback((config: ThemeConfig) => {
     const tokens = resolveThemeTokens(config);
     const root = document.documentElement;
@@ -49,5 +49,5 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     return () => clearInterval(interval);
   }, [applyTheme]);
 
-  return <>{children}</>;
+  return <>{children || null}</>;
 }

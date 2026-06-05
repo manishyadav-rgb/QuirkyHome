@@ -128,7 +128,7 @@ async function getCustomerAuth(): Promise<boolean> {
   }
 }
 
-export function ShopProvider({ children }: { children: React.ReactNode }) {
+function useShopState(): ShopContextValue {
   const [cartLines, setCartLines] = useState<CartLine[]>([]);
   const [wishlistSlugs, setWishlistSlugs] = useState<string[]>([]);
   const [wishlistProducts, setWishlistProducts] = useState<Product[]>([]);
@@ -282,7 +282,7 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
 
   const subtotal = cart.reduce((sum, item) => sum + item.lineTotal, 0);
 
-  const value = useMemo<ShopContextValue>(() => ({
+  return useMemo<ShopContextValue>(() => ({
     cart,
     wishlist,
     cartCount: cart.reduce((sum, item) => sum + item.quantity, 0),
@@ -296,12 +296,15 @@ export function ShopProvider({ children }: { children: React.ReactNode }) {
     toggleWishlist,
     isWishlisted: (slug) => wishlistSlugs.includes(slug),
   }), [addToCart, cart, cartLines, removeFromCart, subtotal, toggleCartItem, toggleWishlist, updateCartQuantity, wishlist, wishlistSlugs]);
+}
 
+export function ShopProvider({ children }: { children: React.ReactNode }) {
+  const value = useShopState();
   return <ShopContext.Provider value={value}>{children}</ShopContext.Provider>;
 }
 
 export function useShop() {
   const context = useContext(ShopContext);
-  if (!context) throw new Error("useShop must be used inside ShopProvider");
-  return context;
+  const fallback = useShopState();
+  return context || fallback;
 }

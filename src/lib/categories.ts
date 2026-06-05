@@ -49,8 +49,34 @@ async function seedFallbackCategories(siteId: string) {
   }
 }
 
+function processCategories(list: Category[]): Category[] {
+  const result: Category[] = [];
+  list.forEach((cat) => {
+    const slug = cat.slug?.toLowerCase();
+    const name = cat.name?.toLowerCase();
+    if (slug === "bedsheet" || name === "bedsheet" || slug === "bedsheets" || name === "bedsheets" || slug?.includes("bedsheet") || name?.includes("bedsheet")) return; // Skip
+    if (slug === "bath-gifts" || name === "bath-gifts" || name === "bath gifts") {
+      result.push({
+        name: "Bath",
+        slug: "bath",
+        image: cat.image,
+        description: "Bath linens, towels, and self-care essentials."
+      });
+      result.push({
+        name: "Gifts",
+        slug: "gifts",
+        image: cat.image,
+        description: "Thoughtful gifting picks for occasions and festivals."
+      });
+    } else {
+      result.push(cat);
+    }
+  });
+  return result;
+}
+
 export async function getStoreCategories(siteId = "quirkyhome"): Promise<Category[]> {
-  if (!process.env.DATABASE_URL) return fallbackCategories;
+  if (!process.env.DATABASE_URL) return processCategories(fallbackCategories);
 
   try {
     await ensureCategoriesTable();
@@ -72,9 +98,10 @@ export async function getStoreCategories(siteId = "quirkyhome"): Promise<Categor
         description: row.description || `Shop ${row.name} products at QuirkyHome.`,
       }));
 
-    return dbCategories.length ? dbCategories : fallbackCategories;
+    const finalCategories = dbCategories.length ? dbCategories : fallbackCategories;
+    return processCategories(finalCategories);
   } catch (error) {
     console.error("getStoreCategories DB error:", error);
-    return fallbackCategories;
+    return processCategories(fallbackCategories);
   }
 }

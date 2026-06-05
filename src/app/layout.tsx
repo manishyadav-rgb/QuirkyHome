@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import "@/styles/globals.css";
-import { ShopProvider } from "@/components/shop/ShopProvider";
-import { AppChrome } from "@/components/layout/AppChrome";
+import { AppChromeBottom, AppChromeTop } from "@/components/layout/AppChrome";
 import { ThemeProvider } from "@/components/ui/ThemeProvider";
 
 export const metadata: Metadata = {
@@ -81,11 +80,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="qh-bottom-nav-safe md:pb-0">
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }} />
-        <ThemeProvider>
-          <ShopProvider>
-            <AppChrome>{children}</AppChrome>
-          </ShopProvider>
-        </ThemeProvider>
+        <ThemeProvider />
+        <AppChromeTop />
+        <main>{children}</main>
+        <AppChromeBottom />
       </body>
     </html>
   );

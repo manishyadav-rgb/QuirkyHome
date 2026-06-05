@@ -15,6 +15,7 @@ export type Product = {
   mrp: number;
   badge: string;
   description: string;
+  long_description?: string | null;
   linkedVariantSlugs?: string[];
   linkedVariants?: {
     slug: string;

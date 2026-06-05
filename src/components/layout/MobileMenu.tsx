@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ChevronDown, ChevronRight, Grid2X2, Layers, Menu, RotateCcw, Sparkles, Truck, UserRound, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { categories as fallbackCategories, type Category } from "@/data/categories";
 import { collections as fallbackCollections, type Collection } from "@/data/collections";
 import { Button } from "@/components/ui/Button";
@@ -21,6 +21,32 @@ export function MobileMenuDrawer({ open, onClose }: { open: boolean; onClose: ()
   const [menuCollections, setMenuCollections] = useState<Collection[]>(fallbackCollections);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
   const [collectionsOpen, setCollectionsOpen] = useState(false);
+
+  const processedMenuCategories = useMemo(() => {
+    const list: Category[] = [];
+    menuCategories.forEach((cat) => {
+      const slug = cat.slug?.toLowerCase();
+      const name = cat.name?.toLowerCase();
+      if (slug === "bedsheet" || name === "bedsheet" || slug === "bedsheets" || name === "bedsheets" || slug?.includes("bedsheet") || name?.includes("bedsheet")) return; // Skip
+      if (slug === "bath-gifts" || name === "bath-gifts" || name === "bath gifts") {
+        list.push({
+          name: "Bath",
+          slug: "bath",
+          image: cat.image || "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=900&q=80",
+          description: "Bath linens, towels, and self-care essentials."
+        });
+        list.push({
+          name: "Gifts",
+          slug: "gifts",
+          image: cat.image || "https://images.unsplash.com/photo-1513885535751-8b9238bd345a?auto=format&fit=crop&w=900&q=80",
+          description: "Thoughtful gifting picks for occasions and festivals."
+        });
+      } else {
+        list.push(cat);
+      }
+    });
+    return list;
+  }, [menuCategories]);
 
   useEffect(() => {
     let active = true;
@@ -87,7 +113,7 @@ export function MobileMenuDrawer({ open, onClose }: { open: boolean; onClose: ()
 
             <div className="shrink-0 border-b border-border/60 bg-background-elevated px-5 py-5">
               <div className="hide-scrollbar flex gap-3 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              {menuCategories.slice(0, 8).map((category) => (
+              {processedMenuCategories.slice(0, 8).map((category) => (
                 <Link key={category.slug} href={`/${category.slug}`} className="group w-[72px] shrink-0 text-center" onClick={onClose} aria-label={category.name}>
                   <div className="relative mx-auto h-16 w-16 overflow-hidden rounded-full bg-background-soft ring-1 ring-border/80">
                     <img src={category.image} alt={category.name} className="h-full w-full object-cover transition-transform duration-base group-hover:scale-105" />
@@ -139,7 +165,7 @@ export function MobileMenuDrawer({ open, onClose }: { open: boolean; onClose: ()
 
               {categoriesOpen ? (
                 <div className="grid gap-2 px-4 pb-4">
-                  {menuCategories.map((category) => (
+                  {processedMenuCategories.map((category) => (
                     <Link
                       key={category.slug}
                       href={`/${category.slug}`}
@@ -211,14 +237,9 @@ export function MobileMenuDrawer({ open, onClose }: { open: boolean; onClose: ()
                 <span className="rounded-lg bg-brand-primary/10 px-4 py-1 text-sm font-bold text-brand-primary">NEW</span>
                 <ChevronRight className="h-6 w-6" />
               </Link>
-              <Link href="/account" onClick={onClose} className="flex items-center gap-4 border-b border-border px-6 py-5 text-base font-bold text-text-main">
+              <Link href="/account" onClick={onClose} className="flex items-center gap-4 px-6 py-5 text-base font-bold text-text-main">
                 <Truck className="h-6 w-6" />
                 <span className="flex-1">Track Your Order</span>
-                <ChevronRight className="h-6 w-6" />
-              </Link>
-              <Link href="/account" onClick={onClose} className="flex items-center gap-4 px-6 py-5 text-base font-bold text-text-main">
-                <RotateCcw className="h-6 w-6" />
-                <span className="flex-1">Return / Exchange</span>
                 <ChevronRight className="h-6 w-6" />
               </Link>
             </div>

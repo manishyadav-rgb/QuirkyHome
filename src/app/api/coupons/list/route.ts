@@ -1,36 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getAuthFromCookies } from "@/lib/auth";
+import { ensureCouponsTable } from "@/lib/coupons";
 import { query } from "@/lib/db";
-
-async function ensureCouponsTable() {
-  await query(`
-    create table if not exists discount_coupons (
-      id uuid primary key default gen_random_uuid(),
-      site_id varchar(80) not null default 'quirkyhome',
-      code varchar(60) not null,
-      discount_type varchar(20) not null check (discount_type in ('percent', 'flat')),
-      discount_value numeric(12,2) not null,
-      min_order_amount numeric(12,2),
-      max_discount_amount numeric(12,2),
-      starts_at timestamptz,
-      ends_at timestamptz,
-      is_active boolean not null default true,
-      created_at timestamptz not null default now(),
-      updated_at timestamptz not null default now(),
-      unique (site_id, code)
-    )
-  `);
-}
 
 export async function GET(request: NextRequest) {
   try {
     await ensureCouponsTable();
-    
+    const auth = await getAuthFromCookies();
+
     const result = await query(`
-      select code, discount_type, discount_value::text, min_order_amount::text, max_discount_amount::text
+      select code, discount_type, discount_value::text, min_order_amount::text, max_discount_amount::text, source, is_single_use
       from discount_coupons
-      where site_id = 'quirkyhome' and is_active = true
+      where site_id = 'quirkyhome'
+        and is_active = true
+        and (user_id is null or user_id = $1)
+        and (is_single_use = false or used_at is null)
       order by created_at desc
-    `);
+    `, [auth?.sub || null]);
 
     return NextResponse.json({
       success: true,
