@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/next";
 import "@/styles/globals.css";
 import { AppChromeBottom, AppChromeTop } from "@/components/layout/AppChrome";
 import { ThemeProvider } from "@/components/ui/ThemeProvider";
@@ -84,6 +85,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AppChromeTop />
         <main>{children}</main>
         <AppChromeBottom />
+        <Analytics />
       </body>
     </html>
   );

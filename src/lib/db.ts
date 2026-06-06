@@ -27,6 +27,10 @@ function getConnectionString() {
   return databaseUrl;
 }
 
+export function isDatabaseConfigured() {
+  return Boolean(process.env.DATABASE_URL);
+}
+
 export function getDb() {
   if (!globalThis.qhPgPool) {
     const { Pool } = require("pg");

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { query } from "@/lib/db";
+import { isDatabaseConfigured, query } from "@/lib/db";
 import { BASE_URL } from "@/lib/sitemaps";
 import type { Metadata } from "next";
 
@@ -18,12 +18,14 @@ export const metadata: Metadata = {
 };
 
 export default async function PostsPage() {
-  const rows = await query<BlogRow>(
-    `select slug, title, excerpt, cover_image, image_alt
-     from blog_posts
-     where published = true
-     order by created_at desc`,
-  );
+  const rows = isDatabaseConfigured()
+    ? await query<BlogRow>(
+        `select slug, title, excerpt, cover_image, image_alt
+         from blog_posts
+         where published = true
+         order by created_at desc`,
+      )
+    : { rows: [] };
 
   return (
     <section className="qh-container qh-section-pad">

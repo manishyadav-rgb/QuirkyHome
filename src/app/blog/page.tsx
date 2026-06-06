@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { query } from "@/lib/db";
+import { isDatabaseConfigured, query } from "@/lib/db";
 
 type BlogRow = {
   slug: string;
@@ -10,12 +10,14 @@ type BlogRow = {
 };
 
 export default async function BlogPage() {
-  const rows = await query<BlogRow>(
-    `select slug, title, excerpt, cover_image, image_alt
-     from blog_posts
-     where published = true
-     order by created_at desc`,
-  );
+  const rows = isDatabaseConfigured()
+    ? await query<BlogRow>(
+        `select slug, title, excerpt, cover_image, image_alt
+         from blog_posts
+         where published = true
+         order by created_at desc`,
+      )
+    : { rows: [] };
 
   return (
     <section className="qh-container qh-section-pad">
@@ -36,4 +38,3 @@ export default async function BlogPage() {
     </section>
   );
 }
-

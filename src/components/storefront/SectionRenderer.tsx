@@ -29,7 +29,7 @@ import { ShieldCheck, Sparkles, Truck, Undo2, WalletCards, ChevronLeft, ChevronR
 import { ProductCard } from "@/components/product/ProductCard";
 import { ProductGrid2Card } from "@/components/product/ProductGrid2Card";
 import { RecentlyViewedSection } from "@/components/home/RecentlyViewedSection";
-import { query } from "@/lib/db";
+import { isDatabaseConfigured, query } from "@/lib/db";
 
 function toNumberOr(value: unknown, fallback: number) {
   const num = typeof value === "number" ? value : Number(value);
@@ -388,6 +388,8 @@ type BlogRow = {
 };
 
 async function StorefrontBlogGrid({ settings }: { settings: Record<string, any> }) {
+  if (!isDatabaseConfigured()) return null;
+
   const slugs = String(settings.blogSlugs || "")
     .split(",")
     .map((x) => x.trim())
