@@ -1,0 +1,22 @@
+import Image from "next/image";
+import Link from "next/link";
+import type { Category } from "@/data/categories";
+
+type CategoryCardItem = Category & { href?: string };
+
+export function CategoryCard({ category }: { category: CategoryCardItem }) {
+  const href = category.href || `/${category.slug}`;
+
+  return (
+    <Link href={href} className="group block text-center transition-all duration-base hover:-translate-y-1">
+      <div className="qh-image-shell relative mx-auto h-28 w-28 rounded-full border border-border bg-background-elevated shadow-soft md:h-36 md:w-36">
+        <Image src={category.image} alt={category.name} fill sizes="(min-width: 1024px) 20vw, 50vw" className="object-cover transition-transform duration-slow group-hover:scale-105" />
+      </div>
+      <div className="pt-3">
+        <h3 className="text-base font-bold text-text-main group-hover:text-brand-primary">{category.name}</h3>
+        <p className="mx-auto mt-1 hidden max-w-44 text-sm text-text-muted md:line-clamp-2">{category.description}</p>
+      </div>
+    </Link>
+  );
+}
+
