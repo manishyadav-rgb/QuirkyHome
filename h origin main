@@ -1,0 +1,5 @@
+[33mb29641c[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Add Vercel analytics and harden blog build
+[33m0aeec67[m Add rewards coupons and storefront UI fixes
+[33m5b37054[m Hardcode 8px desktop / 6px mobile card gaps on dynamic homepage product grids to guarantee consistency with Recently Viewed Products
+[33m7360936[m Update default gaps for homepage CMS product grids in SectionRenderer.tsx to match Listing page gaps (8px desktop, 6px mobile)
+[33mcc130f7[m Reduce product grid gaps to 6px on mobile (gap-1.5) and 8px on desktop (sm:gap-2) for a tighter, cleaner card layout

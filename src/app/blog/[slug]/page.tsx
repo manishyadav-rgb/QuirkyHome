@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { isDatabaseConfigured, query } from "@/lib/db";
+import { query } from "@/lib/db";
 
 type BlogRow = {
   slug: string;
@@ -11,8 +11,6 @@ type BlogRow = {
 
 export default async function BlogDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  if (!isDatabaseConfigured()) notFound();
-
   const row = await query<BlogRow>(
     `select slug, title, content_html, cover_image, image_alt
      from blog_posts
@@ -31,3 +29,4 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
     </article>
   );
 }
+

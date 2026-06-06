@@ -52,8 +52,8 @@ export function Footer() {
               </div>
               <div className="flex items-center gap-2.5">
                 <Mail className="h-4 w-4 shrink-0 text-slate-400" />
-                <a href="mailto:support@quirkyhome.in" className="hover:text-brand-primary transition-colors font-medium">
-                  support@quirkyhome.in
+                <a href="mailto:support@euruslifestyle.in" className="hover:text-brand-primary transition-colors font-medium">
+                  support@euruslifestyle.in
                 </a>
               </div>
             </div>
@@ -166,7 +166,7 @@ export function Footer() {
               <div className="relative flex-1">
                 <input
                   type="email"
-                  placeholder="Your email address"
+                  placeholder="Your email address..."
                   className="w-full rounded-lg bg-white border border-slate-300 px-4 py-2 text-xs md:text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary/20 transition-colors"
                   required
                 />

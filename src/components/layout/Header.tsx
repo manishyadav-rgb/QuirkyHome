@@ -84,7 +84,7 @@ export function Header() {
               <span className="hidden text-xs font-black leading-none lg:inline">
                 {rewardCoins && rewardCoins > 0 ? `${rewardCoins} Coins` : "Coins"}
               </span>
-              <div className="pointer-events-none absolute right-0 top-full z-[260] mt-2 w-72 translate-y-2 rounded-2xl border border-border bg-background-main p-4 text-left opacity-0 shadow-xl transition-all duration-200 group-hover:translate-y-0 group-hover:opacity-100">
+              <div className="pointer-events-none absolute right-0 top-full z-20 mt-2 w-72 translate-y-2 rounded-2xl border border-border bg-background-main p-4 text-left opacity-0 shadow-xl transition-all duration-200 group-hover:translate-y-0 group-hover:opacity-100">
                 <p className="text-sm font-black text-text-main">Quirky Coins</p>
                 <p className="mt-1 text-xs leading-5 text-text-muted">
                   Earn coins on every paid order, then convert them into a coupon or redeem them on your next purchase.
@@ -95,13 +95,13 @@ export function Header() {
               const Icon = action.icon;
               if (action.label === "Account") {
                 return (
-                  <div key={action.href} className="group relative z-[250]">
+                  <div key={action.href} className="group relative">
                     <Link href={action.href} className="qh-focus relative inline-flex h-10 w-10 items-center justify-center rounded-full text-text-muted transition-all duration-base hover:bg-background-soft hover:text-brand-primary" aria-label={action.label}>
                       <Icon className="h-5 w-5" />
                     </Link>
                     {/* Flipkart-style Account Dropdown */}
-                    <div className="absolute right-0 top-full z-[260] invisible mt-2 w-64 translate-y-2 opacity-0 transition-all duration-200 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
-                      <div className="rounded-xl border border-border bg-background-main py-2 shadow-2xl ring-1 ring-black/5">
+                    <div className="absolute right-0 top-full invisible mt-2 w-64 translate-y-2 opacity-0 transition-all duration-200 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
+                      <div className="rounded-xl border border-border bg-background-main py-2 shadow-xl">
                         <div className="border-b border-border px-5 py-3">
                           <p className="font-semibold text-text-main">Hello, User</p>
                           <p className="text-sm text-text-muted">Manage your profile and orders</p>

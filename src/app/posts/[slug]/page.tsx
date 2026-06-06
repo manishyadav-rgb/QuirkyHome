@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { isDatabaseConfigured, query } from "@/lib/db";
+import { query } from "@/lib/db";
 import { getBuilderSchema } from "@/lib/builder/fetch-schema";
 import { PuckContentRenderer } from "@/components/storefront/PuckContentRenderer";
 import { RenderSections } from "@/components/storefront/SectionRenderer";
@@ -19,15 +19,13 @@ type BlogRow = {
 async function getPostContext(slug: string) {
   const schema = await getBuilderSchema("quirkyhome");
   const page = Object.values(schema?.pages || {}).find((p: any) => p?.slug === slug) as any;
-  const row = isDatabaseConfigured()
-    ? await query<BlogRow>(
-        `select slug, title, content_html, cover_image, image_alt, created_at, updated_at
-         from blog_posts
-         where slug = $1 and published = true
-         limit 1`,
-        [slug],
-      )
-    : { rows: [] };
+  const row = await query<BlogRow>(
+    `select slug, title, content_html, cover_image, image_alt, created_at, updated_at
+     from blog_posts
+     where slug = $1 and published = true
+     limit 1`,
+    [slug],
+  );
   const post = row.rows[0] || null;
   return { schema, page, post };
 }
