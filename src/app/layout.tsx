@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "@/styles/globals.css";
 import { AppChromeBottom, AppChromeTop } from "@/components/layout/AppChrome";
 import { ThemeProvider } from "@/components/ui/ThemeProvider";
+import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://quirkyhome.in"),
@@ -84,6 +85,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AppChromeTop />
         <main>{children}</main>
         <AppChromeBottom />
+        <Analytics />
       </body>
     </html>
   );
